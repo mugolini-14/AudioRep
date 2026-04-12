@@ -1,0 +1,364 @@
+/* ===================================================================
+   AudioRep — Tema Oscuro
+   Paleta:
+       bg-deep:    #12121e   (fondo de ventana)
+       bg-surface: #1e1e2e   (superficies, paneles)
+       bg-raised:  #2a2a3e   (elementos elevados, hover)
+       accent:     #7c5cbf   (color de acento principal — violeta)
+       accent-dim: #5a3d9a   (acento oscurecido, botón presionado)
+       text-main:  #e2e2f0   (texto principal)
+       text-dim:   #8888aa   (texto secundario)
+       border:     #33334a   (bordes sutiles)
+=================================================================== */
+
+/* ── Base ─────────────────────────────────────────────────────────── */
+
+QMainWindow, QWidget {
+    background-color: #12121e;
+    color: #e2e2f0;
+    font-family: "Segoe UI", "Inter", sans-serif;
+    font-size: 13px;
+}
+
+QSplitter::handle {
+    background-color: #33334a;
+}
+
+QFrame#separator {
+    background-color: #33334a;
+    max-height: 1px;
+}
+
+/* ── Paneles principales ───────────────────────────────────────────── */
+
+QWidget#nowPlayingPanel {
+    background-color: #1e1e2e;
+    border-right: 1px solid #33334a;
+}
+
+QWidget#centralPanel {
+    background-color: #12121e;
+}
+
+QLabel#placeholderLabel {
+    color: #55557a;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* ── NowPlaying ───────────────────────────────────────────────────── */
+
+QLabel#coverLabel {
+    border-radius: 6px;
+    background-color: #2a2a3e;
+}
+
+QLabel#trackTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e2e2f0;
+}
+
+QLabel#trackArtist {
+    font-size: 12px;
+    color: #a0a0c0;
+}
+
+QLabel#trackAlbum {
+    font-size: 11px;
+    color: #7070a0;
+}
+
+QLabel#trackRating {
+    font-size: 12px;
+    color: #7c5cbf;
+    letter-spacing: 2px;
+}
+
+/* ── PlayerBar ────────────────────────────────────────────────────── */
+
+QWidget#playerBar {
+    background-color: #1e1e2e;
+    border-top: 1px solid #33334a;
+    min-height: 90px;
+}
+
+/* Etiquetas de tiempo */
+QLabel#timeLabel {
+    color: #7070a0;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Botones de transporte */
+QPushButton#transportButton {
+    background-color: transparent;
+    color: #c0c0e0;
+    border: none;
+    border-radius: 18px;
+    font-size: 16px;
+}
+
+QPushButton#transportButton:hover {
+    background-color: #2a2a3e;
+    color: #e2e2f0;
+}
+
+QPushButton#transportButton:pressed {
+    background-color: #33334a;
+}
+
+/* Botón Play/Pause (más grande) */
+QPushButton#playButton {
+    background-color: #7c5cbf;
+    color: #ffffff;
+    border: none;
+    border-radius: 24px;
+    font-size: 18px;
+}
+
+QPushButton#playButton:hover {
+    background-color: #8d6dd0;
+}
+
+QPushButton#playButton:pressed {
+    background-color: #5a3d9a;
+}
+
+/* Botones de modo (shuffle / repeat) */
+QPushButton#modeButton {
+    background-color: transparent;
+    color: #55557a;
+    border: none;
+    border-radius: 18px;
+    font-size: 14px;
+}
+
+QPushButton#modeButton:hover {
+    color: #a0a0c0;
+    background-color: #2a2a3e;
+}
+
+QPushButton#modeButton:checked,
+QPushButton#modeButton[active="true"] {
+    color: #7c5cbf;
+}
+
+/* ── Sliders ──────────────────────────────────────────────────────── */
+
+QSlider::groove:horizontal {
+    height: 4px;
+    background-color: #2a2a3e;
+    border-radius: 2px;
+}
+
+QSlider::sub-page:horizontal {
+    background-color: #7c5cbf;
+    border-radius: 2px;
+}
+
+QSlider::handle:horizontal {
+    width: 12px;
+    height: 12px;
+    margin: -4px 0;
+    background-color: #c0b0e0;
+    border-radius: 6px;
+}
+
+QSlider#progressSlider::handle:horizontal {
+    background-color: #e2e2f0;
+}
+
+QSlider#volumeSlider::groove:horizontal {
+    height: 3px;
+}
+
+QSlider#volumeSlider::handle:horizontal {
+    width: 10px;
+    height: 10px;
+    margin: -3px 0;
+    background-color: #a090c0;
+}
+
+QLabel#volumeIcon {
+    color: #55557a;
+    font-size: 14px;
+}
+
+/* ── Barra de estado ──────────────────────────────────────────────── */
+
+QStatusBar {
+    background-color: #12121e;
+    color: #55557a;
+    font-size: 11px;
+    border-top: 1px solid #1e1e2e;
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────── */
+
+QScrollBar:vertical {
+    background-color: #1e1e2e;
+    width: 8px;
+    border-radius: 4px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #33334a;
+    border-radius: 4px;
+    min-height: 24px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #4a4a6a;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+QScrollBar:horizontal {
+    background-color: #1e1e2e;
+    height: 8px;
+    border-radius: 4px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #33334a;
+    border-radius: 4px;
+    min-width: 24px;
+}
+
+/* ── Tooltips ─────────────────────────────────────────────────────── */
+
+QToolTip {
+    background-color: #2a2a3e;
+    color: #e2e2f0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* ── Biblioteca ───────────────────────────────────────────────────── */
+
+QWidget#libraryToolbar {
+    background-color: #1a1a2e;
+    border-bottom: 1px solid #33334a;
+}
+
+QPushButton#importButton {
+    background-color: #2a2a3e;
+    color: #a0a0c0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-size: 12px;
+}
+
+QPushButton#importButton:hover {
+    background-color: #33334a;
+    color: #e2e2f0;
+}
+
+QLineEdit#searchBox {
+    background-color: #2a2a3e;
+    color: #e2e2f0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    selection-background-color: #7c5cbf;
+}
+
+QLineEdit#searchBox:focus {
+    border-color: #7c5cbf;
+}
+
+/* Árbol de artistas */
+QWidget#treeContainer {
+    background-color: #1a1a2e;
+    border-right: 1px solid #33334a;
+}
+
+QTreeWidget#libraryTree {
+    background-color: #1a1a2e;
+    color: #c0c0e0;
+    border: none;
+    font-size: 12px;
+    outline: none;
+}
+
+QTreeWidget#libraryTree::item {
+    padding: 4px 4px;
+    border-radius: 3px;
+}
+
+QTreeWidget#libraryTree::item:selected {
+    background-color: #33334a;
+    color: #e2e2f0;
+}
+
+QTreeWidget#libraryTree::item:hover:!selected {
+    background-color: #252535;
+}
+
+QTreeWidget#libraryTree::branch {
+    background-color: #1a1a2e;
+}
+
+/* Tabla de pistas */
+QWidget#trackTableContainer {
+    background-color: #12121e;
+}
+
+QLabel#libraryContext {
+    color: #7070a0;
+    font-size: 11px;
+    background-color: #1a1a2e;
+    border-bottom: 1px solid #2a2a3e;
+}
+
+QTableView#trackTable {
+    background-color: #12121e;
+    alternate-background-color: #16162a;
+    color: #c0c0e0;
+    border: none;
+    gridline-color: transparent;
+    selection-background-color: #2a2a4a;
+    selection-color: #e2e2f0;
+    font-size: 12px;
+    outline: none;
+}
+
+QTableView#trackTable::item {
+    padding: 3px 6px;
+}
+
+QHeaderView::section {
+    background-color: #1e1e2e;
+    color: #7070a0;
+    border: none;
+    border-bottom: 1px solid #33334a;
+    border-right: 1px solid #2a2a3e;
+    padding: 4px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+QHeaderView::section:hover {
+    background-color: #2a2a3e;
+    color: #a0a0c0;
+}
+
+QProgressBar#importProgress {
+    background-color: #2a2a3e;
+    border: none;
+    border-radius: 0;
+}
+
+QProgressBar#importProgress::chunk {
+    background-color: #7c5cbf;
+}
