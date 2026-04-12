@@ -1,0 +1,49 @@
+# ── Build / PyInstaller ───────────────────────────────────────────────────────
+build/
+dist/
+
+# Instaladores compilados (binarios pesados, no van en el repo)
+installers/windows/
+installers/linux/*.deb
+installers/*.zip
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# ── Datos de la aplicación (generados en tiempo de ejecución) ─────────────────
+data/
+*.db
+
+# ── Herramientas de desarrollo ────────────────────────────────────────────────
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ── IDE / herramientas locales ────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Configuración local de Claude Code (permisos, preferencias de sesión)
+.claude/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
