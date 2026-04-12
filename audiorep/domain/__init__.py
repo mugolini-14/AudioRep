@@ -1,24 +1,3 @@
-"""
-Capa de dominio de AudioRep.
-
-Exporta los modelos principales para facilitar imports.
-Esta capa NO tiene dependencias de infraestructura ni de UI.
-"""
-from audiorep.domain.artist import Artist
-from audiorep.domain.album import Album
-from audiorep.domain.track import Track, AudioFormat, TrackSource
-from audiorep.domain.playlist import Playlist, PlaylistEntry
-from audiorep.domain.cd_disc import CDDisc, CDTrack, RipStatus
-
-__all__ = [
-    "Artist",
-    "Album",
-    "Track",
-    "AudioFormat",
-    "TrackSource",
-    "Playlist",
-    "PlaylistEntry",
-    "CDDisc",
-    "CDTrack",
-    "RipStatus",
-]
+version https://git-lfs.github.com/spec/v1
+oid sha256:96285d78e7190fcc6e4c4e56b681e6b3fca1e7d9bbfaa1cb5287c861c4e1ca52
+size 603

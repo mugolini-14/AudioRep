@@ -5,6 +5,7 @@ dist/
 # Instaladores compilados (binarios pesados, no van en el repo)
 installers/windows/
 installers/linux/*.deb
+installers/*.zip
 
 # ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
