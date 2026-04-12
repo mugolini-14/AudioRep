@@ -79,14 +79,14 @@ Actualizar el número de versión en **tres lugares** (siempre los tres, nunca u
 
 ## PASO 5 — Actualizar README.md
 
-El `README.md` debe reflejar el estado actual de la aplicación. Actualizar:
+El `README.md` es un documento **general del proyecto**, no específico de una versión. **No debe contener números de versión en ninguna parte** (ni en el título, ni en el cuerpo). Actualizar:
 
-- El **título** (`# AudioRep X.Y — Nombre de la versión`).
 - La sección **Funciones principales**: agregar, modificar o eliminar ítems según los cambios.
 - La sección **Librerías principales**: agregar nuevas dependencias si las hay.
 - La sección **Herramientas de desarrollo**: actualizar si se agregaron herramientas.
-- La sección **Instaladores**: actualizar nombres de archivo y tamaños si cambian.
+- La sección **Instaladores**: actualizar la tabla con la nueva versión, fecha de compilación, nombre de archivo y tamaño. La tabla de instaladores es el **único lugar del README donde se indica el número de versión**, ya que su propósito es informar al usuario qué versión está disponible para descargar.
 
+El historial de versiones y fechas va exclusivamente en `VERSION_HISTORY.md`.
 El README debe redactarse en español, con tono descriptivo y conciso. No incluir detalles de implementación interna (eso va en `CLAUDE.md`).
 
 ---

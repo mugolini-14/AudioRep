@@ -1,4 +1,4 @@
-# AudioRep 0.10 — Versión Inicial
+# AudioRep
 
 AudioRep es un reproductor de música de escritorio para Windows, hecho en Python. Permite escuchar música local, gestionar una biblioteca de canciones, trabajar con CDs físicos y organizar listas de reproducción, todo desde una interfaz visual oscura y limpia.
 
@@ -72,10 +72,10 @@ Toda la inyección de dependencias ocurre en `main.py`, que actúa como raíz de
 
 ### Instaladores
 
-| Plataforma | Archivo | Tamaño |
-|---|---|---|
-| Windows 10/11 | `AudioRep-0.10.0-windows.zip` | ~118 MB |
-| Linux Debian/Ubuntu | `audiorep_0.10.0_amd64.deb` | ~84 MB |
+| Plataforma | Versión | Fecha | Archivo | Tamaño |
+|---|---|---|---|---|
+| Windows 10/11 | 0.10 | Abril 2026 | `AudioRep-0.10.0-windows.zip` | ~118 MB |
+| Linux Debian/Ubuntu | 0.10 | Abril 2026 | `audiorep_0.10.0_amd64.deb` | ~84 MB |
 
 Los instaladores están disponibles en la sección [Releases](https://github.com/mugolini-14/AudioRep/releases) del repositorio.
 
@@ -84,7 +84,7 @@ Los instaladores están disponibles en la sección [Releases](https://github.com
 El instalador es un **directorio autocontenido**. Incluye las DLLs de VLC y todos sus plugins, por lo que **no requiere ninguna instalación adicional** en el equipo del usuario final.
 
 Para instalarlo:
-1. Descargar `AudioRep-0.10.0-windows.zip` y descomprimir.
+1. Descargar el `.zip` y descomprimir.
 2. Ejecutar `AudioRep.exe`.
 
 #### Linux (Debian / Ubuntu)
@@ -93,7 +93,7 @@ El paquete `.deb` instala AudioRep en `/opt/audiorep/` y crea una entrada en el 
 
 Para instalarlo:
 ```bash
-sudo dpkg -i audiorep_0.10.0_amd64.deb
+sudo dpkg -i audiorep_<version>_amd64.deb
 sudo apt-get install -f   # instala dependencias faltantes si las hay
 ```
 
@@ -101,3 +101,5 @@ Para desinstalarlo:
 ```bash
 sudo dpkg -r audiorep
 ```
+
+Para generar una nueva versión de los instaladores, ver las instrucciones en `CLAUDE.md`.
