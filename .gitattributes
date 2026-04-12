@@ -1,9 +1,27 @@
-*.py filter=lfs diff=lfs merge=lfs -text
-*.exe filter=lfs diff=lfs merge=lfs -text
-*.deb filter=lfs diff=lfs merge=lfs -text
-*.json filter=lfs diff=lfs merge=lfs -text
-*.sh filter=lfs diff=lfs merge=lfs -text
-*.dll filter=lfs diff=lfs merge=lfs -text
-*.pyd filter=lfs diff=lfs merge=lfs -text
-*.zip filter=lfs diff=lfs merge=lfs -text
-*.html filter=lfs diff=lfs merge=lfs -text
+# ── Normalización de fin de línea ─────────────────────────────────────────────
+# Texto: siempre LF en el repositorio
+* text=auto eol=lf
+
+# Forzar LF en archivos que deben mantenerlo
+*.py    text eol=lf
+*.pyi   text eol=lf
+*.sh    text eol=lf
+*.qss   text eol=lf
+*.md    text eol=lf
+*.txt   text eol=lf
+*.toml  text eol=lf
+*.cfg   text eol=lf
+*.json  text eol=lf
+*.html  text eol=lf
+*.spec  text eol=lf
+
+# Binarios: sin conversión de línea
+*.exe   binary
+*.dll   binary
+*.pyd   binary
+*.deb   binary
+*.zip   binary
+*.png   binary
+*.jpg   binary
+*.ico   binary
+*.db    binary
