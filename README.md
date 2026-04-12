@@ -1,2 +1,109 @@
-# AudioRep
-Reproductor de Música Propio hecho en Python.
+# AudioRep 0.10 — Versión Inicial
+
+AudioRep es un reproductor de música de escritorio para Windows, hecho en Python. Permite escuchar música local, gestionar una biblioteca de canciones, trabajar con CDs físicos y organizar listas de reproducción, todo desde una interfaz visual oscura y limpia.
+
+## Funciones principales
+
+- **Reproducción de música local** — soporta MP3, FLAC, OGG, OPUS, AAC, M4A, WMA, WAV, APE y MPC. Controles de play/pausa/stop, saltar pistas, progreso y volumen.
+
+- **Biblioteca musical** — importá carpetas para agregar canciones. Navegación por artista y álbum, búsqueda en tiempo real y edición de metadatos (tags). Los archivos se organizan automáticamente siguiendo la estructura `Artista/Álbum/NN - Título`.
+
+- **Identificación automática de pistas** — usando huella de audio (AcoustID + MusicBrainz), AudioRep puede reconocer una canción y completar sus datos automáticamente.
+
+- **Soporte para CD** — detecta el disco insertado, lo identifica online y permite reproducirlo directamente o ripearlo (copiarlo) al disco en formato FLAC, MP3, OGG o WAV.
+
+- **Playlists** — creá, renombrá y eliminá listas de reproducción. También incluye listas inteligentes automáticas: las más reproducidas, las mejor valoradas y las agregadas recientemente.
+
+- **Configuración** — accesible desde el menú *Archivo → Configuración*. Permite ingresar la API key de AcoustID y definir el formato y directorio de ripeo.
+
+---
+
+## Aspectos técnicos
+
+### Lenguaje y entorno
+
+- **Python 3.11+** como lenguaje principal (compatible con 3.13).
+- **PyQt6** para toda la interfaz gráfica (ventanas, widgets, señales/slots, estilos QSS).
+
+### Librerías principales
+
+| Librería | Uso |
+|---|---|
+| `python-vlc` | Reproducción de audio y ripeo de CD (via libVLC con sout transcoding) |
+| `mutagen` | Lectura y escritura de tags en archivos de audio (ID3, Vorbis, MP4) |
+| `musicbrainzngs` | Búsqueda de metadatos de álbumes y pistas en MusicBrainz |
+| `discid` | Lectura del identificador único (disc ID) de un CD físico |
+| `pyacoustid` | Identificación de pistas por huella de audio (requiere `fpcalc` en el PATH) |
+| `Pillow` | Procesamiento de imágenes de portada |
+| `requests` | Descarga de portadas desde Cover Art Archive |
+
+### Herramientas de desarrollo
+
+| Herramienta | Uso |
+|---|---|
+| `pytest` + `pytest-qt` | Tests unitarios e integración con la UI |
+| `pytest-cov` | Cobertura de código |
+| `ruff` | Linter y formateador (máximo 100 caracteres por línea) |
+| `mypy` | Type checking estricto |
+
+### Persistencia
+
+- **Base de datos**: SQLite (sin ORM). Almacena artistas, álbumes, pistas y playlists en `data/audiorep.db`.
+- **Configuración**: `QSettings` (registro de Windows / archivo de configuración en Linux). Almacena la API key de AcoustID, formato de ripeo y directorio de salida.
+- **Portadas**: descargadas desde Cover Art Archive y cacheadas en `data/covers/`.
+
+### Arquitectura
+
+AudioRep usa **Clean Architecture** con cinco capas y dependencias en un solo sentido:
+
+```
+domain → core → services ← infrastructure
+                    ↑
+              UI (controllers → widgets)
+```
+
+- **`domain/`** — Modelos puros del negocio (`Track`, `Album`, `Artist`, `Playlist`, `CDDisc`). Sin dependencias externas.
+- **`core/`** — Contratos (interfaces `Protocol`), bus de eventos global (`app_events`), configuración persistente (`AppSettings`) y utilidades. Los services solo importan de acá, nunca de `infrastructure/`.
+- **`services/`** — Lógica de negocio. Cada service es un `QObject`. Las operaciones largas (importar biblioteca, ripear, identificar huella) se delegan a workers internos (`QThread`) para no bloquear la UI.
+- **`infrastructure/`** — Implementaciones concretas: base de datos SQLite, sistema de archivos, VLC, y clientes de APIs externas. Solo se instancian en `main.py`.
+- **`ui/`** — Widgets (solo emiten señales, no llaman services), controllers (conectan señales con services) y diálogos. El estilo visual está íntegramente en `dark.qss`.
+
+Toda la inyección de dependencias ocurre en `main.py`, que actúa como raíz de composición.
+
+### Instaladores
+
+| Plataforma | Archivo | Tamaño |
+|---|---|---|
+| Windows 10/11 | `AudioRep-0.10.0-windows.zip` | ~118 MB |
+| Linux Debian/Ubuntu | `audiorep_0.10.0_amd64.deb` | ~84 MB |
+
+Los instaladores están disponibles en la sección [Releases](https://github.com/mugolini-14/AudioRep/releases) del repositorio.
+
+#### Windows
+
+El instalador es un **directorio autocontenido**. Incluye las DLLs de VLC y todos sus plugins, por lo que **no requiere ninguna instalación adicional** en el equipo del usuario final.
+
+Para instalarlo:
+1. Descargar `AudioRep-0.10.0-windows.zip` y descomprimir.
+2. Ejecutar `AudioRep.exe`.
+
+#### Linux (Debian / Ubuntu)
+
+El paquete `.deb` instala AudioRep en `/opt/audiorep/` y crea una entrada en el menú de aplicaciones. Requiere que **VLC** esté instalado en el sistema.
+
+Para instalarlo:
+```bash
+sudo dpkg -i audiorep_0.10.0_amd64.deb
+sudo apt-get install -f   # instala dependencias faltantes si las hay
+```
+
+Para desinstalarlo:
+```bash
+sudo dpkg -r audiorep
+```
+
+Para generar una nueva versión de los instaladores, ver la sección correspondiente en `CLAUDE.md`.
+
+### Sobre CLAUDE.md
+
+El archivo `CLAUDE.md` en la raíz del proyecto es una guía para **Claude Code** (el asistente de IA usado para desarrollar este proyecto). Contiene los comandos necesarios para ejecutar, testear y lintear el proyecto, una descripción de la arquitectura en capas, las convenciones internas clave (threading, inyección de dependencias, estilos QSS) y las instrucciones completas para compilar los instaladores de cada plataforma ante cada nueva versión.
