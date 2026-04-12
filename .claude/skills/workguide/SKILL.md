@@ -1,0 +1,174 @@
+# Skill: Guía de trabajo — Release oficial de AudioRep
+
+Este archivo es la referencia obligatoria antes de comenzar cualquier nueva versión de AudioRep.
+Debe ser leído y aplicado al pie de la letra cada vez que el usuario solicite una nueva versión.
+
+---
+
+## PASO 0 — Proponer un plan de acción (REQUIERE APROBACIÓN)
+
+Antes de escribir una sola línea de código, se debe proponer un plan de acción estructurado.
+
+El plan debe:
+- Listar las funcionalidades a implementar, organizadas en **etapas numeradas** (Paso N).
+- Seguir el estándar de nomenclatura del proyecto: `Paso 1`, `Paso 2`, etc., cada uno con un nombre descriptivo.
+- Indicar qué archivos o capas se verán afectados en cada etapa (domain, core, services, infrastructure, ui).
+- Estimar si alguna etapa tiene dependencias con otras.
+- Ser presentado al usuario para su **aprobación expresa** antes de comenzar.
+
+**No se avanza al Paso 1 hasta recibir confirmación del usuario.**
+
+---
+
+## PASO 1 — Leer la documentación técnica antes de implementar
+
+Antes de escribir código, leer los documentos técnicos del proyecto ubicados en `docs/`. Son la fuente de verdad sobre cómo está construido AudioRep y deben respetarse al pie de la letra:
+
+| Archivo | Contenido |
+|---|---|
+| `docs/01_arquitectura.md` | Capas, flujo de dependencias y reglas de la arquitectura |
+| `docs/02_dominio.md` | Entidades del dominio y sus atributos |
+| `docs/03_interfaces.md` | Contratos (Protocols) que deben implementar la infraestructura |
+| `docs/04_eventos.md` | Bus de eventos global (`app_events`) y señales disponibles |
+| `docs/05_estructura_directorios.md` | Dónde va cada archivo nuevo dentro del proyecto |
+| `docs/06_guia_desarrollo.md` | Guía paso a paso para agregar features siguiendo el estándar |
+
+Si una nueva funcionalidad requiere cambios que afecten alguno de estos documentos (nuevas entidades, nuevas interfaces, nuevos eventos, etc.), **actualizar el documento correspondiente** como parte del mismo paso de implementación.
+
+## PASO 2 — Implementar las funcionalidades aprobadas
+
+Seguir el plan aprobado etapa por etapa. Aplicar en todo momento las convenciones del proyecto:
+
+### Arquitectura (Clean Architecture)
+```
+domain → core → services ← infrastructure
+                    ↑
+              UI (controllers → widgets)
+```
+- Toda la inyección de dependencias ocurre en `main.py`.
+- Los services reciben infraestructura por constructor; nunca la instancian.
+- Los widgets solo emiten señales; nunca llaman a services directamente.
+- Los controllers conectan señales de widgets con llamadas a services.
+- Las operaciones largas se delegan a workers `QThread` internos al service.
+
+### Convenciones clave
+- Nuevos widgets → asignar `setObjectName(...)` y agregar regla en `dark.qss`.
+- Nuevos services → `QObject`, workers como `_XxxWorker(QThread)` internos.
+- Nuevos repositorios → implementar el protocolo `IXxxRepository` en `core/interfaces.py`.
+- Nunca importar `infrastructure/` desde `services/`; solo usar interfaces de `core/`.
+
+---
+
+## PASO 3 — Actualizar la documentación interna del código
+
+Al terminar la implementación:
+- Actualizar el docstring de estado en `main.py` marcando los nuevos pasos como `✅`.
+- Verificar que los docstrings de clases y métodos nuevos estén completos.
+
+---
+
+## PASO 4 — Bump de versión
+
+Actualizar el número de versión en **tres lugares** (siempre los tres, nunca uno solo):
+
+1. `pyproject.toml` → `version = "X.Y.Z"`
+2. `main.py` → `app.setApplicationVersion("X.Y.Z")`
+3. `audiorep/ui/main_window.py` → ambas llamadas a `setWindowTitle(...)` → `"AudioRep X.Y"`
+
+---
+
+## PASO 5 — Actualizar README.md
+
+El `README.md` debe reflejar el estado actual de la aplicación. Actualizar:
+
+- El **título** (`# AudioRep X.Y — Nombre de la versión`).
+- La sección **Funciones principales**: agregar, modificar o eliminar ítems según los cambios.
+- La sección **Librerías principales**: agregar nuevas dependencias si las hay.
+- La sección **Herramientas de desarrollo**: actualizar si se agregaron herramientas.
+- La sección **Instaladores**: actualizar nombres de archivo y tamaños si cambian.
+
+El README debe redactarse en español, con tono descriptivo y conciso. No incluir detalles de implementación interna (eso va en `CLAUDE.md`).
+
+---
+
+## PASO 6 — Actualizar VERSION_HISTORY.md
+
+Agregar una entrada **al principio del archivo** (las versiones más recientes van primero) con el siguiente formato:
+
+```markdown
+# X.Y — Nombre de la versión
+
+**Fecha:** DD de mes de AAAA
+
+### Agregado
+- ...
+
+### Modificado
+- ...
+
+### Eliminado
+- ...
+```
+
+- Solo incluir las secciones que apliquen (si no hubo eliminaciones, omitir "Eliminado").
+- El resumen debe ser claro y orientado al usuario, no al desarrollador.
+- La fecha debe ser la del día en que se termina el desarrollo, no la de inicio.
+
+---
+
+## PASO 7 — Compilar los instaladores
+
+Compilar ambos instaladores **después de cada versión**. Ver instrucciones completas en `CLAUDE.md`.
+
+### Windows (.exe)
+```bash
+pip install -r requirements.txt
+pip install pyinstaller
+pyinstaller audiorep.spec \
+    --distpath installers/windows \
+    --workpath build/pyinstaller \
+    --noconfirm
+```
+- Requiere VLC instalado en `C:/Program Files/VideoLAN/VLC/` en la máquina de build.
+- El resultado es `installers/windows/AudioRep/AudioRep.exe` (~200+ MB, autocontenido).
+
+### Linux (.deb)
+```bash
+# Desde WSL2 con Ubuntu, en la raíz del proyecto:
+bash installers/linux/build_deb.sh
+```
+- Requiere haber instalado previamente las dependencias del sistema (ver `installers/linux/README.txt`).
+- El resultado es `installers/linux/audiorep_X.Y.Z_amd64.deb`.
+
+### Después de compilar
+- Crear el ZIP del instalador de Windows: `AudioRep-X.Y.Z-windows.zip`.
+- Publicar un nuevo **GitHub Release** (`vX.Y.Z`) con ambos archivos adjuntos.
+- El release debe incluir notas con instrucciones de instalación para cada plataforma.
+
+---
+
+## PASO 8 — Verificar .gitignore y .gitattributes
+
+Antes de que el usuario haga el commit, verificar que:
+
+- `.gitignore` excluya correctamente: `build/`, `installers/windows/`, `installers/linux/*.deb`, `installers/*.zip`, `data/`, `.claude/`.
+- `.gitattributes` no tenga archivos de texto (`.py`, `.json`, `.sh`, `.md`, etc.) configurados como LFS ni binarios.
+- Si se agregaron nuevos tipos de archivo al proyecto, actualizar ambos archivos según corresponda.
+
+**El commit y push lo realiza el usuario por terminal.**
+
+---
+
+## Checklist de cierre de versión
+
+- [ ] Plan aprobado por el usuario
+- [ ] Funcionalidades implementadas y probadas
+- [ ] Docstrings y estado en `main.py` actualizados
+- [ ] Versión bumpeada en `pyproject.toml`, `main.py` y `main_window.py`
+- [ ] `README.md` actualizado
+- [ ] `VERSION_HISTORY.md` actualizado
+- [ ] Instalador Windows compilado y probado
+- [ ] Instalador Linux (.deb) compilado
+- [ ] GitHub Release publicado con ambos instaladores adjuntos
+- [ ] `.gitignore` y `.gitattributes` verificados/actualizados
+- [ ] Commit y push realizados por el usuario vía terminal

@@ -40,8 +40,8 @@ coverage.xml
 *.suo
 *.user
 
-# Configuración local de Claude Code (permisos, preferencias de sesión)
-.claude/
+# Claude Code: ignorar solo la configuración local (permisos de sesión, personal)
+.claude/settings.local.json
 
 # ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
