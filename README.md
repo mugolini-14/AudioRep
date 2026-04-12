@@ -101,9 +101,3 @@ Para desinstalarlo:
 ```bash
 sudo dpkg -r audiorep
 ```
-
-Para generar una nueva versión de los instaladores, ver la sección correspondiente en `CLAUDE.md`.
-
-### Sobre CLAUDE.md
-
-El archivo `CLAUDE.md` en la raíz del proyecto es una guía para **Claude Code** (el asistente de IA usado para desarrollar este proyecto). Contiene los comandos necesarios para ejecutar, testear y lintear el proyecto, una descripción de la arquitectura en capas, las convenciones internas clave (threading, inyección de dependencias, estilos QSS) y las instrucciones completas para compilar los instaladores de cada plataforma ante cada nueva versión.
