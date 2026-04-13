@@ -15,6 +15,7 @@ Estado de implementación:
     ✅ Paso 8  — TaggerService + AcoustIDClient
     ✅ Paso 9  — PlaylistService + PlaylistPanel + PlaylistController
     ✅ Paso 10 — AppSettings, SettingsDialog, menú, tema QSS completo, v0.10
+    ✅ Paso 11 — Radio por internet (radio-browser.info), v0.20
 """
 import os
 import sys
@@ -54,7 +55,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.10.0")
+    app.setApplicationVersion("0.20.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
@@ -70,15 +71,17 @@ def main() -> None:
     from audiorep.infrastructure.database.repositories.album_repository import AlbumRepository
     from audiorep.infrastructure.database.repositories.track_repository import TrackRepository
     from audiorep.infrastructure.database.repositories.playlist_repository import PlaylistRepository
+    from audiorep.infrastructure.database.repositories.radio_station_repository import RadioStationRepository
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     db = DatabaseConnection(DB_PATH)
     db.connect()
 
-    artist_repo   = ArtistRepository(db)
-    album_repo    = AlbumRepository(db)
-    track_repo    = TrackRepository(db)
-    playlist_repo = PlaylistRepository(db)
+    artist_repo       = ArtistRepository(db)
+    album_repo        = AlbumRepository(db)
+    track_repo        = TrackRepository(db)
+    playlist_repo     = PlaylistRepository(db)
+    radio_station_repo = RadioStationRepository(db)
 
     logger.info("Base de datos lista en: %s", DB_PATH)
 
@@ -100,10 +103,12 @@ def main() -> None:
     from audiorep.infrastructure.api.musicbrainz_client import MusicBrainzClient
     from audiorep.infrastructure.api.coverart_client import CoverArtClient
     from audiorep.infrastructure.api.acoustid_client import AcoustIDClient
+    from audiorep.infrastructure.api.radio_browser_client import RadioBrowserClient
 
     cd_reader       = CDReader()
     cd_ripper       = CDRipper()
-    mb_client       = MusicBrainzClient(app_name="AudioRep", app_version="0.10.0")
+    mb_client       = MusicBrainzClient(app_name="AudioRep", app_version="0.20.0")
+    radio_client    = RadioBrowserClient()
     cover_client    = CoverArtClient(cache_dir=str(DATA_DIR / "covers"))
     acoustid_client = AcoustIDClient(api_key=settings.acoustid_api_key)
 
@@ -115,6 +120,7 @@ def main() -> None:
     from audiorep.services.search_service import SearchService
     from audiorep.services.ripper_service import RipperService
     from audiorep.services.tagger_service import TaggerService
+    from audiorep.services.radio_service import RadioService
 
     player_service = PlayerService(player=vlc_player, track_repo=track_repo)
     logger.info("PlayerService listo.")
@@ -162,6 +168,13 @@ def main() -> None:
     )
     logger.info("TaggerService listo.")
 
+    radio_service = RadioService(
+        player=vlc_player,
+        station_repo=radio_station_repo,
+        search_provider=radio_client,
+    )
+    logger.info("RadioService listo.")
+
     # ── UI ────────────────────────────────────────────────────────────── #
     from audiorep.ui.main_window import MainWindow
 
@@ -173,6 +186,7 @@ def main() -> None:
         search_service=search_service,
         ripper_service=ripper_service,
         tagger_service=tagger_service,
+        radio_service=radio_service,
         settings=settings,
     )
     window.show()

@@ -2,6 +2,25 @@
 
 ---
 
+# 0.20 — Radio por Internet
+
+**Fecha:** 12 de abril de 2026
+
+### Agregado
+
+- **Panel de radio** — nueva pestaña *📻 Radio* en la ventana principal
+- Búsqueda de emisoras en tiempo real a través de [radio-browser.info](https://radio-browser.info) (más de 30.000 estaciones)
+- Filtros de búsqueda por nombre, país (código ISO) y género musical
+- Reproducción de streams de radio vía VLC (HTTP, HTTPS, M3U, PLS, etc.)
+- Guardado de emisoras en la base de datos local para acceso rápido
+- Lista de favoritas — marcado/desmarcado con ♥
+- Gestión completa: guardar desde resultados, eliminar y alternar favorita desde las listas
+- Etiqueta de reproducción en curso con nombre de emisora y bitrate
+- Estilos QSS para todos los nuevos elementos visuales del panel de radio
+- Migración automática de base de datos (v2) para la nueva tabla `radio_stations`
+
+---
+
 # 0.10 — Versión Inicial
 
 **Fecha:** 12 de abril de 2026

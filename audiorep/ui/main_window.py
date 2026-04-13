@@ -46,6 +46,7 @@ from audiorep.services.cd_service import CDService
 from audiorep.services.library_service import LibraryService
 from audiorep.services.player_service import PlayerService
 from audiorep.services.playlist_service import PlaylistService
+from audiorep.services.radio_service import RadioService
 from audiorep.services.ripper_service import RipperService
 from audiorep.services.search_service import SearchService
 from audiorep.services.tagger_service import TaggerService
@@ -53,12 +54,14 @@ from audiorep.ui.controllers.cd_controller import CDController
 from audiorep.ui.controllers.library_controller import LibraryController
 from audiorep.ui.controllers.player_controller import PlayerController
 from audiorep.ui.controllers.playlist_controller import PlaylistController
+from audiorep.ui.controllers.radio_controller import RadioController
 from audiorep.ui.controllers.tagger_controller import TaggerController
 from audiorep.ui.widgets.cd_panel import CDPanel
 from audiorep.ui.widgets.library_panel import LibraryPanel
 from audiorep.ui.widgets.now_playing import NowPlaying
 from audiorep.ui.widgets.player_bar import PlayerBar
 from audiorep.ui.widgets.playlist_panel import PlaylistPanel
+from audiorep.ui.widgets.radio_panel import RadioPanel
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +80,7 @@ class MainWindow(QMainWindow):
         search_service:   Servicio de búsqueda.
         ripper_service:   Servicio de ripeo de CD.
         tagger_service:   Servicio de tags y metadatos.
+        radio_service:    Servicio de radio por internet.
         settings:         Configuración persistente de la aplicación.
     """
 
@@ -89,6 +93,7 @@ class MainWindow(QMainWindow):
         search_service:   SearchService,
         ripper_service:   RipperService,
         tagger_service:   TaggerService,
+        radio_service:    RadioService | None = None,
         settings:         AppSettings | None = None,
         parent:           QWidget | None = None,
     ) -> None:
@@ -100,6 +105,7 @@ class MainWindow(QMainWindow):
         self._search_service   = search_service
         self._ripper_service   = ripper_service
         self._tagger_service   = tagger_service
+        self._radio_service    = radio_service
         self._settings         = settings
 
         self._setup_window()
@@ -116,7 +122,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.setWindowTitle("AudioRep 0.10")
+        self.setWindowTitle("AudioRep 0.20")
         self.setMinimumSize(800, 500)
         self.resize(1100, 680)
 
@@ -171,6 +177,10 @@ class MainWindow(QMainWindow):
         self._playlist_panel = PlaylistPanel()
         self._playlist_panel.setObjectName("playlistPanel")
         self._tabs.addTab(self._playlist_panel, "♫  Playlists")
+
+        self._radio_panel = RadioPanel()
+        self._radio_panel.setObjectName("radioPanel")
+        self._tabs.addTab(self._radio_panel, "📻  Radio")
 
         splitter.addWidget(self._now_playing)
         splitter.addWidget(self._tabs)
@@ -257,6 +267,11 @@ class MainWindow(QMainWindow):
             tagger_service=self._tagger_service,
             library_panel=self._library_panel,
         )
+        if self._radio_service is not None:
+            self._radio_controller = RadioController(
+                radio_service=self._radio_service,
+                radio_panel=self._radio_panel,
+            )
 
     # ------------------------------------------------------------------
     # Stylesheet
@@ -286,7 +301,7 @@ class MainWindow(QMainWindow):
 
     def _on_track_changed(self, track) -> None:  # type: ignore[override]
         artist = track.artist_name or "Desconocido"
-        self.setWindowTitle(f"{track.title} — {artist}  ·  AudioRep 0.10")
+        self.setWindowTitle(f"{track.title} — {artist}  ·  AudioRep 0.20")
         self._status_bar.showMessage(f"▶  {track.title}  —  {artist}")
 
     def _on_cd_inserted(self, _disc_id: str) -> None:

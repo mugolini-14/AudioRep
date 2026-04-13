@@ -60,6 +60,15 @@ app_events.track_changed.connect(self._on_track_changed)
 | `rip_track_error` | `(int, str)` | (número de pista, mensaje de error) |
 | `rip_finished` | — | Ripeo completo finalizado |
 
+### Radio por Internet
+
+| Señal | Argumentos | Cuándo se emite |
+|---|---|---|
+| `radio_station_changed` | `RadioStation` | Cambia la emisora en reproducción |
+| `radio_stations_updated` | — | Se guarda, elimina o modifica una emisora |
+| `radio_playback_started` | — | Comienza la reproducción de una emisora |
+| `radio_playback_stopped` | — | Se detiene la reproducción de radio |
+
 ### UI General
 
 | Señal | Argumentos | Cuándo se emite |

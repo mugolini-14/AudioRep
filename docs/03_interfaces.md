@@ -130,6 +130,34 @@ class ICDRipper(Protocol):
 
 ---
 
+### `IRadioStationRepository` — Repositorio de Emisoras
+
+Implementado por: `infrastructure/database/repositories/radio_station_repository.py`
+
+```python
+class IRadioStationRepository(Protocol):
+    def get_by_id(self, station_id: int) -> RadioStation | None
+    def get_all(self) -> list[RadioStation]         # ordenadas por nombre
+    def get_favorites(self) -> list[RadioStation]
+    def save(self, station: RadioStation) -> RadioStation
+    def delete(self, station_id: int) -> None
+    def set_favorite(self, station_id: int, is_favorite: bool) -> None
+```
+
+---
+
+### `IRadioSearchProvider` — Búsqueda de Emisoras Online
+
+Implementado por: `infrastructure/api/radio_browser_client.py`
+
+```python
+class IRadioSearchProvider(Protocol):
+    def search(self, query="", country="", genre="", limit=50) -> list[RadioStation]
+    def get_by_id(self, radio_browser_id: str) -> RadioStation | None
+```
+
+---
+
 ## Inyección de Dependencias
 
 AudioRep usa **inyección de dependencias manual** (sin frameworks).

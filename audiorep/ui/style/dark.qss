@@ -362,3 +362,175 @@ QProgressBar#importProgress {
 QProgressBar#importProgress::chunk {
     background-color: #7c5cbf;
 }
+
+/* ── Radio por internet ───────────────────────────────────────────── */
+
+QWidget#RadioPanel {
+    background-color: #12121e;
+}
+
+/* Pestañas internas del RadioPanel */
+QTabWidget#RadioTabs::pane {
+    border: none;
+    background-color: #12121e;
+}
+
+/* Barra de búsqueda */
+QLineEdit#RadioSearchInput {
+    background-color: #2a2a3e;
+    color: #e2e2f0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    selection-background-color: #7c5cbf;
+}
+
+QLineEdit#RadioSearchInput:focus {
+    border-color: #7c5cbf;
+}
+
+QLineEdit#RadioCountryInput,
+QLineEdit#RadioGenreInput {
+    background-color: #2a2a3e;
+    color: #e2e2f0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 12px;
+}
+
+QLineEdit#RadioCountryInput:focus,
+QLineEdit#RadioGenreInput:focus {
+    border-color: #7c5cbf;
+}
+
+/* Listas de resultados y guardadas */
+QListWidget#RadioResultsList,
+QListWidget#RadioSavedList,
+QListWidget#RadioFavsList {
+    background-color: #12121e;
+    alternate-background-color: #16162a;
+    color: #c0c0e0;
+    border: none;
+    font-size: 12px;
+    outline: none;
+}
+
+QListWidget#RadioResultsList::item,
+QListWidget#RadioSavedList::item,
+QListWidget#RadioFavsList::item {
+    padding: 5px 8px;
+    border-radius: 3px;
+}
+
+QListWidget#RadioResultsList::item:selected,
+QListWidget#RadioSavedList::item:selected,
+QListWidget#RadioFavsList::item:selected {
+    background-color: #2a2a4a;
+    color: #e2e2f0;
+}
+
+QListWidget#RadioResultsList::item:hover:!selected,
+QListWidget#RadioSavedList::item:hover:!selected,
+QListWidget#RadioFavsList::item:hover:!selected {
+    background-color: #1e1e30;
+}
+
+/* Etiqueta "en reproducción" */
+QLabel#RadioNowPlaying {
+    background-color: #1a1a2e;
+    color: #7c5cbf;
+    font-size: 12px;
+    font-weight: 600;
+    border-top: 1px solid #33334a;
+    padding: 4px 0;
+}
+
+/* Botones de acción del radio */
+QPushButton#RadioBtnPlay {
+    background-color: #7c5cbf;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 4px;
+    font-size: 12px;
+}
+
+QPushButton#RadioBtnPlay:hover {
+    background-color: #8d6dd0;
+}
+
+QPushButton#RadioBtnPlay:pressed {
+    background-color: #5a3d9a;
+}
+
+QPushButton#RadioBtnPlay:disabled {
+    background-color: #2a2a3e;
+    color: #55557a;
+}
+
+QPushButton#RadioBtnStop {
+    background-color: #2a2a3e;
+    color: #e2e2f0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 5px 4px;
+    font-size: 12px;
+}
+
+QPushButton#RadioBtnStop:hover {
+    background-color: #33334a;
+}
+
+QPushButton#RadioBtnStop:disabled {
+    color: #55557a;
+    border-color: #252535;
+}
+
+QPushButton#RadioBtnSearch {
+    background-color: #5a3d9a;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 14px;
+    font-size: 12px;
+}
+
+QPushButton#RadioBtnSearch:hover {
+    background-color: #7c5cbf;
+}
+
+QPushButton#RadioBtnSearch:disabled {
+    background-color: #2a2a3e;
+    color: #55557a;
+}
+
+QPushButton#RadioBtnSave,
+QPushButton#RadioBtnDelete,
+QPushButton#RadioBtnFav {
+    background-color: #2a2a3e;
+    color: #a0a0c0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 5px 4px;
+    font-size: 12px;
+}
+
+QPushButton#RadioBtnSave:hover,
+QPushButton#RadioBtnDelete:hover,
+QPushButton#RadioBtnFav:hover {
+    background-color: #33334a;
+    color: #e2e2f0;
+}
+
+QPushButton#RadioBtnFav:hover {
+    color: #e06080;
+}
+
+QPushButton#RadioBtnSave:disabled,
+QPushButton#RadioBtnDelete:disabled,
+QPushButton#RadioBtnFav:disabled {
+    color: #33334a;
+    border-color: #252535;
+}
