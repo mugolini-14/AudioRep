@@ -1,15 +1,17 @@
 """
 PlayerBar — Barra inferior de controles de reproducción.
 
-Controles: anterior, play/pause, siguiente, stop, barra de progreso, volumen.
+Layout (2 filas, min-height 90px):
+    Fila 1: [shuffle] [prev] [PLAY] [next] [repeat]  |  track info  |  [vol icon] [vol]
+    Fila 2:           [time elapsed] [====progress====] [time total]
+
+objectNames alineados con dark.qss:
+    transportButton, playButton, modeButton,
+    timeLabel, progressSlider, volumeSlider, volumeIcon
 
 Signals:
-    play_pause_clicked: Botón de play/pause presionado.
-    stop_clicked:       Botón de stop presionado.
-    next_clicked:       Botón de siguiente presionado.
-    previous_clicked:   Botón de anterior presionado.
-    seek_requested(int): Barra de progreso arrastrada (posición en ms).
-    volume_changed(int): Deslizador de volumen cambiado (0–100).
+    play_pause_clicked, stop_clicked, next_clicked, previous_clicked,
+    seek_requested(int), volume_changed(int)
 """
 from __future__ import annotations
 
@@ -18,7 +20,9 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QSizePolicy,
     QSlider,
+    QVBoxLayout,
     QWidget,
 )
 
@@ -52,71 +56,103 @@ class PlayerBar(QWidget):
     # ------------------------------------------------------------------
 
     def _build_ui(self) -> None:
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(8, 4, 8, 4)
-        layout.setSpacing(6)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(12, 6, 12, 6)
+        outer.setSpacing(4)
 
-        # ── Controles de transporte ────────────────────────────── #
+        # ── Fila 1: controles + track info + volumen ──────────────── #
+        row1 = QHBoxLayout()
+        row1.setSpacing(6)
+
+        # Shuffle (modo)
+        self._shuffle_btn = QPushButton("⇄")
+        self._shuffle_btn.setObjectName("modeButton")
+        self._shuffle_btn.setFixedSize(32, 32)
+        self._shuffle_btn.setCheckable(True)
+        self._shuffle_btn.setToolTip("Aleatorio")
+        row1.addWidget(self._shuffle_btn)
+
+        # Anterior
         self._prev_btn = QPushButton("⏮")
-        self._prev_btn.setObjectName("playerBtnPrev")
+        self._prev_btn.setObjectName("transportButton")
         self._prev_btn.setFixedSize(36, 36)
         self._prev_btn.clicked.connect(self.previous_clicked)
-        layout.addWidget(self._prev_btn)
+        row1.addWidget(self._prev_btn)
 
+        # Play / Pause (botón principal, más grande)
         self._play_btn = QPushButton("▶")
-        self._play_btn.setObjectName("playerBtnPlay")
-        self._play_btn.setFixedSize(40, 40)
+        self._play_btn.setObjectName("playButton")
+        self._play_btn.setFixedSize(48, 48)
         self._play_btn.clicked.connect(self.play_pause_clicked)
-        layout.addWidget(self._play_btn)
+        row1.addWidget(self._play_btn)
 
-        self._stop_btn = QPushButton("⏹")
-        self._stop_btn.setObjectName("playerBtnStop")
-        self._stop_btn.setFixedSize(36, 36)
-        self._stop_btn.clicked.connect(self.stop_clicked)
-        layout.addWidget(self._stop_btn)
-
+        # Siguiente
         self._next_btn = QPushButton("⏭")
-        self._next_btn.setObjectName("playerBtnNext")
+        self._next_btn.setObjectName("transportButton")
         self._next_btn.setFixedSize(36, 36)
         self._next_btn.clicked.connect(self.next_clicked)
-        layout.addWidget(self._next_btn)
+        row1.addWidget(self._next_btn)
 
-        # ── Info de pista ──────────────────────────────────────── #
+        # Repetir (modo)
+        self._repeat_btn = QPushButton("↺")
+        self._repeat_btn.setObjectName("modeButton")
+        self._repeat_btn.setFixedSize(32, 32)
+        self._repeat_btn.setCheckable(True)
+        self._repeat_btn.setToolTip("Repetir")
+        row1.addWidget(self._repeat_btn)
+
+        row1.addSpacing(8)
+
+        # Info de pista (centro, expande)
         self._track_label = QLabel("")
-        self._track_label.setObjectName("playerTrackLabel")
-        self._track_label.setMinimumWidth(160)
-        layout.addWidget(self._track_label)
+        self._track_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._track_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
+        row1.addWidget(self._track_label, stretch=1)
 
-        # ── Posición ───────────────────────────────────────────── #
-        self._pos_label = QLabel("0:00")
-        self._pos_label.setObjectName("playerPosLabel")
-        layout.addWidget(self._pos_label)
+        row1.addSpacing(8)
 
-        self._seek_slider = QSlider(Qt.Orientation.Horizontal)
-        self._seek_slider.setObjectName("playerSeekSlider")
-        self._seek_slider.setRange(0, 1000)
-        self._seek_slider.setValue(0)
-        self._seek_slider.setTracking(True)
-        self._seek_slider.sliderPressed.connect(self._on_seek_pressed)
-        self._seek_slider.sliderReleased.connect(self._on_seek_released)
-        layout.addWidget(self._seek_slider, stretch=1)
-
-        self._dur_label = QLabel("0:00")
-        self._dur_label.setObjectName("playerDurLabel")
-        layout.addWidget(self._dur_label)
-
-        # ── Volumen ────────────────────────────────────────────── #
+        # Volumen
         vol_icon = QLabel("🔊")
-        vol_icon.setObjectName("playerVolIcon")
-        layout.addWidget(vol_icon)
+        vol_icon.setObjectName("volumeIcon")
+        row1.addWidget(vol_icon)
 
         self._vol_slider = QSlider(Qt.Orientation.Horizontal)
-        self._vol_slider.setObjectName("playerVolSlider")
+        self._vol_slider.setObjectName("volumeSlider")
         self._vol_slider.setRange(0, 100)
         self._vol_slider.setValue(70)
         self._vol_slider.setFixedWidth(80)
         self._vol_slider.valueChanged.connect(self.volume_changed)
-        layout.addWidget(self._vol_slider)
+        row1.addWidget(self._vol_slider)
+
+        outer.addLayout(row1)
+
+        # ── Fila 2: tiempo + barra de progreso + tiempo ───────────── #
+        row2 = QHBoxLayout()
+        row2.setSpacing(6)
+
+        self._pos_label = QLabel("0:00")
+        self._pos_label.setObjectName("timeLabel")
+        self._pos_label.setFixedWidth(36)
+        self._pos_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        row2.addWidget(self._pos_label)
+
+        self._seek_slider = QSlider(Qt.Orientation.Horizontal)
+        self._seek_slider.setObjectName("progressSlider")
+        self._seek_slider.setRange(0, 1000)
+        self._seek_slider.setValue(0)
+        self._seek_slider.sliderPressed.connect(self._on_seek_pressed)
+        self._seek_slider.sliderReleased.connect(self._on_seek_released)
+        row2.addWidget(self._seek_slider, stretch=1)
+
+        self._dur_label = QLabel("0:00")
+        self._dur_label.setObjectName("timeLabel")
+        self._dur_label.setFixedWidth(36)
+        self._dur_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        row2.addWidget(self._dur_label)
+
+        outer.addLayout(row2)
 
     # ------------------------------------------------------------------
     # API pública
@@ -139,6 +175,7 @@ class PlayerBar(QWidget):
     def reset_position(self) -> None:
         self._seek_slider.setValue(0)
         self._pos_label.setText("0:00")
+        self._dur_label.setText("0:00")
 
     def set_volume(self, volume: int) -> None:
         self._vol_slider.blockSignals(True)
