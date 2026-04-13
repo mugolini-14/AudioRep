@@ -42,7 +42,26 @@ class DatabaseConnection:
         self._conn = sqlite3.connect(self._path, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")
-        self._migrate()
+        try:
+            self._migrate()
+        except sqlite3.DatabaseError as exc:
+            # La BD está corrupta (disk I/O error, file is not a database, etc.).
+            # Se renombra como .bak y se crea una BD nueva desde cero.
+            logger.error("BD corrupta (%s) — se crea una nueva. Archivo original: %s.bak", exc, self._path)
+            self._conn.close()
+            db_path = Path(self._path)
+            bak_path = db_path.with_suffix(".db.bak")
+            try:
+                if bak_path.exists():
+                    bak_path.unlink()
+                db_path.rename(bak_path)
+            except OSError as rename_exc:
+                logger.warning("No se pudo renombrar la BD corrupta: %s", rename_exc)
+            # Reconectar con archivo limpio
+            self._conn = sqlite3.connect(self._path, check_same_thread=False)
+            self._conn.row_factory = sqlite3.Row
+            self._conn.execute("PRAGMA foreign_keys = ON")
+            self._migrate()
         logger.info("DatabaseConnection: conectado a %s", self._path)
 
     def close(self) -> None:
