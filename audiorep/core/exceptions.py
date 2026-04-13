@@ -1,3 +1,38 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6d7e0936b859073574dc8d310f6662eca629c6c37562bdac725ba697af6bae03
-size 4300
+"""AudioRep — Jerarquía de excepciones del dominio."""
+from __future__ import annotations
+
+
+class AudioRepError(Exception):
+    """Excepción base de AudioRep."""
+
+
+class PlayerError(AudioRepError):
+    """Error en la reproducción de audio."""
+
+
+class LibraryError(AudioRepError):
+    """Error en la biblioteca musical."""
+
+
+class CDError(AudioRepError):
+    """Error relacionado con el CD físico."""
+
+
+class RipperError(AudioRepError):
+    """Error durante el ripeo de CD."""
+
+
+class TaggerError(AudioRepError):
+    """Error al leer o escribir tags."""
+
+
+class MetadataError(AudioRepError):
+    """Error al obtener metadatos online."""
+
+
+class DatabaseError(AudioRepError):
+    """Error de acceso a la base de datos."""
+
+
+class RadioError(AudioRepError):
+    """Error en la reproducción de radio."""

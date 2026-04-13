@@ -1,3 +1,18 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:a587f2da713e23d3e2e688b3106f3a7026469ef5b1b9745d7704649ae6bba82c
-size 1288
+"""Artist — Entidad de dominio que representa un artista o banda."""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+
+@dataclass
+class Artist:
+    """Artista o banda musical."""
+
+    name:           str
+    sort_name:      str             = ""
+    musicbrainz_id: str | None      = None
+    genres:         list[str]       = field(default_factory=list)
+    id:             int | None      = None
+
+    def __str__(self) -> str:
+        return self.name

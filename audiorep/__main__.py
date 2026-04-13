@@ -1,3 +1,14 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:dc62f3734d58b6853e74cbf30694fd2128593f51d3aeffeda3e14574c051b413
-size 88
+"""Permite ejecutar AudioRep como módulo: python -m audiorep"""
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def main():
+    from main import main as _main
+    _main()
+
+
+if __name__ == "__main__":
+    main()

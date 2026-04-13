@@ -1,3 +1,26 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0b67eea64f7309b0791eda0abd57ac60a9e239911956899c4f0558e08bbf49b1
-size 2258
+"""Album — Entidad de dominio que representa un álbum musical."""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import date
+
+
+@dataclass
+class Album:
+    """Álbum musical. Agrupa pistas bajo un lanzamiento."""
+
+    title:          str
+    artist_id:      int | None      = None
+    artist_name:    str             = ""
+    year:           int | None      = None
+    release_date:   date | None     = None
+    genre:          str             = ""
+    label:          str             = ""
+    musicbrainz_id: str | None      = None
+    cover_path:     str | None      = None
+    total_tracks:   int             = 0
+    total_discs:    int             = 1
+    id:             int | None      = None
+
+    def __str__(self) -> str:
+        return f"{self.artist_name} — {self.title}"

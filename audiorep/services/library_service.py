@@ -1,3 +1,189 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ea6e83440439b0b4b879eda33d17a5696c0eee625bb10b854d8ccbf0de3233e1
-size 9794
+"""
+LibraryService — Gestiona la biblioteca de música local.
+
+Responsabilidades:
+    - Escanear directorios y agregar pistas a la base de datos.
+    - Delegar el escaneo a un worker thread para no bloquear la UI.
+    - Exponer métodos de búsqueda y listado.
+"""
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+
+from PyQt6.QtCore import QObject, QThread, pyqtSignal
+
+from audiorep.core.events import app_events
+from audiorep.core.interfaces import (
+    IAlbumRepository,
+    IArtistRepository,
+    IFileTagger,
+    ILibraryScanner,
+    ITrackRepository,
+)
+from audiorep.domain.track import Track
+
+logger = logging.getLogger(__name__)
+
+
+class _ScanWorker(QThread):
+    """Worker de escaneo de directorio. No accede a la UI."""
+
+    finished = pyqtSignal(int)   # cantidad de pistas importadas
+    progress = pyqtSignal(int, int)  # (procesadas, total)
+    error    = pyqtSignal(str)
+
+    def __init__(
+        self,
+        directory: str,
+        scanner: ILibraryScanner,
+        tagger: IFileTagger,
+        track_repo: ITrackRepository,
+        artist_repo: IArtistRepository,
+        album_repo: IAlbumRepository,
+        parent: QObject | None = None,
+    ) -> None:
+        super().__init__(parent)
+        self._directory  = directory
+        self._scanner    = scanner
+        self._tagger     = tagger
+        self._track_repo = track_repo
+        self._artist_repo = artist_repo
+        self._album_repo = album_repo
+
+    def run(self) -> None:
+        try:
+            paths = self._scanner.scan(self._directory)
+            total = len(paths)
+            imported = 0
+            for i, path in enumerate(paths):
+                self._import_file(path)
+                imported += 1
+                self.progress.emit(i + 1, total)
+            self.finished.emit(imported)
+        except Exception as exc:
+            logger.exception("Error en escaneo: %s", exc)
+            self.error.emit(str(exc))
+
+    def _import_file(self, file_path: str) -> None:
+        try:
+            tags = self._tagger.read_tags(file_path)
+            artist_name = tags.get("artist", "") or ""
+            album_title = tags.get("album", "") or ""
+
+            artist = self._artist_repo.get_or_create(artist_name)
+            album  = self._album_repo.get_or_create(
+                title=album_title,
+                artist_id=artist.id or 0,
+                artist_name=artist_name,
+            )
+
+            from audiorep.domain.track import AudioFormat, TrackSource
+            ext = Path(file_path).suffix.upper().lstrip(".")
+            try:
+                fmt = AudioFormat(ext)
+            except ValueError:
+                fmt = AudioFormat.UNKNOWN
+
+            track = Track(
+                title=tags.get("title", "") or Path(file_path).stem,
+                artist_name=artist_name,
+                album_title=album_title,
+                track_number=int(tags.get("tracknumber", 0) or 0),
+                disc_number=int(tags.get("discnumber", 1) or 1),
+                duration_ms=int(tags.get("duration_ms", 0) or 0),
+                year=int(tags.get("date", 0) or 0) or None,
+                genre=tags.get("genre", "") or "",
+                file_path=file_path,
+                format=fmt,
+                source=TrackSource.LOCAL,
+                bitrate_kbps=int(tags.get("bitrate_kbps", 0) or 0),
+                musicbrainz_id=tags.get("musicbrainz_trackid"),
+                artist_id=artist.id,
+                album_id=album.id,
+            )
+            self._track_repo.save(track)
+        except Exception as exc:
+            logger.warning("No se pudo importar %s: %s", file_path, exc)
+
+
+class LibraryService(QObject):
+    """
+    Servicio de biblioteca musical.
+
+    Args:
+        track_repo:  Repositorio de pistas.
+        artist_repo: Repositorio de artistas.
+        album_repo:  Repositorio de álbumes.
+        scanner:     Escáner de directorios.
+        tagger:      Lector de tags de archivos de audio.
+    """
+
+    def __init__(
+        self,
+        track_repo:  ITrackRepository,
+        artist_repo: IArtistRepository,
+        album_repo:  IAlbumRepository,
+        scanner:     ILibraryScanner,
+        tagger:      IFileTagger,
+        parent:      QObject | None = None,
+    ) -> None:
+        super().__init__(parent)
+        self._track_repo  = track_repo
+        self._artist_repo = artist_repo
+        self._album_repo  = album_repo
+        self._scanner     = scanner
+        self._tagger      = tagger
+        self._worker: _ScanWorker | None = None
+
+    # ------------------------------------------------------------------
+    # Escaneo
+    # ------------------------------------------------------------------
+
+    def import_directory(self, directory: str) -> None:
+        """Inicia el escaneo asíncrono de un directorio."""
+        if self._worker and self._worker.isRunning():
+            logger.warning("Ya hay un escaneo en progreso.")
+            return
+        app_events.scan_started.emit(directory)
+        self._worker = _ScanWorker(
+            directory=directory,
+            scanner=self._scanner,
+            tagger=self._tagger,
+            track_repo=self._track_repo,
+            artist_repo=self._artist_repo,
+            album_repo=self._album_repo,
+            parent=self,
+        )
+        self._worker.finished.connect(self._on_scan_finished)
+        self._worker.progress.connect(lambda p, t: app_events.scan_progress.emit(p, t))
+        self._worker.error.connect(lambda e: app_events.error_occurred.emit("Error de escaneo", e))
+        self._worker.start()
+
+    def _on_scan_finished(self, count: int) -> None:
+        app_events.scan_finished.emit(count)
+        app_events.library_updated.emit()
+        logger.info("Escaneo terminado: %d pistas importadas.", count)
+
+    # ------------------------------------------------------------------
+    # Consultas
+    # ------------------------------------------------------------------
+
+    def get_all_tracks(self) -> list[Track]:
+        return self._track_repo.get_all()
+
+    def search_tracks(self, query: str) -> list[Track]:
+        return self._track_repo.search(query)
+
+    def get_recently_added(self, limit: int = 50) -> list[Track]:
+        return self._track_repo.get_recently_added(limit)
+
+    def get_most_played(self, limit: int = 25) -> list[Track]:
+        return self._track_repo.get_most_played(limit)
+
+    def get_highest_rated(self, limit: int = 25) -> list[Track]:
+        return self._track_repo.get_highest_rated(limit)
+
+    def delete_track(self, track_id: int) -> None:
+        self._track_repo.delete(track_id)
+        app_events.library_updated.emit()
