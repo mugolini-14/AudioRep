@@ -106,6 +106,31 @@ class DatabaseConnection:
             self._conn.commit()
             logger.info("Migración v2 aplicada (radio_stations).")
 
+        # Reparación de esquema: agrega columnas que pueden faltar en bases de
+        # datos creadas antes de que se agregaran al esquema original.
+        self._repair_schema()
+
+    def _repair_schema(self) -> None:
+        """
+        Agrega columnas faltantes a tablas existentes.
+        Usa ALTER TABLE ... ADD COLUMN con try/except porque SQLite lanza
+        OperationalError si la columna ya existe.
+        """
+        assert self._conn is not None
+        repairs = [
+            ("playlists", "is_smart",    "INTEGER NOT NULL DEFAULT 0"),
+            ("playlists", "smart_query", "TEXT    NOT NULL DEFAULT '{}'"),
+        ]
+        for table, column, definition in repairs:
+            try:
+                self._conn.execute(
+                    f"ALTER TABLE {table} ADD COLUMN {column} {definition}"
+                )
+                self._conn.commit()
+                logger.info("Columna añadida: %s.%s", table, column)
+            except Exception:
+                pass  # La columna ya existe
+
     def _migrate_v1(self) -> None:
         """
         Esquema inicial: artists, albums, tracks, playlists, playlist_entries.

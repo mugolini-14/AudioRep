@@ -76,15 +76,18 @@ class PlaylistRepository(BaseRepository):
         return playlist
 
     def _row_to_playlist(self, row) -> Playlist:
-        entries = self._load_entries(row["id"])
+        # Convertir a dict para usar .get() — sqlite3.Row lanza IndexError
+        # si la columna no existe (puede pasar en DBs creadas por versiones anteriores).
+        d = dict(row)
+        entries = self._load_entries(d["id"])
         try:
-            smart_query = json.loads(row["smart_query"] or "{}")
+            smart_query = json.loads(d.get("smart_query") or "{}")
         except (json.JSONDecodeError, TypeError):
             smart_query = {}
         return Playlist(
-            id=row["id"],
-            name=row["name"],
-            is_smart=bool(row["is_smart"]),
+            id=d["id"],
+            name=d["name"],
+            is_smart=bool(d.get("is_smart", 0)),
             smart_query=smart_query,
             entries=entries,
         )
