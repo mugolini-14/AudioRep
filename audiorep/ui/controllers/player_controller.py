@@ -85,9 +85,6 @@ class PlayerController:
     # ------------------------------------------------------------------
 
     def _on_play_pause(self) -> None:
-        from PyQt6.QtCore import QObject
-        import sip  # type: ignore[import]
-        # Check using duck typing without importing VLC
         player = self._service._player
         if player.is_playing:
             self._service.pause()
