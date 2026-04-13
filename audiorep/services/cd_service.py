@@ -15,7 +15,7 @@ from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal
 
 from audiorep.core.events import app_events
 from audiorep.core.interfaces import ICDReader, IMetadataProvider
-from audiorep.domain.cd_disc import CDDisc, CDTrack
+from audiorep.domain.cd_disc import CDDisc
 from audiorep.domain.track import AudioFormat, Track, TrackSource
 
 logger = logging.getLogger(__name__)

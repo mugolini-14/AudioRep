@@ -26,6 +26,24 @@ from audiorep.domain.track import Track
 logger = logging.getLogger(__name__)
 
 
+def _parse_slash_int(value: object, default: int) -> int:
+    """Parsea enteros en formato "3" o "3/12" (estilo mutagen)."""
+    try:
+        return int(str(value).split("/")[0])
+    except (ValueError, TypeError, AttributeError):
+        return default
+
+
+def _parse_year(value: object) -> int | None:
+    """Parsea año desde strings como '2023', '2023-01-15' o None."""
+    if not value:
+        return None
+    try:
+        return int(str(value)[:4])
+    except (ValueError, TypeError):
+        return None
+
+
 class _ScanWorker(QThread):
     """Worker de escaneo de directorio. No accede a la UI."""
 
@@ -89,10 +107,10 @@ class _ScanWorker(QThread):
                 title=tags.get("title", "") or Path(file_path).stem,
                 artist_name=artist_name,
                 album_title=album_title,
-                track_number=int(tags.get("tracknumber", 0) or 0),
-                disc_number=int(tags.get("discnumber", 1) or 1),
+                track_number=_parse_slash_int(tags.get("tracknumber"), 0),
+                disc_number=_parse_slash_int(tags.get("discnumber"), 1),
                 duration_ms=int(tags.get("duration_ms", 0) or 0),
-                year=int(tags.get("date", 0) or 0) or None,
+                year=_parse_year(tags.get("date")),
                 genre=tags.get("genre", "") or "",
                 file_path=file_path,
                 format=fmt,

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 
-from PyQt6.QtCore import QObject, QTimer, pyqtSignal
+from PyQt6.QtCore import QObject, QTimer
 
 from audiorep.core.events import app_events
 from audiorep.core.interfaces import IAudioPlayer, ITrackRepository
@@ -41,6 +41,7 @@ class PlayerService(QObject):
         self._queue: list[Track] = []
         self._current_index: int = -1
         self._current_track: Track | None = None
+        self._finish_pending: bool = False   # evita que el timer dispare _on_track_finished varias veces
 
         # Poll position every 500 ms
         self._timer = QTimer(self)
@@ -117,11 +118,6 @@ class PlayerService(QObject):
     # Internals
     # ------------------------------------------------------------------
 
-    def _play_current(self) -> None:
-        if 0 <= self._current_index < len(self._queue):
-            track = self._queue[self._current_index]
-            self.play(track)
-
     def _poll_position(self) -> None:
         if not self._player.is_playing and not self._player.is_paused:
             return
@@ -129,8 +125,10 @@ class PlayerService(QObject):
         dur = self._player.get_duration_ms()
         if dur > 0:
             app_events.position_changed.emit(pos, dur)
-            # Auto-advance when track finishes (within 500ms of end)
-            if pos > 0 and dur > 0 and pos >= dur - 600:
+            # Auto-advance cuando la pista termina (últimos 600 ms).
+            # _finish_pending evita que el timer lo llame varias veces seguidas.
+            if not self._finish_pending and pos > 0 and pos >= dur - 600:
+                self._finish_pending = True
                 self._on_track_finished()
 
     def _on_track_finished(self) -> None:
@@ -141,3 +139,9 @@ class PlayerService(QObject):
                 logger.warning("No se pudo actualizar play_count: %s", exc)
         app_events.track_finished.emit()
         self.next_track()
+
+    def _play_current(self) -> None:
+        self._finish_pending = False   # reset al iniciar pista nueva
+        if 0 <= self._current_index < len(self._queue):
+            track = self._queue[self._current_index]
+            self.play(track)

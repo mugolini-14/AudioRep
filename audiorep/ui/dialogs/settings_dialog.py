@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
@@ -61,7 +61,7 @@ class SettingsDialog(QDialog):
         layout = QVBoxLayout(self)
         form   = QFormLayout()
         form.setLabelAlignment(
-            __import__("PyQt6.QtCore", fromlist=["Qt"]).Qt.AlignmentFlag.AlignRight
+            Qt.AlignmentFlag.AlignRight
         )
 
         # AcoustID API key
