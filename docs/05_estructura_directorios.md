@@ -87,11 +87,12 @@ audiorep/                                ← raíz del proyecto
 │       │
 │       ├── widgets/                     ← Componentes visuales reutilizables
 │       │   ├── __init__.py
-│       │   ├── player_bar.py            ← Play/Pausa/Sig./Vol./Progreso
+│       │   ├── player_bar.py            ← Play/Pausa/Stop/Sig./Vol./Progreso
 │       │   ├── library_panel.py         ← Árbol Artistas > Álbumes > Pistas
-│       │   ├── now_playing.py           ← Portada + info de la pista actual
-│       │   ├── cd_panel.py              ← Estado del CD, pistas, botón ripear
-│       │   ├── playlist_panel.py        ← Cola de reproducción
+│       │   ├── now_playing.py           ← Portada + info de la pista actual (panel derecho)
+│       │   ├── cd_panel.py              ← Estado del CD, selector de lectora, pistas, ripeo
+│       │   ├── playlist_panel.py        ← Gestión de playlists + grilla estándar
+│       │   ├── vu_meter.py              ← Vúmetro animado con barras de colores (panel derecho)
 │       │   └── search_bar.py
 │       │
 │       ├── dialogs/                     ← Ventanas modales

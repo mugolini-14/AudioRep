@@ -5,11 +5,13 @@ Responsabilidades:
     - Sondear la unidad de CD periódicamente.
     - Identificar el disco en MusicBrainz.
     - Descargar portada y emitir CDDisc completo vía app_events.
-    - Convertir pistas de CD a objetos Track para el PlayerService.
+    - Convertir pistas de CD a objetos Track con URIs CDDA para VLC.
+    - Exponer la lista de lectoras disponibles y permitir cambiar la lectora activa.
 """
 from __future__ import annotations
 
 import logging
+import sys
 
 from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal
 
@@ -47,17 +49,17 @@ class _IdentifyWorker(QThread):
                 return
 
             best = results[0]
-            self._disc.album_title  = best.get("album", self._disc.album_title)
-            self._disc.artist_name  = best.get("artist", self._disc.artist_name)
-            self._disc.year         = best.get("year", self._disc.year)
+            self._disc.album_title    = best.get("album", self._disc.album_title)
+            self._disc.artist_name    = best.get("artist", self._disc.artist_name)
+            self._disc.year           = best.get("year", self._disc.year)
             self._disc.musicbrainz_id = best.get("release_id", "")
-            self._disc.genre        = best.get("genre", "")
+            self._disc.genre          = best.get("genre", "")
 
-            # Actualizar títulos de pistas si están disponibles
+            # Actualizar títulos y musicbrainz_id de pistas si están disponibles
             mb_tracks = best.get("tracks", [])
             for i, cd_track in enumerate(self._disc.tracks):
                 if i < len(mb_tracks):
-                    cd_track.title = mb_tracks[i].get("title", cd_track.title)
+                    cd_track.title          = mb_tracks[i].get("title", cd_track.title)
                     cd_track.musicbrainz_id = mb_tracks[i].get("recording_id", "")
 
             # Descargar portada
@@ -93,11 +95,12 @@ class CDService(QObject):
         parent: QObject | None = None,
     ) -> None:
         super().__init__(parent)
-        self._reader   = reader
-        self._provider = metadata_provider
-        self._covers   = cover_client
+        self._reader          = reader
+        self._provider        = metadata_provider
+        self._covers          = cover_client
         self._current_disc: CDDisc | None = None
-        self._last_disc_id: str | None = None
+        self._last_disc_id: str | None    = None
+        self._selected_drive: str         = ""
         self._worker: _IdentifyWorker | None = None
 
         self._poll_timer = QTimer(self)
@@ -122,10 +125,19 @@ class CDService(QObject):
     def current_disc(self) -> CDDisc | None:
         return self._current_disc
 
+    def set_drive(self, drive: str) -> None:
+        """Cambia la lectora activa. El próximo sondeo usará esta unidad."""
+        self._selected_drive = drive
+        logger.info("CDService: lectora activa → %r", drive)
+
+    def list_drives(self) -> list[str]:
+        """Retorna la lista de lectoras disponibles."""
+        return self._reader.list_drives()
+
     def detect_cd(self) -> CDDisc | None:
-        """Detecta el CD en la unidad de forma síncrona."""
+        """Detecta el CD en la unidad activa de forma síncrona."""
         try:
-            disc = self._reader.read_disc()
+            disc = self._reader.read_disc(self._selected_drive)
             self._current_disc = disc
             return disc
         except Exception:
@@ -151,11 +163,16 @@ class CDService(QObject):
         self._worker.start()
 
     def get_tracks_as_domain(self) -> list[Track]:
-        """Convierte las pistas del CDDisc actual en objetos Track."""
+        """
+        Convierte las pistas del CDDisc actual en objetos Track con
+        URIs CDDA compatibles con VLC (cdda://<device>@<track>).
+        """
         if self._current_disc is None:
             return []
+        drive = self._current_disc.drive_path or self._selected_drive or ""
         tracks: list[Track] = []
         for cd_track in self._current_disc.tracks:
+            file_path = self._build_cdda_uri(drive, cd_track.number)
             track = Track(
                 title=cd_track.title or f"Pista {cd_track.number}",
                 artist_name=self._current_disc.artist_name or "",
@@ -164,8 +181,8 @@ class CDService(QObject):
                 duration_ms=cd_track.duration_ms,
                 format=AudioFormat.CD,
                 source=TrackSource.CD,
-                musicbrainz_id=cd_track.musicbrainz_id or None,
-                file_path=cd_track.file_path,
+                musicbrainz_id=cd_track.musicbrainz_id,
+                file_path=file_path,
             )
             tracks.append(track)
         return tracks
@@ -174,9 +191,27 @@ class CDService(QObject):
     # Internals
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _build_cdda_uri(drive: str, track_number: int) -> str:
+        """
+        Construye un URI CDDA compatible con VLC.
+
+        Formatos:
+            Linux:   cdda:///dev/sr0@1
+            Windows: cdda:///D:@1
+        """
+        if not drive:
+            return f"cdda://@{track_number}"
+        drive = drive.rstrip("/\\")
+        if drive.startswith("/"):
+            # Linux: el path ya es absoluto, p.ej. /dev/sr0
+            return f"cdda://{drive}@{track_number}"
+        # Windows: letra de unidad, p.ej. D:
+        return f"cdda:///{drive}@{track_number}"
+
     def _poll_drive(self) -> None:
         try:
-            disc = self._reader.read_disc()
+            disc = self._reader.read_disc(self._selected_drive)
             if disc.disc_id != self._last_disc_id:
                 self._last_disc_id = disc.disc_id
                 self._current_disc = disc

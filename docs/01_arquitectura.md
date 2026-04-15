@@ -4,7 +4,8 @@
 
 AudioRep es un reproductor de música de escritorio desarrollado en Python con PyQt6.
 Soporta reproducción de archivos locales (MP3, FLAC, OGG, etc.) y CDs físicos,
-ripeo de CDs, identificación automática de metadatos vía internet y edición de tags.
+ripeo de CDs, identificación automática de metadatos vía internet, edición de tags
+y radio por internet.
 
 La arquitectura sigue los principios de **Clean Architecture**:
 las capas internas no conocen a las externas, y las dependencias siempre apuntan
@@ -92,6 +93,31 @@ cd_service      = CDService(reader=CDReader(), metadata=mb_client)
 
 window = MainWindow(player_service, library_service, cd_service)
 ```
+
+---
+
+## Layout de la Ventana Principal (v0.25+)
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  [Biblioteca][CD][Playlists][Radio]  │  NowPlaying (top)  │
+│  LibraryPanel / CDPanel /            │  (portada + info)  │
+│  PlaylistPanel / RadioPanel          ├────────────────────┤
+│                                      │  VU Meter (bottom) │
+├──────────────────────────────────────────────────────────  ┤
+│  Barra de estado                                           │
+├────────────────────────────────────────────────────────────┤
+│  PlayerBar (transportFrame + progreso + volumen)           │
+└────────────────────────────────────────────────────────────┘
+```
+
+- El **panel derecho** (NowPlaying + VU Meter) está fijo a la derecha de la ventana
+  con un ancho entre 210 y 320 px.
+- El **NowPlaying** muestra portada, título, artista y álbum.
+- El **VU Meter** anima barras de colores (verde → amarillo → rojo) en respuesta
+  a los eventos `playback_started`, `playback_paused` y `playback_stopped`.
+- Los **controles de reproducción** (shuffle, prev, stop, play, next, repeat) están
+  envueltos en un `QFrame#transportFrame` con bordes redondeados.
 
 ---
 

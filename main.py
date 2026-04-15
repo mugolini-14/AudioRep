@@ -16,6 +16,7 @@ Estado de implementación:
     ✅ Paso 9  — PlaylistService + PlaylistPanel + PlaylistController
     ✅ Paso 10 — AppSettings, SettingsDialog, menú, tema QSS completo, v0.10
     ✅ Paso 11 — Radio por internet (radio-browser.info), v0.20
+    ✅ Paso 12 — UI 0.25: pestañas, controles, CD multi-lectora, playlist, VU meter, NowPlaying derecha
 """
 import os
 import sys
@@ -55,7 +56,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.20.0")
+    app.setApplicationVersion("0.25.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
@@ -107,7 +108,7 @@ def main() -> None:
 
     cd_reader       = CDReader()
     cd_ripper       = CDRipper()
-    mb_client       = MusicBrainzClient(app_name="AudioRep", app_version="0.20.0")
+    mb_client       = MusicBrainzClient(app_name="AudioRep", app_version="0.25.0")
     radio_client    = RadioBrowserClient()
     cover_client    = CoverArtClient(cache_dir=str(DATA_DIR / "covers"))
     acoustid_client = AcoustIDClient(api_key=settings.acoustid_api_key)

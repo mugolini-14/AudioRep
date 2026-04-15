@@ -103,12 +103,13 @@ class PlaylistPanel(QWidget):
 
         self._track_model = TrackTableModel()
         self._track_table = QTableView()
-        self._track_table.setObjectName("playlistTrackTable")
+        self._track_table.setObjectName("trackTable")
         self._track_table.setModel(self._track_model)
         self._track_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self._track_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self._track_table.setAlternatingRowColors(True)
         self._track_table.verticalHeader().setVisible(False)
+        self._track_table.horizontalHeader().setStretchLastSection(True)
         self._track_table.doubleClicked.connect(self._on_track_double_clicked)
         right_layout.addWidget(self._track_table)
 

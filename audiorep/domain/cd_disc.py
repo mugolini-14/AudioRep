@@ -17,13 +17,14 @@ class RipStatus(str, Enum):
 class CDTrack:
     """Pista de un CD físico."""
 
-    number:      int
-    duration_ms: int            = 0
-    offset:      int            = 0        # offset en sectores (para Disc ID)
-    rip_status:  RipStatus      = RipStatus.PENDING
-    ripped_path: str | None     = None
-    title:       str            = ""
-    artist_name: str            = ""
+    number:         int
+    duration_ms:    int             = 0
+    offset:         int             = 0        # offset en sectores (para Disc ID)
+    rip_status:     RipStatus       = RipStatus.PENDING
+    ripped_path:    str | None      = None
+    title:          str             = ""
+    artist_name:    str             = ""
+    musicbrainz_id: str | None      = None
 
 
 @dataclass

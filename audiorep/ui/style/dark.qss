@@ -31,11 +31,6 @@ QFrame#separator {
 
 /* ── Paneles principales ───────────────────────────────────────────── */
 
-QWidget#nowPlayingPanel {
-    background-color: #1e1e2e;
-    border-right: 1px solid #33334a;
-}
-
 QWidget#centralPanel {
     background-color: #12121e;
 }
@@ -533,4 +528,185 @@ QPushButton#RadioBtnDelete:disabled,
 QPushButton#RadioBtnFav:disabled {
     color: #33334a;
     border-color: #252535;
+}
+
+/* ── Pestañas principales (mainTabs) ─────────────────────────────── */
+
+QTabWidget#mainTabs::pane {
+    border: none;
+    background-color: #12121e;
+}
+
+QTabWidget#mainTabs > QTabBar {
+    alignment: left;
+}
+
+QTabBar::tab {
+    background-color: #1e1e2e;
+    color: #55557a;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+QTabBar::tab:hover {
+    background-color: #2a2a3e;
+    color: #a0a0c0;
+}
+
+QTabBar::tab:selected {
+    background-color: #2a2a3e;
+    color: #e2e2f0;
+    border-bottom: 2px solid #7c5cbf;
+}
+
+/* ── TransportFrame (contenedor de botones de transporte) ─────────── */
+
+QFrame#transportFrame {
+    background-color: #252538;
+    border-radius: 30px;
+    border: 1px solid #33334a;
+}
+
+/* ── Panel derecho (NowPlaying + VU meter) ───────────────────────── */
+
+QWidget#rightPanel {
+    background-color: #1e1e2e;
+    border-left: 1px solid #33334a;
+}
+
+QWidget#nowPlayingPanel {
+    background-color: #1e1e2e;
+}
+
+/* ── VU Meter ─────────────────────────────────────────────────────── */
+
+QWidget#vuMeter {
+    background-color: #12121e;
+    border-top: 1px solid #2a2a3e;
+}
+
+/* ── Playlist ─────────────────────────────────────────────────────── */
+
+QListWidget#playlistList {
+    background-color: #1a1a2e;
+    color: #c0c0e0;
+    border: none;
+    font-size: 12px;
+    outline: none;
+}
+
+QListWidget#playlistList::item {
+    padding: 5px 6px;
+    border-radius: 3px;
+}
+
+QListWidget#playlistList::item:selected {
+    background-color: #33334a;
+    color: #e2e2f0;
+}
+
+QListWidget#playlistList::item:hover:!selected {
+    background-color: #252535;
+}
+
+QPushButton#playlistNewBtn,
+QPushButton#playlistRenameBtn,
+QPushButton#playlistDeleteBtn,
+QPushButton#playlistPlayBtn,
+QPushButton#playlistRemoveBtn {
+    background-color: #2a2a3e;
+    color: #a0a0c0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+QPushButton#playlistNewBtn:hover,
+QPushButton#playlistRenameBtn:hover,
+QPushButton#playlistDeleteBtn:hover,
+QPushButton#playlistPlayBtn:hover,
+QPushButton#playlistRemoveBtn:hover {
+    background-color: #33334a;
+    color: #e2e2f0;
+}
+
+/* ── CD Panel ─────────────────────────────────────────────────────── */
+
+QComboBox#cdDriveCombo {
+    background-color: #2a2a3e;
+    color: #c0c0e0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+}
+
+QComboBox#cdDriveCombo::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox#cdDriveCombo QAbstractItemView {
+    background-color: #2a2a3e;
+    color: #c0c0e0;
+    border: 1px solid #33334a;
+    selection-background-color: #7c5cbf;
+}
+
+QLabel#cdDriveLabel {
+    color: #7070a0;
+    font-size: 12px;
+}
+
+QPushButton#cdDetectBtn,
+QPushButton#cdIdentifyBtn,
+QPushButton#cdPlayBtn,
+QPushButton#cdRipAllBtn {
+    background-color: #2a2a3e;
+    color: #a0a0c0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+QPushButton#cdDetectBtn:hover,
+QPushButton#cdIdentifyBtn:hover,
+QPushButton#cdPlayBtn:hover,
+QPushButton#cdRipAllBtn:hover {
+    background-color: #33334a;
+    color: #e2e2f0;
+}
+
+QPushButton#cdPlayBtn {
+    background-color: #5a3d9a;
+    color: #ffffff;
+    border-color: #7c5cbf;
+}
+
+QPushButton#cdPlayBtn:hover {
+    background-color: #7c5cbf;
+}
+
+QListWidget#cdTrackList {
+    background-color: #12121e;
+    alternate-background-color: #16162a;
+    color: #c0c0e0;
+    border: none;
+    font-size: 12px;
+    outline: none;
+}
+
+QListWidget#cdTrackList::item {
+    padding: 4px 8px;
+}
+
+QListWidget#cdTrackList::item:selected {
+    background-color: #2a2a4a;
+    color: #e2e2f0;
 }

@@ -4,6 +4,7 @@ CDReader — Implementación de ICDReader usando la librería discid.
 from __future__ import annotations
 
 import logging
+import sys
 
 import discid
 
@@ -18,7 +19,8 @@ class CDReader:
     def read_disc(self, drive: str = "") -> CDDisc:
         """Lee el CD en la unidad dada y retorna un CDDisc."""
         try:
-            disc = discid.read(drive or None)
+            actual_drive = drive or discid.get_default_device() or ""
+            disc = discid.read(actual_drive or None)
             tracks = [
                 CDTrack(
                     number=t.number,
@@ -30,7 +32,7 @@ class CDReader:
             ]
             return CDDisc(
                 disc_id=disc.id,
-                drive_path=drive or "",
+                drive_path=actual_drive,
                 tracks=tracks,
             )
         except Exception as exc:
@@ -38,9 +40,49 @@ class CDReader:
             raise
 
     def list_drives(self) -> list[str]:
-        """Retorna lista de unidades de CD disponibles."""
+        """Retorna lista de unidades de CD disponibles en el sistema."""
+        drives: list[str] = []
+
+        if sys.platform == "win32":
+            drives = self._list_drives_windows()
+        else:
+            drives = self._list_drives_linux()
+
+        # Fallback: usar la unidad por defecto de discid
+        if not drives:
+            try:
+                default = discid.get_default_device()
+                if default:
+                    drives.append(default)
+            except Exception:
+                pass
+
+        return drives or [""]
+
+    # ------------------------------------------------------------------
+    # Internals
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _list_drives_windows() -> list[str]:
+        """Enumera unidades de CD en Windows vía GetLogicalDrives."""
+        drives: list[str] = []
         try:
-            default = discid.get_default_device()
-            return [default] if default else []
-        except Exception:
-            return []
+            import ctypes
+            bitmask = ctypes.windll.kernel32.GetLogicalDrives()  # type: ignore[attr-defined]
+            for i in range(26):
+                if bitmask & (1 << i):
+                    letter = chr(65 + i) + ":"
+                    drive_type = ctypes.windll.kernel32.GetDriveTypeW(letter + "\\")  # type: ignore[attr-defined]
+                    if drive_type == 5:  # DRIVE_CDROM = 5
+                        drives.append(letter)
+        except Exception as exc:
+            logger.warning("CDReader._list_drives_windows: %s", exc)
+        return drives
+
+    @staticmethod
+    def _list_drives_linux() -> list[str]:
+        """Enumera unidades de CD en Linux buscando paths comunes."""
+        import os
+        candidates = ["/dev/cdrom", "/dev/sr0", "/dev/sr1", "/dev/dvd", "/dev/dvdrw"]
+        return [p for p in candidates if os.path.exists(p)]

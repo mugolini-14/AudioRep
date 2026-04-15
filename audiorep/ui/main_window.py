@@ -2,15 +2,17 @@
 MainWindow — Ventana principal de AudioRep.
 
 Layout general:
-    ┌──────────────────────────────────────────────┐
-    │  NowPlaying  │  [Biblioteca][CD][Playlists]  │
-    │  (portada +  │  LibraryPanel / CDPanel /     │
-    │   info)      │  PlaylistPanel                │
-    ├──────────────────────────────────────────────┤
-    │  Barra de estado                             │
-    ├──────────────────────────────────────────────┤
-    │  PlayerBar (controles + progreso + volumen)  │
-    └──────────────────────────────────────────────┘
+    ┌──────────────────────────────────────────────────────┐
+    │  [Biblioteca][CD][Playlists][Radio]  │  NowPlaying  │
+    │  LibraryPanel / CDPanel /           │  (portada +  │
+    │  PlaylistPanel / RadioPanel         │   info)      │
+    │                                     ├──────────────┤
+    │                                     │  VU Meter    │
+    ├─────────────────────────────────────────────────────┤
+    │  Barra de estado                                    │
+    ├─────────────────────────────────────────────────────┤
+    │  PlayerBar (controles + progreso + volumen)         │
+    └─────────────────────────────────────────────────────┘
 
 Responsabilidades:
     - Instanciar y disponer todos los widgets.
@@ -62,6 +64,7 @@ from audiorep.ui.widgets.now_playing import NowPlaying
 from audiorep.ui.widgets.player_bar import PlayerBar
 from audiorep.ui.widgets.playlist_panel import PlaylistPanel
 from audiorep.ui.widgets.radio_panel import RadioPanel
+from audiorep.ui.widgets.vu_meter import VUMeterWidget
 
 logger = logging.getLogger(__name__)
 
@@ -122,9 +125,9 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.setWindowTitle("AudioRep 0.20")
-        self.setMinimumSize(800, 500)
-        self.resize(1100, 680)
+        self.setWindowTitle("AudioRep 0.25")
+        self.setMinimumSize(860, 520)
+        self.resize(1200, 700)
 
     # ------------------------------------------------------------------
     # Construcción del layout
@@ -154,14 +157,7 @@ class MainWindow(QMainWindow):
         splitter.setObjectName("mainSplitter")
         splitter.setHandleWidth(1)
 
-        self._now_playing = NowPlaying()
-        self._now_playing.setObjectName("nowPlayingPanel")
-        self._now_playing.setMinimumWidth(220)
-        self._now_playing.setMaximumWidth(320)
-        self._now_playing.setSizePolicy(
-            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding
-        )
-
+        # ── Pestañas (ocupa la mayor parte) ─────────────────────── #
         self._tabs = QTabWidget()
         self._tabs.setObjectName("mainTabs")
         self._tabs.setDocumentMode(True)
@@ -182,10 +178,35 @@ class MainWindow(QMainWindow):
         self._radio_panel.setObjectName("radioPanel")
         self._tabs.addTab(self._radio_panel, "📻  Radio")
 
-        splitter.addWidget(self._now_playing)
+        # ── Panel derecho: NowPlaying + VU meter ─────────────────── #
+        right_panel = QWidget()
+        right_panel.setObjectName("rightPanel")
+        right_panel.setMinimumWidth(210)
+        right_panel.setMaximumWidth(320)
+        right_panel.setSizePolicy(
+            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding
+        )
+
+        right_layout = QVBoxLayout(right_panel)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(0)
+
+        self._now_playing = NowPlaying()
+        self._now_playing.setObjectName("nowPlayingPanel")
+        right_layout.addWidget(self._now_playing, stretch=1)
+
+        right_layout.addWidget(self._make_separator())
+
+        self._vu_meter = VUMeterWidget()
+        self._vu_meter.setObjectName("vuMeter")
+        self._vu_meter.setFixedHeight(90)
+        right_layout.addWidget(self._vu_meter)
+
         splitter.addWidget(self._tabs)
-        splitter.setStretchFactor(0, 0)
-        splitter.setStretchFactor(1, 1)
+        splitter.addWidget(right_panel)
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 0)
+
         return splitter
 
     @staticmethod
@@ -225,7 +246,6 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def _on_settings_saved(self) -> None:
-        # Actualizar la API key en el cliente AcoustID sin reiniciar
         tagger_controller = getattr(self, "_tagger_controller", None)
         if tagger_controller is not None:
             client = getattr(tagger_controller._service, "_fingerprinter", None)
@@ -301,7 +321,7 @@ class MainWindow(QMainWindow):
 
     def _on_track_changed(self, track) -> None:  # type: ignore[override]
         artist = track.artist_name or "Desconocido"
-        self.setWindowTitle(f"{track.title} — {artist}  ·  AudioRep 0.20")
+        self.setWindowTitle(f"{track.title} — {artist}  ·  AudioRep 0.25")
         self._status_bar.showMessage(f"▶  {track.title}  —  {artist}")
 
     def _on_cd_inserted(self, _disc_id: str) -> None:

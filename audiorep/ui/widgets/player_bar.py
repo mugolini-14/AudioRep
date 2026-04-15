@@ -2,11 +2,12 @@
 PlayerBar — Barra inferior de controles de reproducción.
 
 Layout (2 filas, min-height 90px):
-    Fila 1: [shuffle] [prev] [PLAY] [next] [repeat]  |  track info  |  [vol icon] [vol]
-    Fila 2:           [time elapsed] [====progress====] [time total]
+    Fila 1: [transportFrame: shuffle | prev | stop | PLAY | next | repeat]
+            | track info | [vol icon] [vol]
+    Fila 2: [time elapsed] [====progress====] [time total]
 
 objectNames alineados con dark.qss:
-    transportButton, playButton, modeButton,
+    transportFrame, transportButton, playButton, stopButton, modeButton,
     timeLabel, progressSlider, volumeSlider, volumeIcon
 
 Signals:
@@ -17,6 +18,7 @@ from __future__ import annotations
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -57,51 +59,69 @@ class PlayerBar(QWidget):
 
     def _build_ui(self) -> None:
         outer = QVBoxLayout(self)
-        outer.setContentsMargins(12, 6, 12, 6)
+        outer.setContentsMargins(16, 8, 16, 8)
         outer.setSpacing(4)
 
         # ── Fila 1: controles + track info + volumen ──────────────── #
         row1 = QHBoxLayout()
-        row1.setSpacing(6)
+        row1.setSpacing(8)
+
+        # Contenedor redondeado para todos los botones de transporte
+        transport_frame = QFrame()
+        transport_frame.setObjectName("transportFrame")
+        transport_layout = QHBoxLayout(transport_frame)
+        transport_layout.setContentsMargins(14, 6, 14, 6)
+        transport_layout.setSpacing(4)
 
         # Shuffle (modo)
         self._shuffle_btn = QPushButton("⇄")
         self._shuffle_btn.setObjectName("modeButton")
-        self._shuffle_btn.setFixedSize(32, 32)
+        self._shuffle_btn.setFixedSize(38, 38)
         self._shuffle_btn.setCheckable(True)
         self._shuffle_btn.setToolTip("Aleatorio")
-        row1.addWidget(self._shuffle_btn)
+        transport_layout.addWidget(self._shuffle_btn)
 
         # Anterior
         self._prev_btn = QPushButton("⏮")
         self._prev_btn.setObjectName("transportButton")
-        self._prev_btn.setFixedSize(36, 36)
+        self._prev_btn.setFixedSize(42, 42)
+        self._prev_btn.setToolTip("Anterior")
         self._prev_btn.clicked.connect(self.previous_clicked)
-        row1.addWidget(self._prev_btn)
+        transport_layout.addWidget(self._prev_btn)
+
+        # Stop
+        self._stop_btn = QPushButton("⏹")
+        self._stop_btn.setObjectName("transportButton")
+        self._stop_btn.setFixedSize(42, 42)
+        self._stop_btn.setToolTip("Detener")
+        self._stop_btn.clicked.connect(self.stop_clicked)
+        transport_layout.addWidget(self._stop_btn)
 
         # Play / Pause (botón principal, más grande)
         self._play_btn = QPushButton("▶")
         self._play_btn.setObjectName("playButton")
-        self._play_btn.setFixedSize(48, 48)
+        self._play_btn.setFixedSize(54, 54)
         self._play_btn.clicked.connect(self.play_pause_clicked)
-        row1.addWidget(self._play_btn)
+        transport_layout.addWidget(self._play_btn)
 
         # Siguiente
         self._next_btn = QPushButton("⏭")
         self._next_btn.setObjectName("transportButton")
-        self._next_btn.setFixedSize(36, 36)
+        self._next_btn.setFixedSize(42, 42)
+        self._next_btn.setToolTip("Siguiente")
         self._next_btn.clicked.connect(self.next_clicked)
-        row1.addWidget(self._next_btn)
+        transport_layout.addWidget(self._next_btn)
 
         # Repetir (modo)
         self._repeat_btn = QPushButton("↺")
         self._repeat_btn.setObjectName("modeButton")
-        self._repeat_btn.setFixedSize(32, 32)
+        self._repeat_btn.setFixedSize(38, 38)
         self._repeat_btn.setCheckable(True)
         self._repeat_btn.setToolTip("Repetir")
-        row1.addWidget(self._repeat_btn)
+        transport_layout.addWidget(self._repeat_btn)
 
-        row1.addSpacing(8)
+        row1.addWidget(transport_frame)
+        row1.addSpacing(12)
 
         # Info de pista (centro, expande)
         self._track_label = QLabel("")
@@ -111,7 +131,7 @@ class PlayerBar(QWidget):
         )
         row1.addWidget(self._track_label, stretch=1)
 
-        row1.addSpacing(8)
+        row1.addSpacing(12)
 
         # Volumen
         vol_icon = QLabel("🔊")
@@ -122,7 +142,7 @@ class PlayerBar(QWidget):
         self._vol_slider.setObjectName("volumeSlider")
         self._vol_slider.setRange(0, 100)
         self._vol_slider.setValue(70)
-        self._vol_slider.setFixedWidth(80)
+        self._vol_slider.setFixedWidth(90)
         self._vol_slider.valueChanged.connect(self.volume_changed)
         row1.addWidget(self._vol_slider)
 

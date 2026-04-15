@@ -1,15 +1,22 @@
 """
 CDPanel — Panel del CD físico.
 
-Muestra el estado del disco, la lista de pistas y controles de ripeo.
+Muestra el estado del disco, selector de lectora, lista de pistas y controles.
+
+Layout:
+    [Selector de lectora]
+    [Portada] | [Estado / Álbum / Artista]
+    [Lista de pistas (expande)]
+    [Detectar] [Identificar] [▶ Play] [Ripear]
 
 Signals:
-    detect_requested:          El usuario quiere detectar el CD.
-    identify_requested:        El usuario quiere identificar el CD en MusicBrainz.
-    play_cd_requested:         El usuario quiere reproducir todo el CD.
-    play_track_requested(int): El usuario quiere reproducir una pista.
-    rip_all_requested:         El usuario quiere ripear todo el CD.
-    rip_track_requested(int):  El usuario quiere ripear una pista.
+    detect_requested:           El usuario quiere detectar el CD.
+    identify_requested:         El usuario quiere identificar el CD en MusicBrainz.
+    play_cd_requested:          El usuario quiere reproducir todo el CD.
+    play_track_requested(int):  El usuario quiere reproducir una pista.
+    rip_all_requested:          El usuario quiere ripear todo el CD.
+    rip_track_requested(int):   El usuario quiere ripear una pista.
+    drive_changed(str):         El usuario cambió la lectora seleccionada.
 """
 from __future__ import annotations
 
@@ -18,6 +25,7 @@ import logging
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (
+    QComboBox,
     QHBoxLayout,
     QLabel,
     QListWidget,
@@ -42,16 +50,18 @@ _STATUS_ICON = {
 class CDPanel(QWidget):
     """Panel de control de CD."""
 
-    detect_requested    = pyqtSignal()
-    identify_requested  = pyqtSignal()
-    play_cd_requested   = pyqtSignal()
+    detect_requested     = pyqtSignal()
+    identify_requested   = pyqtSignal()
+    play_cd_requested    = pyqtSignal()
     play_track_requested = pyqtSignal(int)
-    rip_all_requested   = pyqtSignal()
-    rip_track_requested = pyqtSignal(int)
+    rip_all_requested    = pyqtSignal()
+    rip_track_requested  = pyqtSignal(int)
+    drive_changed        = pyqtSignal(str)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("cdPanel")
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self._disc: CDDisc | None = None
         self._build_ui()
 
@@ -61,20 +71,40 @@ class CDPanel(QWidget):
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(6)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(8)
+
+        # ── Selector de lectora ───────────────────────────────────── #
+        drive_row = QHBoxLayout()
+        drive_row.setSpacing(8)
+
+        drive_label = QLabel("Lectora:")
+        drive_label.setObjectName("cdDriveLabel")
+        drive_label.setFixedWidth(52)
+        drive_row.addWidget(drive_label)
+
+        self._drive_combo = QComboBox()
+        self._drive_combo.setObjectName("cdDriveCombo")
+        self._drive_combo.setToolTip("Seleccionar unidad de CD")
+        self._drive_combo.currentTextChanged.connect(self._on_drive_changed)
+        drive_row.addWidget(self._drive_combo, stretch=1)
+
+        layout.addLayout(drive_row)
 
         # ── Info del disco ────────────────────────────────────────── #
         info_row = QHBoxLayout()
+        info_row.setSpacing(12)
 
         self._cover_label = QLabel()
         self._cover_label.setObjectName("cdCover")
-        self._cover_label.setFixedSize(80, 80)
+        self._cover_label.setFixedSize(90, 90)
         self._cover_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._cover_label.setText("💿")
         info_row.addWidget(self._cover_label)
 
         disc_info = QVBoxLayout()
+        disc_info.setSpacing(3)
+
         self._status_label = QLabel("No hay CD en la unidad.")
         self._status_label.setObjectName("cdStatus")
         disc_info.addWidget(self._status_label)
@@ -86,12 +116,24 @@ class CDPanel(QWidget):
         self._artist_label = QLabel("")
         self._artist_label.setObjectName("cdArtist")
         disc_info.addWidget(self._artist_label)
+
         disc_info.addStretch()
         info_row.addLayout(disc_info, stretch=1)
         layout.addLayout(info_row)
 
-        # ── Botones de control ────────────────────────────────────── #
+        # ── Lista de pistas (ocupa todo el espacio restante) ─────── #
+        self._track_list = QListWidget()
+        self._track_list.setObjectName("cdTrackList")
+        self._track_list.setAlternatingRowColors(True)
+        self._track_list.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
+        self._track_list.doubleClicked.connect(self._on_track_double_clicked)
+        layout.addWidget(self._track_list, stretch=1)
+
+        # ── Botones de control (en la parte inferior) ─────────────── #
         btn_row = QHBoxLayout()
+        btn_row.setSpacing(6)
 
         detect_btn = QPushButton("🔍 Detectar")
         detect_btn.setObjectName("cdDetectBtn")
@@ -116,16 +158,23 @@ class CDPanel(QWidget):
         btn_row.addStretch()
         layout.addLayout(btn_row)
 
-        # ── Lista de pistas ───────────────────────────────────────── #
-        self._track_list = QListWidget()
-        self._track_list.setObjectName("cdTrackList")
-        self._track_list.setAlternatingRowColors(True)
-        self._track_list.doubleClicked.connect(self._on_track_double_clicked)
-        layout.addWidget(self._track_list)
-
     # ------------------------------------------------------------------
     # API pública
     # ------------------------------------------------------------------
+
+    def set_drives(self, drives: list[str]) -> None:
+        """Puebla el selector con las lectoras disponibles."""
+        self._drive_combo.blockSignals(True)
+        self._drive_combo.clear()
+        for drive in drives:
+            self._drive_combo.addItem(drive)
+        self._drive_combo.blockSignals(False)
+        if drives:
+            self.drive_changed.emit(drives[0])
+
+    def current_drive(self) -> str:
+        """Retorna la lectora seleccionada actualmente."""
+        return self._drive_combo.currentText()
 
     def show_no_cd(self) -> None:
         self._status_label.setText("No hay CD en la unidad.")
@@ -155,7 +204,7 @@ class CDPanel(QWidget):
         pixmap = QPixmap()
         if pixmap.loadFromData(image_data):
             scaled = pixmap.scaled(
-                80, 80,
+                90, 90,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
@@ -165,7 +214,7 @@ class CDPanel(QWidget):
         for i in range(self._track_list.count()):
             item = self._track_list.item(i)
             if item and item.data(Qt.ItemDataRole.UserRole) == track_number:
-                title = item.text().split("  ", 1)[-1]  # strip old icon
+                title = item.text().split("  ", 1)[-1]
                 icon  = _STATUS_ICON.get(status, "")
                 item.setText(f"{icon}  {title}" if icon else title)
                 break
@@ -188,3 +237,7 @@ class CDPanel(QWidget):
         if item:
             track_number = item.data(Qt.ItemDataRole.UserRole)
             self.play_track_requested.emit(track_number)
+
+    def _on_drive_changed(self, drive: str) -> None:
+        if drive:
+            self.drive_changed.emit(drive)

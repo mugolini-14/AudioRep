@@ -60,6 +60,10 @@ class CDController:
         self._connect_app_events()
         self._connect_cd_service()
 
+        # Poblar el selector de lectoras y arrancar el sondeo
+        drives = self._cd_service.list_drives()
+        self._panel.set_drives(drives)
+
         self._cd_service.start_polling()
 
         logger.debug("CDController iniciado.")
@@ -76,6 +80,7 @@ class CDController:
         panel.play_track_requested.connect(self._on_play_track)
         panel.rip_all_requested.connect(self._on_rip_all)
         panel.rip_track_requested.connect(self._on_rip_track)
+        panel.drive_changed.connect(self._on_drive_changed)
 
     # ------------------------------------------------------------------
     # Conexiones: app_events → CDPanel
@@ -95,6 +100,11 @@ class CDController:
     # ------------------------------------------------------------------
     # Handlers: CDPanel
     # ------------------------------------------------------------------
+
+    def _on_drive_changed(self, drive: str) -> None:
+        """El usuario cambió la lectora activa."""
+        self._cd_service.set_drive(drive)
+        app_events.status_message.emit(f"Lectora seleccionada: {drive}")
 
     def _on_detect_requested(self) -> None:
         self._panel.show_reading()
