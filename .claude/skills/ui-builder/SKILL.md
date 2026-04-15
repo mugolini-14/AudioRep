@@ -65,24 +65,39 @@ Antes de escribir cualquier widget nuevo o reconstruir uno existente, **leer dar
 ## Layout general de la ventana (`MainWindow`)
 
 ```
-┌──────────────────────────────────────────────────────┐
-│ menuBar                                              │
-├─────────────┬────────────────────────────────────────┤
-│ NowPlaying  │  QTabWidget#mainTabs                   │
-│ (220–320px) │  ┌──────────┬──────┬──────┬─────────┐ │
-│ objectName: │  │ Biblioteca│  CD │Playlist│  Radio │ │
-│ nowPlaying  │  └──────────┴──────┴──────┴─────────┘ │
-│ Panel       │  [contenido del tab activo]            │
-├─────────────┴────────────────────────────────────────┤
-│ QFrame#separator (1px, #33334a)                      │
-├──────────────────────────────────────────────────────┤
-│ PlayerBar  (min-height: 90px)                        │
-├──────────────────────────────────────────────────────┤
-│ QStatusBar                                           │
-└──────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┬──────────────────┐
+│ menuBar                                              │                  │
+├──────────────────────────────────────────────────────┤                  │
+│ QTabWidget#mainTabs                                  │ QWidget          │
+│ ┌──────────┬──────┬───────────┬──────────────────┐  │ #rightPanel      │
+│ │Biblioteca│  CD  │ Playlists │      Radio       │  │ (210–320px)      │
+│ └──────────┴──────┴───────────┴──────────────────┘  │                  │
+│ [contenido del tab activo]                           │ NowPlaying       │
+│                                                      │ (stretch=1)      │
+│                                                      ├──────────────────┤
+│                                                      │ VUMeterWidget    │
+│                                                      │ #vuMeter (90px)  │
+├──────────────────────────────────────────────────────┴──────────────────┤
+│ QFrame#separator (1px, #33334a)                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│ PlayerBar  (min-height: 90px)                                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│ QStatusBar                                                              │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-El splitter horizontal principal (`mainSplitter`) separa `nowPlayingPanel` (Fixed) del `QTabWidget` (Expanding).
+El splitter horizontal principal (`mainSplitter`) separa el `QTabWidget` (Expanding, stretch=1) del `rightPanel` (Fixed, stretch=0). NowPlaying y VUMeterWidget están dentro de `rightPanel` con layout vertical.
+
+### Layout del tab CD
+
+El tab CD contiene un `QSplitter#cdTabSplitter` horizontal con dos columnas:
+
+```
+┌──────────────────────────────┬────────────────────────┐
+│ CDPanel                      │ CDMetadataPanel        │
+│ (stretch=1, expande)         │ (220–340px, stretch=0) │
+└──────────────────────────────┴────────────────────────┘
+```
 
 ---
 
@@ -92,16 +107,19 @@ El splitter horizontal principal (`mainSplitter`) separa `nowPlayingPanel` (Fixe
 
 | objectName | Widget | Notas |
 |---|---|---|
-| `mainSplitter` | `QSplitter` | Splitter horizontal principal |
+| `mainSplitter` | `QSplitter` | Splitter horizontal principal (tabs izq. / rightPanel der.) |
 | `mainTabs` | `QTabWidget` | Tabs: Biblioteca, CD, Playlists, Radio |
 | `separator` | `QFrame` | Línea de 1px entre área principal y PlayerBar |
 | `playerBar` | `QWidget` | Barra de controles inferior |
+| `rightPanel` | `QWidget` | Panel derecho fijo (210–320px): NowPlaying + VUMeter |
+| `vuMeter` | `QWidget` | VU meter animado, altura fija 90px, fondo `#12121e` |
+| `cdTabSplitter` | `QSplitter` | Splitter interno del tab CD: CDPanel / CDMetadataPanel |
 
 ### NowPlaying (`audiorep/ui/widgets/now_playing.py`)
 
 | objectName | Widget | Descripción |
 |---|---|---|
-| `nowPlayingPanel` | `QWidget` (raíz) | Panel izquierdo, `bg-surface`, border-right |
+| `nowPlayingPanel` | `QWidget` (raíz) | Panel derecho superior, `bg-surface`, border-left |
 | `coverLabel` | `QLabel` | Portada del álbum, 190×190, `bg-raised`, border-radius 6px |
 | `trackTitle` | `QLabel` | Título, 14px bold |
 | `trackArtist` | `QLabel` | Artista, 12px, `#a0a0c0` |
@@ -113,22 +131,41 @@ El splitter horizontal principal (`mainSplitter`) separa `nowPlayingPanel` (Fixe
 | objectName | Widget | Tamaño | Descripción |
 |---|---|---|---|
 | `playerBar` | `QWidget` (raíz) | min-height 90px | Fondo `bg-surface`, border-top |
-| `modeButton` | `QPushButton` | 32×32 | Shuffle (⇄) y Repeat (↺). Checkable. Apagado: `text-ghost`. Encendido: `accent` |
-| `transportButton` | `QPushButton` | 36×36 | Prev (⏮) y Next (⏭). Color `#c0c0e0`, hover `bg-raised` |
-| `playButton` | `QPushButton` | 48×48 | Play/Pause. Fondo `accent`, border-radius 24px, font-size 18px |
+| `transportFrame` | `QFrame` | — | Contenedor redondeado para los 6 botones de transporte. `border-radius: 14px`, fondo `#252538` |
+| `modeButton` | `QPushButton` | 46×46 | Shuffle (⇄) y Repeat (↺). Checkable. Inactivo: `rgba(255,255,255,0.45)`. Activo: `#b090ff` |
+| `transportButton` | `QPushButton` | 46×46 | Prev (⏮), Stop (⏹) y Next (⏭). Fondo transparente, color blanco, font-size 22px |
+| `playButton` | `QPushButton` | 54×54 | Play/Pause. Fondo transparente, color blanco, font-size 28px |
 | `timeLabel` | `QLabel` | fixed 36px | Tiempo transcurrido y total. `#7070a0`, 11px tabular-nums |
 | `progressSlider` | `QSlider` | stretch | Barra de progreso. Handle blanco `#e2e2f0` |
 | `volumeIcon` | `QLabel` | — | Ícono 🔊. Color `text-ghost`, 14px |
-| `volumeSlider` | `QSlider` | fixed 80px | Volumen. Groove 3px, handle `#a090c0` |
+| `volumeSlider` | `QSlider` | fixed 90px | Volumen. Groove 3px, handle `#a090c0` |
 
 **Layout de PlayerBar (2 filas):**
 ```
-Fila 1: [modeButton] [transportButton] [playButton] [transportButton] [modeButton]
+Fila 1: [transportFrame: modeBtn | prevBtn | stopBtn | playBtn | nextBtn | modeBtn]
         [─── stretch ──] track info label [─── stretch ──]
         [volumeIcon] [volumeSlider]
 
 Fila 2: [timeLabel] [════ progressSlider ════] [timeLabel]
 ```
+
+**Todos los botones de transporte tienen fondo transparente y color blanco** — sin fondos de colores. El único elemento con color de acento es el `modeButton:checked` (`#b090ff`) y el `transportFrame` que los contiene.
+
+### CDMetadataPanel (`audiorep/ui/widgets/cd_metadata_panel.py`)
+
+| objectName | Widget | Descripción |
+|---|---|---|
+| `cdMetadataPanel` | `QWidget` (raíz) | Panel lateral del tab CD. `border-left: 1px solid #33334a`, fondo `#18182a` |
+| `cdMetaTitle` | `QLabel` | Título "Búsqueda de metadatos". Violeta, 12px bold |
+| `cdMetaLabel` | `QLabel` | Labels secundarios ("Servicio:", "Resultados:", etc.). `#8888aa`, 11px |
+| `cdMetaServiceCombo` | `QComboBox` | Selector de servicio (MusicBrainz, GnuDB). `#252538`, border `#3a3a5a` |
+| `cdMetaSearchBtn` | `QPushButton` | Botón "🔍 Buscar". Estilo secundario oscuro |
+| `cdMetaApplyBtn` | `QPushButton` | Botón "✔ Aplicar al disco". Fondo `#4a3480` (acento oscuro), bold |
+| `cdMetaResultsList` | `QListWidget` | Lista de resultados de búsqueda. Altura máx. 120px |
+| `cdMetaTrackList` | `QListWidget` | Lista de pistas del resultado seleccionado. Expande |
+| `cdMetaDetail` | `QLabel` | Álbum y artista del resultado seleccionado. 13px bold |
+| `cdMetaDetailSmall` | `QLabel` | Año y género. `#8888aa`, 11px |
+| `cdMetaSeparator` | `QFrame` | Separador horizontal interno. `#2a2a3e`, 1px |
 
 ### LibraryPanel (`audiorep/ui/widgets/library_panel.py`)
 

@@ -10,7 +10,7 @@ AudioRep es un reproductor de música de escritorio para Windows, hecho en Pytho
 
 - **Identificación automática de pistas** — usando huella de audio (AcoustID + MusicBrainz), AudioRep puede reconocer una canción y completar sus datos automáticamente.
 
-- **Soporte para CD** — detecta el disco insertado, lo identifica online y permite reproducirlo directamente o ripearlo (copiarlo) al disco en formato FLAC, MP3, OGG o WAV. Incluye selector de lectora para sistemas con varias unidades de CD.
+- **Soporte para CD** — detecta el disco insertado, lo identifica online y permite reproducirlo directamente o ripearlo (copiarlo) al disco en formato FLAC, MP3, OGG o WAV. Incluye selector de lectora para sistemas con varias unidades de CD. El panel de metadatos manual permite buscar y aplicar información desde MusicBrainz o GnuDB con un clic, usando el desplegable "Servicio".
 
 - **Playlists** — creá, renombrá y eliminá listas de reproducción. También incluye listas inteligentes automáticas: las más reproducidas, las mejor valoradas y las agregadas recientemente.
 
@@ -35,7 +35,7 @@ AudioRep es un reproductor de música de escritorio para Windows, hecho en Pytho
 |---|---|
 | `python-vlc` | Reproducción de audio y ripeo de CD (via libVLC con sout transcoding) |
 | `mutagen` | Lectura y escritura de tags en archivos de audio (ID3, Vorbis, MP4) |
-| `musicbrainzngs` | Búsqueda de metadatos de álbumes y pistas en MusicBrainz |
+| `musicbrainzngs` | Búsqueda de metadatos de álbumes, pistas y CDs en MusicBrainz |
 | `discid` | Lectura del identificador único (disc ID) de un CD físico |
 | `pyacoustid` | Identificación de pistas por huella de audio (requiere `fpcalc` en el PATH) |
 | `Pillow` | Procesamiento de imágenes de portada |
@@ -78,8 +78,8 @@ Toda la inyección de dependencias ocurre en `main.py`, que actúa como raíz de
 
 | Plataforma | Versión | Fecha | Archivo | Tamaño |
 |---|---|---|---|---|
-| Windows 10/11 | 0.25 | Abril 2026 | `AudioRep-0.25.0-windows.zip` | ~118 MB |
-| Linux Debian/Ubuntu | 0.25 | Abril 2026 | `audiorep_0.25.0_amd64.deb` | ~83 MB |
+| Windows 10/11 | 0.30 | Abril 2026 | `AudioRep-0.30.0-windows.zip` | ~118 MB |
+| Linux Debian/Ubuntu | 0.30 | Abril 2026 | `audiorep_0.30.0_amd64.deb` | ~78 MB |
 
 Los instaladores están disponibles en la sección [Releases](https://github.com/mugolini-14/AudioRep/releases) del repositorio.
 

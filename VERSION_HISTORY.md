@@ -2,6 +2,24 @@
 
 ---
 
+# 0.30 — Corrección de CD y Búsqueda Manual de Metadatos
+
+**Fecha:** 15 de abril de 2026
+
+### Agregado
+
+- **Panel de metadatos manual de CD** — nueva columna lateral dentro del tab CD con un desplegable "Servicio" para elegir la fuente de búsqueda, lista de resultados con artista/álbum/año, detalle de pistas del resultado seleccionado y botón "Aplicar al disco" que actualiza el panel principal
+- **GnuDB** — soporte para búsqueda de metadatos de CD en GnuDB (sucesor libre y gratuito de FreeDB/CDDB), sin API key requerida. Complementa la búsqueda existente de MusicBrainz
+- **Cálculo de Disc ID CDDB** — AudioRep ahora computa y almacena el identificador CDDB/FreeDB del disco (formato estándar de 8 caracteres hexadecimales), necesario para la consulta a GnuDB
+- **Búsqueda asíncrona** — las consultas a servicios de metadatos se ejecutan en un hilo separado para que la UI no se bloquee durante los requests HTTP
+
+### Corregido
+
+- **Reproducción de CD** — corregida la generación de URIs CDDA para VLC. Ahora se usa el URI del dispositivo (`cdda:///D:/`) con el número de pista como media option (`:cdda-track=N`), que es el formato correcto que acepta el módulo CDDA de VLC
+- **Identificación automática de CD** — corregida la normalización de la respuesta de MusicBrainz. El worker de identificación ahora recibe los datos en el formato esperado (claves `album`, `artist`, `year`, `release_id`, `tracks`), lo que permite completar correctamente el artista, álbum, año y títulos de pistas
+
+---
+
 # 0.25 — Rediseño de Interfaz y Correcciones
 
 **Fecha:** 14 de abril de 2026
