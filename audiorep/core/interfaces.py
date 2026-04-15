@@ -190,6 +190,24 @@ class ICDReader(Protocol):
     def list_drives(self) -> list[str]: ...
 
 
+class ICDLookupProvider(Protocol):
+    """
+    Proveedor de metadatos de CD para búsqueda manual.
+    Implementado por MusicBrainzClient y GnuDBClient.
+
+    Formato normalizado de resultado:
+        {
+            "album": str, "artist": str, "year": str, "genre": str,
+            "release_id": str,
+            "tracks": [{"number": int, "title": str, "recording_id": str, "duration_ms": int}]
+        }
+    """
+
+    name: str   # Nombre para mostrar en el desplegable "Servicio"
+
+    def search_disc(self, disc: CDDisc) -> list[dict]: ...
+
+
 class ICDRipper(Protocol):
     """
     Extracción de pistas de CD a archivos de audio.

@@ -58,6 +58,7 @@ from audiorep.ui.controllers.player_controller import PlayerController
 from audiorep.ui.controllers.playlist_controller import PlaylistController
 from audiorep.ui.controllers.radio_controller import RadioController
 from audiorep.ui.controllers.tagger_controller import TaggerController
+from audiorep.ui.widgets.cd_metadata_panel import CDMetadataPanel
 from audiorep.ui.widgets.cd_panel import CDPanel
 from audiorep.ui.widgets.library_panel import LibraryPanel
 from audiorep.ui.widgets.now_playing import NowPlaying
@@ -89,27 +90,29 @@ class MainWindow(QMainWindow):
 
     def __init__(
         self,
-        player_service:   PlayerService,
-        library_service:  LibraryService,
-        cd_service:       CDService,
-        playlist_service: PlaylistService,
-        search_service:   SearchService,
-        ripper_service:   RipperService,
-        tagger_service:   TaggerService,
-        radio_service:    RadioService | None = None,
-        settings:         AppSettings | None = None,
-        parent:           QWidget | None = None,
+        player_service:     PlayerService,
+        library_service:    LibraryService,
+        cd_service:         CDService,
+        playlist_service:   PlaylistService,
+        search_service:     SearchService,
+        ripper_service:     RipperService,
+        tagger_service:     TaggerService,
+        radio_service:      RadioService | None = None,
+        settings:           AppSettings | None = None,
+        cd_lookup_providers: list | None = None,
+        parent:             QWidget | None = None,
     ) -> None:
         super().__init__(parent)
-        self._player_service   = player_service
-        self._library_service  = library_service
-        self._cd_service       = cd_service
-        self._playlist_service = playlist_service
-        self._search_service   = search_service
-        self._ripper_service   = ripper_service
-        self._tagger_service   = tagger_service
-        self._radio_service    = radio_service
-        self._settings         = settings
+        self._player_service      = player_service
+        self._library_service     = library_service
+        self._cd_service          = cd_service
+        self._playlist_service    = playlist_service
+        self._search_service      = search_service
+        self._ripper_service      = ripper_service
+        self._tagger_service      = tagger_service
+        self._radio_service       = radio_service
+        self._settings            = settings
+        self._cd_lookup_providers = cd_lookup_providers or []
 
         self._setup_window()
         self._build_ui()
@@ -125,7 +128,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.setWindowTitle("AudioRep 0.25")
+        self.setWindowTitle("AudioRep 0.30")
         self.setMinimumSize(860, 520)
         self.resize(1200, 700)
 
@@ -168,7 +171,9 @@ class MainWindow(QMainWindow):
 
         self._cd_panel = CDPanel()
         self._cd_panel.setObjectName("cdPanel")
-        self._tabs.addTab(self._cd_panel, "💿  CD")
+        self._cd_metadata_panel = CDMetadataPanel()
+        cd_tab_widget = self._build_cd_tab()
+        self._tabs.addTab(cd_tab_widget, "💿  CD")
 
         self._playlist_panel = PlaylistPanel()
         self._playlist_panel.setObjectName("playlistPanel")
@@ -207,6 +212,21 @@ class MainWindow(QMainWindow):
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 0)
 
+        return splitter
+
+    def _build_cd_tab(self) -> QWidget:
+        """
+        Construye el contenido del tab CD: CDPanel (izq.) + CDMetadataPanel (der.).
+        Usa un QSplitter horizontal para que el usuario pueda redimensionar.
+        """
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.setObjectName("cdTabSplitter")
+        splitter.setHandleWidth(1)
+        splitter.addWidget(self._cd_panel)
+        splitter.addWidget(self._cd_metadata_panel)
+        splitter.setStretchFactor(0, 1)   # CDPanel expande
+        splitter.setStretchFactor(1, 0)   # CDMetadataPanel ancho fijo preferido
+        splitter.setSizes([700, 280])
         return splitter
 
     @staticmethod
@@ -273,9 +293,11 @@ class MainWindow(QMainWindow):
             cd_service=self._cd_service,
             player_service=self._player_service,
             cd_panel=self._cd_panel,
+            cd_metadata_panel=self._cd_metadata_panel,
             now_playing=self._now_playing,
             ripper_service=self._ripper_service,
             settings=self._settings,
+            cd_lookup_providers=self._cd_lookup_providers,
         )
         self._playlist_controller = PlaylistController(
             playlist_service=self._playlist_service,
@@ -321,7 +343,7 @@ class MainWindow(QMainWindow):
 
     def _on_track_changed(self, track) -> None:  # type: ignore[override]
         artist = track.artist_name or "Desconocido"
-        self.setWindowTitle(f"{track.title} — {artist}  ·  AudioRep 0.25")
+        self.setWindowTitle(f"{track.title} — {artist}  ·  AudioRep 0.30")
         self._status_bar.showMessage(f"▶  {track.title}  —  {artist}")
 
     def _on_cd_inserted(self, _disc_id: str) -> None:

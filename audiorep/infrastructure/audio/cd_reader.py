@@ -13,6 +13,30 @@ from audiorep.domain.cd_disc import CDDisc, CDTrack, RipStatus
 logger = logging.getLogger(__name__)
 
 
+def _compute_freedb_id(tracks: list[CDTrack]) -> str:
+    """
+    Calcula el disc ID CDDB/FreeDB/GnuDB a partir de offsets y duraciones.
+
+    Fórmula estándar CDDB:
+        n = sum( sum_digits(offset_in_seconds) ) % 255  para cada pista
+        t = total_seconds_del_disco
+        disc_id = (n << 24) | (t << 8) | num_tracks
+    """
+    if not tracks:
+        return "00000000"
+
+    def _sum_digits(n: int) -> int:
+        return sum(int(d) for d in str(max(n, 0)))
+
+    offsets_sec = [t.offset // 75 for t in tracks]
+    last = tracks[-1]
+    total_sec = (last.offset + last.duration_ms * 75 // 1000) // 75
+
+    n = sum(_sum_digits(s) for s in offsets_sec) % 255
+    disc_id = (n << 24) | (total_sec << 8) | len(tracks)
+    return f"{disc_id:08x}"
+
+
 class CDReader:
     """Lee el Disc ID y las pistas de un CD físico. Implementa ICDReader."""
 
@@ -30,10 +54,12 @@ class CDReader:
                 )
                 for t in disc.tracks
             ]
+            freedb_id = _compute_freedb_id(tracks)
             return CDDisc(
                 disc_id=disc.id,
                 drive_path=actual_drive,
                 tracks=tracks,
+                freedb_id=freedb_id,
             )
         except Exception as exc:
             logger.error("CDReader.read_disc: %s", exc)

@@ -55,12 +55,21 @@ class _IdentifyWorker(QThread):
             self._disc.musicbrainz_id = best.get("release_id", "")
             self._disc.genre          = best.get("genre", "")
 
-            # Actualizar títulos y musicbrainz_id de pistas si están disponibles
+            # Actualizar títulos y musicbrainz_id de pistas si están disponibles.
+            # Formato normalizado esperado: [{"number": int, "title": str, "recording_id": str}]
             mb_tracks = best.get("tracks", [])
-            for i, cd_track in enumerate(self._disc.tracks):
-                if i < len(mb_tracks):
-                    cd_track.title          = mb_tracks[i].get("title", cd_track.title)
-                    cd_track.musicbrainz_id = mb_tracks[i].get("recording_id", "")
+            track_by_number = {t.number: t for t in self._disc.tracks}
+            for mt in mb_tracks:
+                num = mt.get("number")
+                cd_track = track_by_number.get(num) if num else None
+                if cd_track is None and mb_tracks:
+                    # Fallback: asignar por posición
+                    idx = mb_tracks.index(mt)
+                    if idx < len(self._disc.tracks):
+                        cd_track = self._disc.tracks[idx]
+                if cd_track:
+                    cd_track.title          = mt.get("title", cd_track.title)
+                    cd_track.musicbrainz_id = mt.get("recording_id", "")
 
             # Descargar portada
             if self._disc.musicbrainz_id:
@@ -170,9 +179,10 @@ class CDService(QObject):
         if self._current_disc is None:
             return []
         drive = self._current_disc.drive_path or self._selected_drive or ""
+        device_uri = self._build_cdda_uri(drive)
         tracks: list[Track] = []
         for cd_track in self._current_disc.tracks:
-            file_path = self._build_cdda_uri(drive, cd_track.number)
+            file_path = device_uri
             track = Track(
                 title=cd_track.title or f"Pista {cd_track.number}",
                 artist_name=self._current_disc.artist_name or "",
@@ -192,22 +202,25 @@ class CDService(QObject):
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _build_cdda_uri(drive: str, track_number: int) -> str:
+    def _build_cdda_uri(drive: str) -> str:
         """
-        Construye un URI CDDA compatible con VLC.
+        Construye el URI CDDA del dispositivo para VLC.
+
+        El número de pista NO va en el URI; se pasa como media option
+        ':cdda-track=N' en VLCPlayer.play() para cada pista individual.
 
         Formatos:
-            Linux:   cdda:///dev/sr0@1
-            Windows: cdda:///D:@1
+            Linux:   cdda:///dev/sr0
+            Windows: cdda:///D:/
         """
         if not drive:
-            return f"cdda://@{track_number}"
+            return "cdda://"
         drive = drive.rstrip("/\\")
         if drive.startswith("/"):
-            # Linux: el path ya es absoluto, p.ej. /dev/sr0
-            return f"cdda://{drive}@{track_number}"
-        # Windows: letra de unidad, p.ej. D:
-        return f"cdda:///{drive}@{track_number}"
+            # Linux: /dev/sr0
+            return f"cdda://{drive}"
+        # Windows: D: → cdda:///D:/
+        return f"cdda:///{drive}/"
 
     def _poll_drive(self) -> None:
         try:

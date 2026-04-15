@@ -85,58 +85,57 @@ QLabel#timeLabel {
     font-variant-numeric: tabular-nums;
 }
 
-/* Botones de transporte */
+/* Botones de transporte (prev / stop / next) */
 QPushButton#transportButton {
     background-color: transparent;
-    color: #c0c0e0;
+    color: #ffffff;
     border: none;
-    border-radius: 18px;
-    font-size: 16px;
+    border-radius: 8px;
+    font-size: 22px;
 }
 
 QPushButton#transportButton:hover {
-    background-color: #2a2a3e;
-    color: #e2e2f0;
+    background-color: rgba(255, 255, 255, 0.10);
 }
 
 QPushButton#transportButton:pressed {
-    background-color: #33334a;
+    background-color: rgba(255, 255, 255, 0.18);
 }
 
-/* Botón Play/Pause (más grande) */
+/* Botón Play/Pause — mismo estilo que el resto, sin fondo de color */
 QPushButton#playButton {
-    background-color: #7c5cbf;
+    background-color: transparent;
     color: #ffffff;
     border: none;
-    border-radius: 24px;
-    font-size: 18px;
+    border-radius: 8px;
+    font-size: 28px;
 }
 
 QPushButton#playButton:hover {
-    background-color: #8d6dd0;
+    background-color: rgba(255, 255, 255, 0.10);
 }
 
 QPushButton#playButton:pressed {
-    background-color: #5a3d9a;
+    background-color: rgba(255, 255, 255, 0.18);
 }
 
 /* Botones de modo (shuffle / repeat) */
 QPushButton#modeButton {
     background-color: transparent;
-    color: #55557a;
+    color: rgba(255, 255, 255, 0.45);
     border: none;
-    border-radius: 18px;
-    font-size: 14px;
+    border-radius: 8px;
+    font-size: 20px;
 }
 
 QPushButton#modeButton:hover {
-    color: #a0a0c0;
-    background-color: #2a2a3e;
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.10);
 }
 
 QPushButton#modeButton:checked,
 QPushButton#modeButton[active="true"] {
-    color: #7c5cbf;
+    color: #b090ff;
 }
 
 /* ── Sliders ──────────────────────────────────────────────────────── */
@@ -567,7 +566,7 @@ QTabBar::tab:selected {
 
 QFrame#transportFrame {
     background-color: #252538;
-    border-radius: 30px;
+    border-radius: 14px;
     border: 1px solid #33334a;
 }
 
@@ -707,6 +706,115 @@ QListWidget#cdTrackList::item {
 }
 
 QListWidget#cdTrackList::item:selected {
+    background-color: #2a2a4a;
+    color: #e2e2f0;
+}
+
+/* ── CD Metadata Panel ──────────────────────────────────────────────── */
+
+QWidget#cdMetadataPanel {
+    background-color: #18182a;
+    border-left: 1px solid #33334a;
+}
+
+QLabel#cdMetaTitle {
+    color: #b090ff;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    padding-bottom: 4px;
+}
+
+QLabel#cdMetaLabel {
+    color: #8888aa;
+    font-size: 11px;
+}
+
+QLabel#cdMetaDetail {
+    color: #e2e2f0;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+QLabel#cdMetaDetailSmall {
+    color: #8888aa;
+    font-size: 11px;
+}
+
+QFrame#cdMetaSeparator {
+    background-color: #2a2a3e;
+    max-height: 1px;
+    margin: 2px 0;
+}
+
+QComboBox#cdMetaServiceCombo {
+    background-color: #252538;
+    color: #e2e2f0;
+    border: 1px solid #3a3a5a;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+QComboBox#cdMetaServiceCombo::drop-down {
+    border: none;
+    width: 18px;
+}
+
+QPushButton#cdMetaSearchBtn {
+    background-color: #252538;
+    color: #e2e2f0;
+    border: 1px solid #3a3a5a;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+}
+
+QPushButton#cdMetaSearchBtn:hover {
+    background-color: #2e2e48;
+}
+
+QPushButton#cdMetaSearchBtn:disabled {
+    color: #55557a;
+    border-color: #2a2a3e;
+}
+
+QPushButton#cdMetaApplyBtn {
+    background-color: #4a3480;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+QPushButton#cdMetaApplyBtn:hover {
+    background-color: #5a409a;
+}
+
+QPushButton#cdMetaApplyBtn:disabled {
+    background-color: #252538;
+    color: #55557a;
+}
+
+QListWidget#cdMetaResultsList,
+QListWidget#cdMetaTrackList {
+    background-color: #12121e;
+    border: 1px solid #2a2a3e;
+    border-radius: 4px;
+    color: #e2e2f0;
+    font-size: 12px;
+    outline: none;
+}
+
+QListWidget#cdMetaResultsList::item,
+QListWidget#cdMetaTrackList::item {
+    padding: 3px 6px;
+}
+
+QListWidget#cdMetaResultsList::item:selected,
+QListWidget#cdMetaTrackList::item:selected {
     background-color: #2a2a4a;
     color: #e2e2f0;
 }

@@ -17,6 +17,7 @@ Estado de implementación:
     ✅ Paso 10 — AppSettings, SettingsDialog, menú, tema QSS completo, v0.10
     ✅ Paso 11 — Radio por internet (radio-browser.info), v0.20
     ✅ Paso 12 — UI 0.25: pestañas, controles, CD multi-lectora, playlist, VU meter, NowPlaying derecha
+    ✅ Paso 13 — CD fix: CDDA URIs, identificación MB normalizada, GnuDB, panel metadatos manual, v0.30
 """
 import os
 import sys
@@ -56,7 +57,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.25.0")
+    app.setApplicationVersion("0.30.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
@@ -105,11 +106,13 @@ def main() -> None:
     from audiorep.infrastructure.api.coverart_client import CoverArtClient
     from audiorep.infrastructure.api.acoustid_client import AcoustIDClient
     from audiorep.infrastructure.api.radio_browser_client import RadioBrowserClient
+    from audiorep.infrastructure.api.gnudb_client import GnuDBClient
 
     cd_reader       = CDReader()
     cd_ripper       = CDRipper()
-    mb_client       = MusicBrainzClient(app_name="AudioRep", app_version="0.25.0")
+    mb_client       = MusicBrainzClient(app_name="AudioRep", app_version="0.30.0")
     radio_client    = RadioBrowserClient()
+    gnudb_client    = GnuDBClient()
     cover_client    = CoverArtClient(cache_dir=str(DATA_DIR / "covers"))
     acoustid_client = AcoustIDClient(api_key=settings.acoustid_api_key)
 
@@ -179,6 +182,10 @@ def main() -> None:
     # ── UI ────────────────────────────────────────────────────────────── #
     from audiorep.ui.main_window import MainWindow
 
+    # Providers de metadatos para el panel manual de CD.
+    # Orden = orden en el desplegable "Servicio".
+    cd_lookup_providers = [mb_client, gnudb_client]
+
     window = MainWindow(
         player_service=player_service,
         library_service=library_service,
@@ -189,6 +196,7 @@ def main() -> None:
         tagger_service=tagger_service,
         radio_service=radio_service,
         settings=settings,
+        cd_lookup_providers=cd_lookup_providers,
     )
     window.show()
 

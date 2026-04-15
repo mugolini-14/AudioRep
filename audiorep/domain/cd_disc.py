@@ -40,6 +40,7 @@ class CDDisc:
     drive_path:     str                 = ""
     tracks:         list[CDTrack]       = field(default_factory=list)
     musicbrainz_id: str | None          = None
+    freedb_id:      str | None          = None   # ID CDDB/FreeDB/GnuDB (8 hex)
     album_title:    str                 = ""
     artist_name:    str                 = ""
     year:           int | None          = None

@@ -9,7 +9,7 @@ import sys
 
 import vlc
 
-from audiorep.domain.track import Track
+from audiorep.domain.track import Track, TrackSource
 
 logger = logging.getLogger(__name__)
 
@@ -43,14 +43,20 @@ class VLCPlayer:
     # ------------------------------------------------------------------
 
     def play(self, track: Track) -> None:
-        """Reproduce un archivo de audio local."""
+        """Reproduce un archivo de audio local o una pista de CD (CDDA)."""
         if not track.file_path:
             logger.warning("VLCPlayer.play: track sin file_path")
             return
         media = self._instance.media_new(track.file_path)
+        if track.source == TrackSource.CD and track.track_number:
+            # Para CD: VLC requiere el número de pista como media option,
+            # no como parte del URI. El URI es solo cdda:///D:/ (dispositivo).
+            media.add_option(f":cdda-track={track.track_number}")
+            logger.debug("VLCPlayer: play CD pista %d desde '%s'", track.track_number, track.file_path)
+        else:
+            logger.debug("VLCPlayer: play '%s'", track.file_path)
         self._player.set_media(media)
         self._player.play()
-        logger.debug("VLCPlayer: play '%s'", track.file_path)
 
     def play_url(self, url: str) -> None:
         """Reproduce un stream de URL (radio, HTTP, M3U, etc.)."""
