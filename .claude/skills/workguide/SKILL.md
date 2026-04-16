@@ -118,7 +118,7 @@ Agregar una entrada **al principio del archivo** (las versiones más recientes v
 
 ## PASO 7 — Compilar los instaladores
 
-Compilar ambos instaladores **después de cada versión**. Ver instrucciones completas en `CLAUDE.md`.
+**Responsabilidad del asistente.** Compilar ambos instaladores después de cada versión. Ver instrucciones completas en `CLAUDE.md`.
 
 ### Windows (.exe)
 ```bash
@@ -142,8 +142,10 @@ bash installers/linux/build_deb.sh
 
 ### Después de compilar
 - Crear el ZIP del instalador de Windows: `AudioRep-X.Y.Z-windows.zip`.
-- Publicar un nuevo **GitHub Release** (`vX.Y.Z`) con ambos archivos adjuntos.
-- El release debe incluir notas con instrucciones de instalación para cada plataforma.
+  ```bash
+  cd installers/windows && zip -r ../../installers/AudioRep-X.Y.Z-windows.zip AudioRep/
+  ```
+- El GitHub Release se crea **después de que el usuario haga push** (paso 9).
 
 ---
 
@@ -159,6 +161,24 @@ Antes de que el usuario haga el commit, verificar que:
 
 ---
 
+## PASO 9 — Publicar el GitHub Release
+
+**Responsabilidad del asistente.** Ejecutar después de que el usuario haya hecho push.
+
+```bash
+gh release create vX.Y.Z \
+    installers/AudioRep-X.Y.Z-windows.zip \
+    installers/linux/audiorep_X.Y.Z_amd64.deb \
+    --title "AudioRep X.Y" \
+    --notes "..."
+```
+
+El cuerpo del release debe incluir:
+- Resumen de los cambios principales (extraído de `VERSION_HISTORY.md`).
+- Instrucciones de instalación para Windows y Linux.
+
+---
+
 ## Checklist de cierre de versión
 
 - [ ] Plan aprobado por el usuario
@@ -167,8 +187,9 @@ Antes de que el usuario haga el commit, verificar que:
 - [ ] Versión bumpeada en `pyproject.toml`, `main.py` y `main_window.py`
 - [ ] `README.md` actualizado
 - [ ] `VERSION_HISTORY.md` actualizado
-- [ ] Instalador Windows compilado y probado
-- [ ] Instalador Linux (.deb) compilado
-- [ ] GitHub Release publicado con ambos instaladores adjuntos
 - [ ] `.gitignore` y `.gitattributes` verificados/actualizados
-- [ ] Commit y push realizados por el usuario vía terminal
+- [ ] Instalador Windows compilado (`installers/windows/AudioRep/`) — **asistente**
+- [ ] ZIP de Windows creado (`installers/AudioRep-X.Y.Z-windows.zip`) — **asistente**
+- [ ] Instalador Linux compilado (`installers/linux/audiorep_X.Y.Z_amd64.deb`) — **asistente**
+- [ ] Commit y push realizados — **usuario por terminal**
+- [ ] GitHub Release publicado con ambos instaladores adjuntos — **asistente**

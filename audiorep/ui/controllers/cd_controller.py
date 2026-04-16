@@ -324,10 +324,13 @@ class CDController:
         if disc.cover_data:
             self._panel.update_cover(disc.cover_data)
             self._now_playing.update_cover(disc.cover_data)
+        else:
+            self._now_playing.clear_cover()
 
     def _on_cd_ejected(self) -> None:
         self._panel.show_no_cd()
         self._meta_panel.set_disc_available(False)
+        self._now_playing.clear_cover()
         app_events.status_message.emit("CD retirado de la unidad.")
 
     def _on_rip_progress(self, track_current: int, total: int, percent: int) -> None:

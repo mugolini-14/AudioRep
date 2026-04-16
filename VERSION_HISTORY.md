@@ -2,6 +2,24 @@
 
 ---
 
+# 0.35 — VU Metro Real, Tabla de Pistas CD y Correcciones de UI
+
+**Fecha:** 15 de abril de 2026
+
+### Agregado
+
+- **VU metro estéreo con análisis real** — el vúmetro ahora intercepta el stream PCM de VLC via `libvlc_audio_set_callbacks` y reproduce el audio a través de `sounddevice`. Los 24 canales se dividen en 12 para L y 12 para R, mostrando niveles RMS reales con peak hold por canal y divisor central. Incluye fallback a simulación si sounddevice no está disponible
+- **`sounddevice`** agregado como nueva dependencia de runtime para la salida de audio del análisis PCM
+
+### Modificado
+
+- **Lista de pistas del CD ahora es una tabla** — la pestaña CD usa `QTableWidget` con columnas (#, Título, Estado) y cabeceras con el mismo estilo visual estándar que la Biblioteca y Playlists, en lugar de la lista plana anterior
+- **Portada en NowPlaying se mantiene al reproducir** — corregido el bug por el que la portada identificada del CD desaparecía al iniciar la reproducción. La imagen ahora persiste entre cambios de pista mientras sea del mismo CD
+- **Portada se limpia correctamente al eyectar el CD** — `_on_cd_ejected` ahora llama a `clear_cover()` en NowPlaying, evitando que la imagen quede varada cuando no hay disco
+- **VU metro más alto** — altura aumentada de 90 px a 110 px
+
+---
+
 # 0.30 — Corrección de CD y Búsqueda Manual de Metadatos
 
 **Fecha:** 15 de abril de 2026

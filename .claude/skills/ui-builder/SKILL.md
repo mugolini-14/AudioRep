@@ -112,8 +112,25 @@ El tab CD contiene un `QSplitter#cdTabSplitter` horizontal con dos columnas:
 | `separator` | `QFrame` | Línea de 1px entre área principal y PlayerBar |
 | `playerBar` | `QWidget` | Barra de controles inferior |
 | `rightPanel` | `QWidget` | Panel derecho fijo (210–320px): NowPlaying + VUMeter |
-| `vuMeter` | `QWidget` | VU meter animado, altura fija 90px, fondo `#12121e` |
+| `vuMeter` | `QWidget` | VU metro estéreo real, altura fija 110px, fondo `#12121e` |
 | `cdTabSplitter` | `QSplitter` | Splitter interno del tab CD: CDPanel / CDMetadataPanel |
+
+### CDPanel (`audiorep/ui/widgets/cd_panel.py`)
+
+| objectName | Widget | Descripción |
+|---|---|---|
+| `cdPanel` | `QWidget` (raíz) | Panel principal del tab CD |
+| `cdDriveLabel` | `QLabel` | Label "Lectora:" |
+| `cdDriveCombo` | `QComboBox` | Selector de unidad de CD |
+| `cdCover` | `QLabel` | Portada del disco, 90×90 |
+| `cdStatus` | `QLabel` | Estado del disco (ej. "Disco identificado") |
+| `cdAlbum` | `QLabel` | Nombre del álbum |
+| `cdArtist` | `QLabel` | Nombre del artista |
+| `cdTrackTable` | `QTableWidget` | Tabla de pistas — columnas: #, Título, estado de ripeo. Cabeceras visibles, misma paleta que `trackTable` |
+| `cdDetectBtn` | `QPushButton` | Botón "Detectar" |
+| `cdIdentifyBtn` | `QPushButton` | Botón "Identificar" |
+| `cdPlayBtn` | `QPushButton` | Botón "▶ Reproducir CD" — color de acento `#6a4caf` |
+| `cdRipAllBtn` | `QPushButton` | Botón "💾 Ripear todo" |
 
 ### NowPlaying (`audiorep/ui/widgets/now_playing.py`)
 

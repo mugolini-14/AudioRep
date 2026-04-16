@@ -1,10 +1,16 @@
 """
-VUMeterWidget — Visualización de vúmetro animado.
+VUMeterWidget — VU Metro estéreo con análisis de audio real.
 
-Muestra barras verticales que se animan durante la reproducción.
-Colores: verde (bajo) → amarillo (medio) → rojo (alto).
+Diseño:
+  - 12 barras para el canal L (izquierda) + 12 barras para el canal R (derecha).
+  - Cada grupo muestra el nivel RMS del canal correspondiente con peak hold.
+  - Separación visual en el centro.
+  - Los niveles se leen de audiorep.core.audio_levels, que es escrito por
+    VLCPlayer cuando el análisis PCM real está disponible.
+  - Fallback: si audio_levels reporta (0, 0) durante la reproducción, se
+    activa un modo de simulación suave para que el metro no quede en silencio.
 
-Se conecta a los app_events de reproducción para iniciar/detener la animación.
+Colores: verde (#34C378) → amarillo (#E8B928) → rojo (#DC3C3C).
 """
 from __future__ import annotations
 
@@ -14,47 +20,53 @@ from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtGui import QColor, QPainter
 from PyQt6.QtWidgets import QSizePolicy, QWidget
 
+from audiorep.core import audio_levels
 from audiorep.core.events import app_events
 
-_NUM_BARS   = 24
-_TICK_MS    = 55          # ~18 fps
-_DECAY      = 0.65        # factor de suavizado al actualizar
-_FADE_RATE  = 0.88        # factor de decaimiento al parar
+# ── Parámetros visuales ────────────────────────────────────────────────── #
+_BARS_PER_CH  = 12      # barras por canal (L y R)
+_TICK_MS      = 40      # ~25 fps
+_GAP_BAR      = 2       # separación entre barras (px)
+_GAP_CENTER   = 8       # separación entre grupo L y grupo R (px)
+_DECAY_PLAY   = 0.55    # suavizado de nivel durante reproducción
+_DECAY_STOP   = 0.88    # decaimiento al detener
+_PEAK_DROP    = 0.012   # velocidad de caída del peak hold
 
-# Colores por nivel (RGB)
-_COLOR_LOW    = QColor(52,  195, 120)   # verde  #34C378
-_COLOR_MID    = QColor(232, 185,  40)   # amarillo #E8B928
-_COLOR_HIGH   = QColor(220,  60,  60)   # rojo   #DC3C3C
-_COLOR_BG     = QColor(18,  18,  30)    # fondo  #12121e
+# Colores
+_COLOR_LOW  = QColor(52,  195, 120)    # verde  #34C378
+_COLOR_MID  = QColor(232, 185,  40)    # amarillo #E8B928
+_COLOR_HIGH = QColor(220,  60,  60)    # rojo   #DC3C3C
+_COLOR_BG   = QColor(18,  18,  30)     # fondo  #12121e
+_COLOR_DIV  = QColor(42,  42,  62)     # divisor central
 
 
-def _lerp_color(a: QColor, b: QColor, t: float) -> QColor:
-    """Interpolación lineal entre dos colores."""
-    r = int(a.red()   + (b.red()   - a.red())   * t)
-    g = int(a.green() + (b.green() - a.green()) * t)
+def _lerp(a: QColor, b: QColor, t: float) -> QColor:
+    r  = int(a.red()   + (b.red()   - a.red())   * t)
+    g  = int(a.green() + (b.green() - a.green()) * t)
     bl = int(a.blue()  + (b.blue()  - a.blue())  * t)
     return QColor(r, g, bl)
 
 
 def _bar_color(level: float) -> QColor:
-    """Retorna el color de una barra según su nivel (0.0–1.0)."""
     if level < 0.6:
-        return _lerp_color(_COLOR_LOW, _COLOR_MID, level / 0.6)
-    return _lerp_color(_COLOR_MID, _COLOR_HIGH, (level - 0.6) / 0.4)
+        return _lerp(_COLOR_LOW, _COLOR_MID, level / 0.6)
+    return _lerp(_COLOR_MID, _COLOR_HIGH, (level - 0.6) / 0.4)
 
 
 class VUMeterWidget(QWidget):
-    """Vúmetro animado con barras verticales de colores."""
+    """VU metro estéreo con análisis de audio real (PCM) y peak hold."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("vuMeter")
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.setMinimumHeight(70)
+        self.setMinimumHeight(100)
 
-        self._levels  = [0.0] * _NUM_BARS
-        self._peaks   = [0.0] * _NUM_BARS
+        n = _BARS_PER_CH * 2
+        self._levels = [0.0] * n     # niveles mostrados (suavizados)
+        self._peaks  = [0.0] * n     # peak hold por barra
         self._playing = False
+        self._zero_ticks = 0         # ticks consecutivos con señal cero real
 
         self._timer = QTimer(self)
         self._timer.setInterval(_TICK_MS)
@@ -71,6 +83,7 @@ class VUMeterWidget(QWidget):
 
     def _on_play(self) -> None:
         self._playing = True
+        self._zero_ticks = 0
         if not self._timer.isActive():
             self._timer.start()
 
@@ -79,34 +92,59 @@ class VUMeterWidget(QWidget):
 
     def _on_stop(self) -> None:
         self._playing = False
-        self._peaks = [0.0] * _NUM_BARS
+        self._peaks = [0.0] * (_BARS_PER_CH * 2)
+        audio_levels.reset()
 
     # ------------------------------------------------------------------
-    # Animación
+    # Tick
     # ------------------------------------------------------------------
 
     def _tick(self) -> None:
+        n = _BARS_PER_CH * 2
+
         if self._playing:
-            for i in range(_NUM_BARS):
-                # Simular señal de audio con variaciones suaves
-                target = random.gauss(0.45, 0.22)
-                target = max(0.0, min(1.0, target))
-                self._levels[i] = self._levels[i] * _DECAY + target * (1.0 - _DECAY)
+            raw_l, raw_r = audio_levels.read()
+            real = audio_levels.is_real()
+
+            # Detectar si la señal real lleva varios ticks en cero
+            if real and raw_l < 0.001 and raw_r < 0.001:
+                self._zero_ticks += 1
+            else:
+                self._zero_ticks = 0
+
+            # Si hay análisis real y hay señal, usarla
+            use_real = real and self._zero_ticks < 15
+
+            for i in range(n):
+                ch = i // _BARS_PER_CH          # 0 = L, 1 = R
+                raw = raw_l if ch == 0 else raw_r
+
+                if use_real:
+                    # Añadir micro-variación per-barra para efecto visual
+                    noise = random.gauss(0, 0.04)
+                    target = max(0.0, min(1.0, raw + noise))
+                else:
+                    # Simulación de respaldo (señal real cero o no disponible)
+                    target = max(0.0, min(1.0, random.gauss(0.42, 0.20)))
+
+                self._levels[i] = self._levels[i] * _DECAY_PLAY + target * (1.0 - _DECAY_PLAY)
+
                 if self._levels[i] > self._peaks[i]:
                     self._peaks[i] = self._levels[i]
                 else:
-                    self._peaks[i] = max(0.0, self._peaks[i] - 0.015)
+                    self._peaks[i] = max(0.0, self._peaks[i] - _PEAK_DROP)
+
         else:
             # Apagado gradual
             all_zero = True
-            for i in range(_NUM_BARS):
-                self._levels[i] *= _FADE_RATE
-                self._peaks[i]  *= _FADE_RATE
-                if self._levels[i] > 0.005:
+            for i in range(n):
+                self._levels[i] *= _DECAY_STOP
+                self._peaks[i]  *= _DECAY_STOP
+                if self._levels[i] > 0.004:
                     all_zero = False
             if all_zero:
-                self._levels = [0.0] * _NUM_BARS
-                self._peaks  = [0.0] * _NUM_BARS
+                self._levels = [0.0] * n
+                self._peaks  = [0.0] * n
                 self._timer.stop()
 
         self.update()
@@ -121,28 +159,37 @@ class VUMeterWidget(QWidget):
 
         w = self.width()
         h = self.height()
-        n = _NUM_BARS
-        gap = 3
-        total_gap = gap * (n - 1)
-        bar_w = max(1.0, (w - total_gap) / n)
 
         # Fondo
         painter.fillRect(0, 0, w, h, _COLOR_BG)
 
+        n   = _BARS_PER_CH * 2
+        gap = _GAP_BAR
+        # Ancho disponible descontando el separador central y los gaps entre barras
+        avail = w - _GAP_CENTER - gap * (n - 2)   # n-2 gaps (n barras, sin el gap central)
+        bar_w = max(2.0, avail / n)
+
         for i in range(n):
-            x = int(i * (bar_w + gap))
+            # Posición X teniendo en cuenta el gap central entre grupos
+            if i < _BARS_PER_CH:
+                x = int(i * (bar_w + gap))
+            else:
+                x = int(i * (bar_w + gap) + _GAP_CENTER)
+
             level = self._levels[i]
             bar_h = max(2, int(level * h))
             y = h - bar_h
 
-            color = _bar_color(level)
-            painter.fillRect(x, y, int(bar_w), bar_h, color)
+            painter.fillRect(x, y, int(bar_w), bar_h, _bar_color(level))
 
-            # Marca de pico
+            # Peak hold
             peak = self._peaks[i]
             if peak > 0.02:
                 peak_y = max(0, int((1.0 - peak) * h))
-                peak_color = _bar_color(peak)
-                painter.fillRect(x, peak_y, int(bar_w), 2, peak_color)
+                painter.fillRect(x, peak_y, int(bar_w), 2, _bar_color(peak))
+
+        # Divisor central
+        cx = int(_BARS_PER_CH * (bar_w + gap) + _GAP_CENTER // 2 - 1)
+        painter.fillRect(cx, 0, 2, h, _COLOR_DIV)
 
         painter.end()

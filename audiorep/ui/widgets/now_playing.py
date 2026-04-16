@@ -19,6 +19,7 @@ class NowPlaying(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("nowPlayingPanel")
+        self._current_cover: bytes | None = None
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -83,9 +84,30 @@ class NowPlaying(QWidget):
         self._artist.setText(track.artist_name or "—")
         self._album.setText(track.album_title or "—")
         self._rating.setText(self._rating_stars(track.rating))
-        self._show_placeholder()
+        # Re-aplicar portada almacenada; si no hay, mostrar placeholder
+        if self._current_cover:
+            self._apply_cover(self._current_cover)
+        else:
+            self._show_placeholder()
 
     def update_cover(self, image_data: bytes) -> None:
+        self._current_cover = image_data
+        self._apply_cover(image_data)
+
+    def clear_cover(self) -> None:
+        """Limpia sólo la portada (ej. al eyectar el CD), sin tocar título/artista."""
+        self._current_cover = None
+        self._show_placeholder()
+
+    def clear(self) -> None:
+        self._current_cover = None
+        self._title.setText("—")
+        self._artist.setText("—")
+        self._album.setText("—")
+        self._rating.setText("")
+        self._show_placeholder()
+
+    def _apply_cover(self, image_data: bytes) -> None:
         pixmap = QPixmap()
         if pixmap.loadFromData(image_data):
             scaled = pixmap.scaled(
@@ -97,10 +119,3 @@ class NowPlaying(QWidget):
             self._cover.setText("")
         else:
             self._show_placeholder()
-
-    def clear(self) -> None:
-        self._title.setText("—")
-        self._artist.setText("—")
-        self._album.setText("—")
-        self._rating.setText("")
-        self._show_placeholder()

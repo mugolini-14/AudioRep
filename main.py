@@ -18,6 +18,7 @@ Estado de implementación:
     ✅ Paso 11 — Radio por internet (radio-browser.info), v0.20
     ✅ Paso 12 — UI 0.25: pestañas, controles, CD multi-lectora, playlist, VU meter, NowPlaying derecha
     ✅ Paso 13 — CD fix: CDDA URIs, identificación MB normalizada, GnuDB, panel metadatos manual, v0.30
+    ✅ Paso 14 — VU metro real (PCM via sounddevice), tabla CD con cabeceras, fix portada NowPlaying, v0.35
 """
 import os
 import sys
@@ -57,7 +58,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.30.0")
+    app.setApplicationVersion("0.35.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #

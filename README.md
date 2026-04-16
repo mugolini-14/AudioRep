@@ -16,7 +16,7 @@ AudioRep es un reproductor de música de escritorio para Windows, hecho en Pytho
 
 - **Radio por internet** — buscá emisoras en tiempo real usando radio-browser.info (más de 30.000 estaciones). Guardá tus favoritas, marcalas con ♥ y reproducílas con un clic.
 
-- **Visualización en vivo** — panel derecho con información de la pista actual (portada, título, artista, álbum) y un vúmetro animado con barras de colores que reacciona a la reproducción.
+- **Visualización en vivo** — panel derecho con información de la pista actual (portada, título, artista, álbum) y un vúmetro estéreo que analiza el audio en tiempo real (canales L/R con barras de colores y peak hold).
 
 - **Configuración** — accesible desde el menú *Archivo → Configuración*. Permite ingresar la API key de AcoustID y definir el formato y directorio de ripeo.
 
@@ -40,6 +40,7 @@ AudioRep es un reproductor de música de escritorio para Windows, hecho en Pytho
 | `pyacoustid` | Identificación de pistas por huella de audio (requiere `fpcalc` en el PATH) |
 | `Pillow` | Procesamiento de imágenes de portada |
 | `requests` | Descarga de portadas desde Cover Art Archive y búsqueda de emisoras de radio |
+| `sounddevice` | Salida de audio PCM para el análisis real del vúmetro (intercepta el stream de VLC) |
 
 ### Herramientas de desarrollo
 
@@ -78,8 +79,8 @@ Toda la inyección de dependencias ocurre en `main.py`, que actúa como raíz de
 
 | Plataforma | Versión | Fecha | Archivo | Tamaño |
 |---|---|---|---|---|
-| Windows 10/11 | 0.30 | Abril 2026 | `AudioRep-0.30.0-windows.zip` | ~118 MB |
-| Linux Debian/Ubuntu | 0.30 | Abril 2026 | `audiorep_0.30.0_amd64.deb` | ~78 MB |
+| Windows 10/11 | 0.35 | Abril 2026 | `AudioRep-0.35.0-windows.zip` | ~119 MB |
+| Linux Debian/Ubuntu | 0.35 | Abril 2026 | `audiorep_0.35.0_amd64.deb` | ~84 MB |
 
 Los instaladores están disponibles en la sección [Releases](https://github.com/mugolini-14/AudioRep/releases) del repositorio.
 

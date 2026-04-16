@@ -6,7 +6,7 @@ Muestra el estado del disco, selector de lectora, lista de pistas y controles.
 Layout:
     [Selector de lectora]
     [Portada] | [Estado / Álbum / Artista]
-    [Lista de pistas (expande)]
+    [Tabla de pistas (expande)]
     [Detectar] [Identificar] [▶ Play] [Ripear]
 
 Signals:
@@ -27,11 +27,12 @@ from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
-    QListWidget,
-    QListWidgetItem,
     QPushButton,
     QSizePolicy,
+    QTableWidget,
+    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -41,10 +42,14 @@ from audiorep.domain.cd_disc import CDDisc, RipStatus
 logger = logging.getLogger(__name__)
 
 _STATUS_ICON = {
-    RipStatus.PENDING: "⬜",
-    RipStatus.DONE:    "✅",
-    RipStatus.ERROR:   "❌",
+    RipStatus.PENDING: "",
+    RipStatus.DONE:    "✔",
+    RipStatus.ERROR:   "✖",
 }
+
+_COL_NUM    = 0
+_COL_TITLE  = 1
+_COL_STATUS = 2
 
 
 class CDPanel(QWidget):
@@ -121,17 +126,33 @@ class CDPanel(QWidget):
         info_row.addLayout(disc_info, stretch=1)
         layout.addLayout(info_row)
 
-        # ── Lista de pistas (ocupa todo el espacio restante) ─────── #
-        self._track_list = QListWidget()
-        self._track_list.setObjectName("cdTrackList")
-        self._track_list.setAlternatingRowColors(True)
-        self._track_list.setSizePolicy(
+        # ── Tabla de pistas ───────────────────────────────────────── #
+        self._track_table = QTableWidget()
+        self._track_table.setObjectName("cdTrackTable")
+        self._track_table.setColumnCount(3)
+        self._track_table.setHorizontalHeaderLabels(["#", "Título", ""])
+        self._track_table.setAlternatingRowColors(True)
+        self._track_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self._track_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self._track_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self._track_table.verticalHeader().setVisible(False)
+        self._track_table.setShowGrid(False)
+        self._track_table.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
-        self._track_list.doubleClicked.connect(self._on_track_double_clicked)
-        layout.addWidget(self._track_list, stretch=1)
 
-        # ── Botones de control (en la parte inferior) ─────────────── #
+        # Columnas: # fijo, Título expansible, Estado fijo
+        header = self._track_table.horizontalHeader()
+        header.setSectionResizeMode(_COL_NUM,    QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(_COL_TITLE,  QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(_COL_STATUS, QHeaderView.ResizeMode.Fixed)
+        self._track_table.setColumnWidth(_COL_NUM,    36)
+        self._track_table.setColumnWidth(_COL_STATUS, 32)
+
+        self._track_table.doubleClicked.connect(self._on_track_double_clicked)
+        layout.addWidget(self._track_table, stretch=1)
+
+        # ── Botones de control ────────────────────────────────────── #
         btn_row = QHBoxLayout()
         btn_row.setSpacing(6)
 
@@ -181,7 +202,8 @@ class CDPanel(QWidget):
         self._album_label.setText("")
         self._artist_label.setText("")
         self._cover_label.setText("💿")
-        self._track_list.clear()
+        self._cover_label.setPixmap(QPixmap())
+        self._track_table.setRowCount(0)
 
     def show_reading(self) -> None:
         self._status_label.setText("Leyendo CD…")
@@ -191,14 +213,14 @@ class CDPanel(QWidget):
         self._status_label.setText(f"Disco detectado — {len(disc.tracks)} pistas")
         self._album_label.setText(disc.album_title or "Álbum desconocido")
         self._artist_label.setText(disc.artist_name or "Artista desconocido")
-        self._update_track_list(disc)
+        self._update_track_table(disc)
 
     def show_identified(self, disc: CDDisc) -> None:
         self._disc = disc
         self._status_label.setText("Disco identificado")
         self._album_label.setText(disc.album_title or "")
         self._artist_label.setText(disc.artist_name or "")
-        self._update_track_list(disc)
+        self._update_track_table(disc)
 
     def update_cover(self, image_data: bytes) -> None:
         pixmap = QPixmap()
@@ -209,33 +231,57 @@ class CDPanel(QWidget):
                 Qt.TransformationMode.SmoothTransformation,
             )
             self._cover_label.setPixmap(scaled)
+            self._cover_label.setText("")
 
     def update_track_rip_status(self, track_number: int, status: RipStatus) -> None:
-        for i in range(self._track_list.count()):
-            item = self._track_list.item(i)
-            if item and item.data(Qt.ItemDataRole.UserRole) == track_number:
-                title = item.text().split("  ", 1)[-1]
-                icon  = _STATUS_ICON.get(status, "")
-                item.setText(f"{icon}  {title}" if icon else title)
+        for row in range(self._track_table.rowCount()):
+            num_item = self._track_table.item(row, _COL_NUM)
+            if num_item and num_item.data(Qt.ItemDataRole.UserRole) == track_number:
+                icon = _STATUS_ICON.get(status, "")
+                status_item = QTableWidgetItem(icon)
+                status_item.setTextAlignment(
+                    Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
+                )
+                self._track_table.setItem(row, _COL_STATUS, status_item)
                 break
 
     # ------------------------------------------------------------------
     # Internals
     # ------------------------------------------------------------------
 
-    def _update_track_list(self, disc: CDDisc) -> None:
-        self._track_list.clear()
-        for t in disc.tracks:
-            icon  = _STATUS_ICON.get(t.rip_status, "")
-            label = f"{icon}  {t.number:02d}. {t.title or 'Pista ' + str(t.number)}"
-            item  = QListWidgetItem(label.strip())
-            item.setData(Qt.ItemDataRole.UserRole, t.number)
-            self._track_list.addItem(item)
+    def _update_track_table(self, disc: CDDisc) -> None:
+        self._track_table.setRowCount(0)
+        self._track_table.setRowCount(len(disc.tracks))
+        for row, t in enumerate(disc.tracks):
+            # Columna #
+            num_item = QTableWidgetItem(f"{t.number:02d}")
+            num_item.setTextAlignment(
+                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
+            )
+            num_item.setData(Qt.ItemDataRole.UserRole, t.number)
+            self._track_table.setItem(row, _COL_NUM, num_item)
+
+            # Columna Título
+            title_item = QTableWidgetItem(t.title or f"Pista {t.number}")
+            title_item.setTextAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+            )
+            self._track_table.setItem(row, _COL_TITLE, title_item)
+
+            # Columna Estado
+            icon = _STATUS_ICON.get(t.rip_status, "")
+            status_item = QTableWidgetItem(icon)
+            status_item.setTextAlignment(
+                Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
+            )
+            self._track_table.setItem(row, _COL_STATUS, status_item)
+
+        self._track_table.resizeRowsToContents()
 
     def _on_track_double_clicked(self, index) -> None:
-        item = self._track_list.item(index.row())
-        if item:
-            track_number = item.data(Qt.ItemDataRole.UserRole)
+        num_item = self._track_table.item(index.row(), _COL_NUM)
+        if num_item:
+            track_number = num_item.data(Qt.ItemDataRole.UserRole)
             self.play_track_requested.emit(track_number)
 
     def _on_drive_changed(self, drive: str) -> None:

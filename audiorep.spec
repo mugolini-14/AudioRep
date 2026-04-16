@@ -64,6 +64,9 @@ a = Analysis(
         "mutagen.id3",
         "PIL",
         "PIL.Image",
+        # Audio analysis (VU meter real)
+        "sounddevice",
+        "_sounddevice",
     ],
     hookspath=[],
     hooksconfig={},
