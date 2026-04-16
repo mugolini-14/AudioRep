@@ -4,6 +4,36 @@ Este archivo registra funcionalidades que fueron consideradas pero que no pudier
 
 ---
 
+## Optimización de arranque del ejecutable Windows
+
+**Descripción:**
+El bundle de PyInstaller tarda varios segundos en iniciarse en Windows. Hay mejoras concretas identificadas que reducirían el tiempo de arranque sin cambios en el código de la aplicación.
+
+**Cambios pendientes en `audiorep.spec`:**
+
+- **Deshabilitar UPX** (`upx=False` en `EXE` y `COLLECT`) — es la mejora más significativa. UPX comprime cada `.pyd` individualmente; en un bundle de directorio, eso obliga a descomprimir cada módulo en cada arranque. El bundle quedará algo más grande en disco pero arrancará notablemente más rápido.
+- **Ampliar la lista de `excludes`** — PyInstaller incluye módulos del stdlib que AudioRep no usa. Agregar:
+  ```python
+  "tkinter", "_tkinter",
+  "pytest", "unittest", "doctest",
+  "IPython", "jupyter", "notebook",
+  "xml.etree.cElementTree", "lxml",
+  "ftplib", "imaplib", "smtplib", "poplib", "xmlrpc", "http.server",
+  "bz2", "lzma",
+  "pydoc", "docutils",
+  "setuptools", "pkg_resources", "distutils",
+  "email", "multiprocessing",
+  ```
+
+**Recomendaciones para el usuario final (fuera del código):**
+- Excluir la carpeta de instalación del antivirus (Windows Defender en particular escanea cada `.pyd` y `.dll` al cargarlos, añadiendo segundos al arranque).
+- Instalar en SSD si es posible; con HDD el I/O de los ~180 archivos del `_internal/` domina el tiempo de arranque.
+
+**Por qué no se implementó ahora:**
+Los cambios en el spec no afectan el código fuente, pero sí requieren un rebuild y validación de que ningún módulo excluido sea necesario en runtime. Se decidió dejarlo para una versión posterior para no demorar el release de la 0.40.
+
+---
+
 ## Radio FM real (sintonización de señal en vivo)
 
 **Descripción:**

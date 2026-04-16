@@ -95,13 +95,13 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
-    console=False,        # sin ventana de consola
+    upx=False,             # UPX desactivado: ralentiza el arranque en bundles de directorio
+    console=False,         # sin ventana de consola
     disable_windowed_traceback=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,            # TODO: agregar AudioRep.ico cuando esté disponible
+    icon=None,             # TODO: agregar AudioRep.ico cuando esté disponible
 )
 
 coll = COLLECT(
@@ -110,7 +110,7 @@ coll = COLLECT(
     a.zipfiles,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,             # UPX desactivado: ralentiza el arranque en bundles de directorio
     upx_exclude=[],
     name="AudioRep",
 )
