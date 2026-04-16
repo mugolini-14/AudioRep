@@ -122,14 +122,13 @@ QPushButton#playButton:pressed {
 /* Botones de modo (shuffle / repeat) */
 QPushButton#modeButton {
     background-color: transparent;
-    color: rgba(255, 255, 255, 0.45);
+    color: #ffffff;
     border: none;
     border-radius: 8px;
     font-size: 20px;
 }
 
 QPushButton#modeButton:hover {
-    color: #ffffff;
     background-color: rgba(255, 255, 255, 0.10);
 }
 
@@ -399,8 +398,42 @@ QLineEdit#RadioGenreInput:focus {
     border-color: #7c5cbf;
 }
 
-/* Listas de resultados y guardadas */
-QListWidget#RadioResultsList,
+/* Tabla de resultados de búsqueda */
+QTableWidget#RadioResultsTable {
+    background-color: #12121e;
+    alternate-background-color: #16162a;
+    color: #c0c0e0;
+    border: none;
+    gridline-color: transparent;
+    selection-background-color: #2a2a4a;
+    selection-color: #e2e2f0;
+    font-size: 12px;
+    outline: none;
+}
+
+QTableWidget#RadioResultsTable::item {
+    padding: 4px 6px;
+}
+
+QTableWidget#RadioResultsTable QHeaderView::section {
+    background-color: #1e1e2e;
+    color: #7070a0;
+    border: none;
+    border-bottom: 1px solid #33334a;
+    border-right: 1px solid #2a2a3e;
+    padding: 4px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+QTableWidget#RadioResultsTable QHeaderView::section:hover {
+    background-color: #2a2a3e;
+    color: #a0a0c0;
+}
+
+/* Listas de guardadas y favoritas */
 QListWidget#RadioSavedList,
 QListWidget#RadioFavsList {
     background-color: #12121e;
@@ -411,21 +444,18 @@ QListWidget#RadioFavsList {
     outline: none;
 }
 
-QListWidget#RadioResultsList::item,
 QListWidget#RadioSavedList::item,
 QListWidget#RadioFavsList::item {
     padding: 5px 8px;
     border-radius: 3px;
 }
 
-QListWidget#RadioResultsList::item:selected,
 QListWidget#RadioSavedList::item:selected,
 QListWidget#RadioFavsList::item:selected {
     background-color: #2a2a4a;
     color: #e2e2f0;
 }
 
-QListWidget#RadioResultsList::item:hover:!selected,
 QListWidget#RadioSavedList::item:hover:!selected,
 QListWidget#RadioFavsList::item:hover:!selected {
     background-color: #1e1e30;
@@ -660,6 +690,19 @@ QComboBox#cdDriveCombo QAbstractItemView {
 QLabel#cdDriveLabel {
     color: #7070a0;
     font-size: 12px;
+}
+
+QLabel#cdStatus {
+    color: #7070a0;
+    font-size: 12px;
+    padding-left: 8px;
+}
+
+QLabel#cdDiscInfo {
+    color: #e2e2f0;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 0 2px 0;
 }
 
 QPushButton#cdDetectBtn,

@@ -121,7 +121,16 @@ class PlayerBar(QWidget):
         transport_layout.addWidget(self._repeat_btn)
 
         row1.addWidget(transport_frame)
-        row1.addSpacing(12)
+        row1.addSpacing(8)
+
+        # Tiempo transcurrido (antes del track label)
+        self._pos_label = QLabel("0:00")
+        self._pos_label.setObjectName("timeLabel")
+        self._pos_label.setFixedWidth(36)
+        self._pos_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        row1.addWidget(self._pos_label)
+
+        row1.addSpacing(4)
 
         # Info de pista (centro, expande)
         self._track_label = QLabel("")
@@ -131,7 +140,16 @@ class PlayerBar(QWidget):
         )
         row1.addWidget(self._track_label, stretch=1)
 
-        row1.addSpacing(12)
+        row1.addSpacing(4)
+
+        # Duración total (después del track label)
+        self._dur_label = QLabel("0:00")
+        self._dur_label.setObjectName("timeLabel")
+        self._dur_label.setFixedWidth(36)
+        self._dur_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        row1.addWidget(self._dur_label)
+
+        row1.addSpacing(8)
 
         # Volumen
         vol_icon = QLabel("🔊")
@@ -142,21 +160,17 @@ class PlayerBar(QWidget):
         self._vol_slider.setObjectName("volumeSlider")
         self._vol_slider.setRange(0, 100)
         self._vol_slider.setValue(70)
-        self._vol_slider.setFixedWidth(90)
+        self._vol_slider.setMinimumWidth(180)
+        self._vol_slider.setMaximumWidth(280)
         self._vol_slider.valueChanged.connect(self.volume_changed)
         row1.addWidget(self._vol_slider)
 
         outer.addLayout(row1)
 
-        # ── Fila 2: tiempo + barra de progreso + tiempo ───────────── #
+        # ── Fila 2: barra de progreso a ancho completo ────────────── #
         row2 = QHBoxLayout()
-        row2.setSpacing(6)
-
-        self._pos_label = QLabel("0:00")
-        self._pos_label.setObjectName("timeLabel")
-        self._pos_label.setFixedWidth(36)
-        self._pos_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        row2.addWidget(self._pos_label)
+        row2.setSpacing(0)
+        row2.setContentsMargins(0, 0, 0, 0)
 
         self._seek_slider = QSlider(Qt.Orientation.Horizontal)
         self._seek_slider.setObjectName("progressSlider")
@@ -165,12 +179,6 @@ class PlayerBar(QWidget):
         self._seek_slider.sliderPressed.connect(self._on_seek_pressed)
         self._seek_slider.sliderReleased.connect(self._on_seek_released)
         row2.addWidget(self._seek_slider, stretch=1)
-
-        self._dur_label = QLabel("0:00")
-        self._dur_label.setObjectName("timeLabel")
-        self._dur_label.setFixedWidth(36)
-        self._dur_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        row2.addWidget(self._dur_label)
 
         outer.addLayout(row2)
 

@@ -23,7 +23,6 @@ from __future__ import annotations
 import logging
 
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
@@ -94,37 +93,18 @@ class CDPanel(QWidget):
         self._drive_combo.currentTextChanged.connect(self._on_drive_changed)
         drive_row.addWidget(self._drive_combo, stretch=1)
 
-        layout.addLayout(drive_row)
-
-        # ── Info del disco ────────────────────────────────────────── #
-        info_row = QHBoxLayout()
-        info_row.setSpacing(12)
-
-        self._cover_label = QLabel()
-        self._cover_label.setObjectName("cdCover")
-        self._cover_label.setFixedSize(90, 90)
-        self._cover_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._cover_label.setText("💿")
-        info_row.addWidget(self._cover_label)
-
-        disc_info = QVBoxLayout()
-        disc_info.setSpacing(3)
-
+        # ── Estado inline en la fila de lectora ──────────────────── #
         self._status_label = QLabel("No hay CD en la unidad.")
         self._status_label.setObjectName("cdStatus")
-        disc_info.addWidget(self._status_label)
+        drive_row.addWidget(self._status_label)
 
-        self._album_label = QLabel("")
-        self._album_label.setObjectName("cdAlbum")
-        disc_info.addWidget(self._album_label)
+        layout.addLayout(drive_row)
 
-        self._artist_label = QLabel("")
-        self._artist_label.setObjectName("cdArtist")
-        disc_info.addWidget(self._artist_label)
-
-        disc_info.addStretch()
-        info_row.addLayout(disc_info, stretch=1)
-        layout.addLayout(info_row)
+        # ── Info del disco (una sola línea: Artista — Álbum (Año)) ── #
+        self._disc_info_label = QLabel("")
+        self._disc_info_label.setObjectName("cdDiscInfo")
+        self._disc_info_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        layout.addWidget(self._disc_info_label)
 
         # ── Tabla de pistas ───────────────────────────────────────── #
         self._track_table = QTableWidget()
@@ -199,10 +179,7 @@ class CDPanel(QWidget):
 
     def show_no_cd(self) -> None:
         self._status_label.setText("No hay CD en la unidad.")
-        self._album_label.setText("")
-        self._artist_label.setText("")
-        self._cover_label.setText("💿")
-        self._cover_label.setPixmap(QPixmap())
+        self._disc_info_label.setText("")
         self._track_table.setRowCount(0)
 
     def show_reading(self) -> None:
@@ -210,28 +187,25 @@ class CDPanel(QWidget):
 
     def show_disc(self, disc: CDDisc) -> None:
         self._disc = disc
-        self._status_label.setText(f"Disco detectado — {len(disc.tracks)} pistas")
-        self._album_label.setText(disc.album_title or "Álbum desconocido")
-        self._artist_label.setText(disc.artist_name or "Artista desconocido")
+        self._status_label.setText(f"Disco detectado  ·  {len(disc.tracks)} pistas")
+        self._disc_info_label.setText(self._format_disc_info(disc))
         self._update_track_table(disc)
 
     def show_identified(self, disc: CDDisc) -> None:
         self._disc = disc
         self._status_label.setText("Disco identificado")
-        self._album_label.setText(disc.album_title or "")
-        self._artist_label.setText(disc.artist_name or "")
+        self._disc_info_label.setText(self._format_disc_info(disc))
         self._update_track_table(disc)
 
     def update_cover(self, image_data: bytes) -> None:
-        pixmap = QPixmap()
-        if pixmap.loadFromData(image_data):
-            scaled = pixmap.scaled(
-                90, 90,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
-            self._cover_label.setPixmap(scaled)
-            self._cover_label.setText("")
+        """No-op: la portada se muestra en el panel NowPlaying."""
+
+    @staticmethod
+    def _format_disc_info(disc: CDDisc) -> str:
+        artist = disc.artist_name or "Artista desconocido"
+        album  = disc.album_title  or "Álbum desconocido"
+        year   = f"  ({disc.year})" if disc.year else ""
+        return f"{artist}  —  {album}{year}"
 
     def update_track_rip_status(self, track_number: int, status: RipStatus) -> None:
         for row in range(self._track_table.rowCount()):
