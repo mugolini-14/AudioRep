@@ -860,8 +860,8 @@ QPushButton#cdMetaApplyBtn:disabled {
 QListWidget#cdMetaResultsList,
 QListWidget#cdMetaTrackList {
     background-color: #12121e;
+    alternate-background-color: #16162a;
     border: 1px solid #2a2a3e;
-    border-radius: 4px;
     color: #e2e2f0;
     font-size: 12px;
     outline: none;
@@ -876,4 +876,9 @@ QListWidget#cdMetaResultsList::item:selected,
 QListWidget#cdMetaTrackList::item:selected {
     background-color: #2a2a4a;
     color: #e2e2f0;
+}
+
+QListWidget#cdMetaResultsList::item:hover:!selected,
+QListWidget#cdMetaTrackList::item:hover:!selected {
+    background-color: #1e1e30;
 }

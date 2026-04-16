@@ -20,6 +20,7 @@ Estado de implementación:
     ✅ Paso 13 — CD fix: CDDA URIs, identificación MB normalizada, GnuDB, panel metadatos manual, v0.30
     ✅ Paso 14 — VU metro real (PCM via sounddevice), tabla CD con cabeceras, fix portada NowPlaying, v0.35
     ✅ Paso 15 — Radio tabla resultados, CD sin portada inline, PlayerBar barra tiempo + volumen, v0.40
+    ✅ Paso 16 — Fix crash radio (_station_label), fix tema QSS en listas cdMeta, v0.40
 """
 import os
 import sys

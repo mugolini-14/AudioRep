@@ -18,6 +18,11 @@
 - **Slider de volumen ampliado** — el slider de volumen ahora tiene un ancho mínimo de 180 px (máx. 280 px) para alinearse visualmente con el VU metro del panel derecho
 - **Íconos de controles totalmente blancos** — los botones de modo (shuffle/repeat) ahora muestran sus íconos en blanco completo en todos los estados, coherente con el resto de los controles de transporte
 
+### Corregido
+
+- **Crash al iniciar con radio** — `RadioPanel` lanzaba `AttributeError: '_station_label'` al cargar las emisoras guardadas. El método fue restaurado ya que las listas de Guardadas y Favoritas lo siguen necesitando
+- **Tema oscuro en listas de metadatos de CD** — los `QListWidget` de resultados y pistas del panel de metadatos aparecían con fondo blanco (estilo nativo de Windows). Causa: `border-radius` en QSS impide que Qt aplique el color de fondo al viewport interno. Se eliminó `border-radius` y se agregaron `alternate-background-color` y regla de hover
+
 ---
 
 # 0.35 — VU Metro Real, Tabla de Pistas CD y Correcciones de UI

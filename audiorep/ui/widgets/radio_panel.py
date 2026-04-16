@@ -376,3 +376,20 @@ class RadioPanel(QWidget):
         self._btn_search.setEnabled(not active)
         self._btn_search.setText("Buscando…" if active else "Buscar")
 
+    # ------------------------------------------------------------------
+    # Helpers de formato (para listas de guardadas y favoritas)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _station_label(station: RadioStation) -> str:
+        parts = [station.name]
+        if station.genre:
+            parts.append(station.genre)
+        if station.country:
+            parts.append(station.country)
+        if station.bitrate_kbps:
+            parts.append(f"{station.bitrate_kbps} kbps")
+        if station.is_favorite:
+            parts.append("♥")
+        return "  ·  ".join(parts)
+
