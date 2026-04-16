@@ -1,3 +1,5 @@
+name: "UI Builder"
+
 # Skill: UI Builder — Mantenimiento del diseño visual de AudioRep
 
 Este archivo es la referencia obligatoria antes de crear, modificar o reconstruir cualquier widget de AudioRep.
@@ -122,15 +124,15 @@ El tab CD contiene un `QSplitter#cdTabSplitter` horizontal con dos columnas:
 | `cdPanel` | `QWidget` (raíz) | Panel principal del tab CD |
 | `cdDriveLabel` | `QLabel` | Label "Lectora:" |
 | `cdDriveCombo` | `QComboBox` | Selector de unidad de CD |
-| `cdCover` | `QLabel` | Portada del disco, 90×90 |
-| `cdStatus` | `QLabel` | Estado del disco (ej. "Disco identificado") |
-| `cdAlbum` | `QLabel` | Nombre del álbum |
-| `cdArtist` | `QLabel` | Nombre del artista |
+| `cdStatus` | `QLabel` | Estado del disco inline en la fila de lectora (ej. "Disco detectado · 11 pistas"). `#7070a0`, 12px |
+| `cdDiscInfo` | `QLabel` | Info completa del disco en una línea: "Artista — Álbum (Año)". `text-main`, 13px bold, debajo de la fila de lectora |
 | `cdTrackTable` | `QTableWidget` | Tabla de pistas — columnas: #, Título, estado de ripeo. Cabeceras visibles, misma paleta que `trackTable` |
 | `cdDetectBtn` | `QPushButton` | Botón "Detectar" |
 | `cdIdentifyBtn` | `QPushButton` | Botón "Identificar" |
-| `cdPlayBtn` | `QPushButton` | Botón "▶ Reproducir CD" — color de acento `#6a4caf` |
+| `cdPlayBtn` | `QPushButton` | Botón "▶ Reproducir CD" — color de acento `#5a3d9a` |
 | `cdRipAllBtn` | `QPushButton` | Botón "💾 Ripear todo" |
+
+> **Nota v0.40:** La portada del disco fue eliminada del CDPanel. Se muestra únicamente en el NowPlaying lateral. Los labels `cdCover`, `cdAlbum` y `cdArtist` ya no existen.
 
 ### NowPlaying (`audiorep/ui/widgets/now_playing.py`)
 
@@ -149,21 +151,21 @@ El tab CD contiene un `QSplitter#cdTabSplitter` horizontal con dos columnas:
 |---|---|---|---|
 | `playerBar` | `QWidget` (raíz) | min-height 90px | Fondo `bg-surface`, border-top |
 | `transportFrame` | `QFrame` | — | Contenedor redondeado para los 6 botones de transporte. `border-radius: 14px`, fondo `#252538` |
-| `modeButton` | `QPushButton` | 46×46 | Shuffle (⇄) y Repeat (↺). Checkable. Inactivo: `rgba(255,255,255,0.45)`. Activo: `#b090ff` |
+| `modeButton` | `QPushButton` | 46×46 | Shuffle (⇄) y Repeat (↺). Checkable. Inactivo: blanco `#ffffff`. Activo: `#b090ff` |
 | `transportButton` | `QPushButton` | 46×46 | Prev (⏮), Stop (⏹) y Next (⏭). Fondo transparente, color blanco, font-size 22px |
 | `playButton` | `QPushButton` | 54×54 | Play/Pause. Fondo transparente, color blanco, font-size 28px |
-| `timeLabel` | `QLabel` | fixed 36px | Tiempo transcurrido y total. `#7070a0`, 11px tabular-nums |
-| `progressSlider` | `QSlider` | stretch | Barra de progreso. Handle blanco `#e2e2f0` |
+| `timeLabel` | `QLabel` | fixed 36px | Tiempo transcurrido y total, en fila 1 flanqueando el track label. `#7070a0`, 11px tabular-nums |
+| `progressSlider` | `QSlider` | stretch (fila 2) | Barra de progreso a ancho completo. Handle blanco `#e2e2f0` |
 | `volumeIcon` | `QLabel` | — | Ícono 🔊. Color `text-ghost`, 14px |
-| `volumeSlider` | `QSlider` | fixed 90px | Volumen. Groove 3px, handle `#a090c0` |
+| `volumeSlider` | `QSlider` | min 180px / max 280px | Volumen. Groove 3px, handle `#a090c0` |
 
 **Layout de PlayerBar (2 filas):**
 ```
 Fila 1: [transportFrame: modeBtn | prevBtn | stopBtn | playBtn | nextBtn | modeBtn]
-        [─── stretch ──] track info label [─── stretch ──]
+        [timeLabel] [track info label (stretch)] [timeLabel]
         [volumeIcon] [volumeSlider]
 
-Fila 2: [timeLabel] [════ progressSlider ════] [timeLabel]
+Fila 2: [════════════════ progressSlider (ancho completo) ════════════════]
 ```
 
 **Todos los botones de transporte tienen fondo transparente y color blanco** — sin fondos de colores. El único elemento con color de acento es el `modeButton:checked` (`#b090ff`) y el `transportFrame` que los contiene.
@@ -207,11 +209,13 @@ Fila 2: [timeLabel] [════ progressSlider ════] [timeLabel]
 | `RadioPanel` | `QWidget` (raíz) | Panel de radio |
 | `RadioTabs` | `QTabWidget` | Pestañas internas (Buscar / Guardadas / Favoritas) |
 | `RadioSearchInput` | `QLineEdit` | Búsqueda principal, focus: border `accent` |
-| `RadioCountryInput` | `QLineEdit` | Filtro por país |
-| `RadioGenreInput` | `QLineEdit` | Filtro por género |
-| `RadioResultsList` | `QListWidget` | Resultados de búsqueda |
+| `RadioCountryInput` | `QLineEdit` | Filtro por país, maxWidth 160px |
+| `RadioGenreInput` | `QLineEdit` | Filtro por género, maxWidth 160px |
+| `RadioResultsTable` | `QTableWidget` | Resultados de búsqueda — columnas: Nombre (stretch), País (60px), Género (110px), Bitrate (75px). Mismo estilo visual que `trackTable` |
 | `RadioSavedList` | `QListWidget` | Emisoras guardadas |
 | `RadioFavsList` | `QListWidget` | Emisoras favoritas |
+
+> **Nota v0.40:** `RadioResultsList` (QListWidget) fue reemplazado por `RadioResultsTable` (QTableWidget). Los selectores QSS correspondientes cambiaron de `QListWidget#RadioResultsList` a `QTableWidget#RadioResultsTable`.
 | `RadioNowPlaying` | `QLabel` | Emisora en reproducción. `bg-toolbar`, color `accent` |
 | `RadioBtnPlay` | `QPushButton` | Reproducir. Fondo `accent` |
 | `RadioBtnStop` | `QPushButton` | Detener. Estilo secundario |

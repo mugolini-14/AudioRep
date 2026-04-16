@@ -2,6 +2,24 @@
 
 ---
 
+# 0.40 — Mejoras de Interfaz: Radio, CD y Barra de Reproducción
+
+**Fecha:** 15 de abril de 2026
+
+### Modificado
+
+- **Resultados de radio como tabla** — la pestaña Radio ahora muestra los resultados de búsqueda en una `QTableWidget` con columnas Nombre, País, Género y Bitrate, en línea con el estándar visual de grillas del resto de la aplicación
+- **Campos de filtro de radio ampliados** — los campos País y Género son ahora más anchos (160 px cada uno), y el botón Buscar tiene un ancho mínimo de 100 px, evitando el corte del texto
+- **Panel de CD sin portada** — eliminada la portada del panel de CD; la imagen ya se muestra en el NowPlaying lateral, por lo que duplicarla no aportaba valor. La tabla de pistas gana todo ese espacio vertical
+- **Estado del disco inline en CD** — la etiqueta "No hay CD" / "Disco detectado" se movió a la misma fila que el selector de lectora, eliminando el bloque visual de info separado
+- **Info del disco en una sola línea** — artista, álbum y año se muestran ahora juntos en una línea compacta sobre la tabla de pistas (`Artista — Álbum (Año)`)
+- **Barra de progreso a ancho completo** — la barra de tiempo (seek slider) ocupa ahora el ancho completo de la barra de reproducción, sin las etiquetas de tiempo restando espacio a los lados
+- **Etiquetas de tiempo reubicadas** — los tiempos transcurrido y total se movieron a la fila superior de controles, flanqueando el nombre de la pista, liberando la fila inferior para la barra de progreso
+- **Slider de volumen ampliado** — el slider de volumen ahora tiene un ancho mínimo de 180 px (máx. 280 px) para alinearse visualmente con el VU metro del panel derecho
+- **Íconos de controles totalmente blancos** — los botones de modo (shuffle/repeat) ahora muestran sus íconos en blanco completo en todos los estados, coherente con el resto de los controles de transporte
+
+---
+
 # 0.35 — VU Metro Real, Tabla de Pistas CD y Correcciones de UI
 
 **Fecha:** 15 de abril de 2026
