@@ -24,6 +24,7 @@ Estado de implementación:
     ✅ Paso 17 — RadioSavedTable (tabla), fix volumen inicial en PlayerController, v0.42
     ✅ Paso 18 — Filtros en las 3 sub-tabs de Radio, RadioFavsTable, fix volumen PCM callback, v0.44
     ✅ Paso 19 — Fix hover menú Archivo (QMenuBar/QMenu QSS), mute toggle en ícono de volumen, v0.46
+    ✅ Paso 20 — Números de tiempo de reproducción más grandes (font-size 11px → 16px), v0.47
 """
 import os
 import sys
@@ -63,7 +64,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.46.0")
+    app.setApplicationVersion("0.47.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #

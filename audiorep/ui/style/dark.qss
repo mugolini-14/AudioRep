@@ -121,7 +121,7 @@ QWidget#playerBar {
 /* Etiquetas de tiempo */
 QLabel#timeLabel {
     color: #7070a0;
-    font-size: 11px;
+    font-size: 16px;
     font-variant-numeric: tabular-nums;
 }
 

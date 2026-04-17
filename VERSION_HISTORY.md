@@ -2,6 +2,16 @@
 
 ---
 
+# 0.47 — Números de tiempo más grandes
+
+**Fecha:** 17 de abril de 2026
+
+### Modificado
+
+- **Números de tiempo de reproducción agrandados** — los contadores de posición y duración en la barra de reproducción aumentaron de 11 px a 16 px, acompañando visualmente el tamaño de los controles de transporte.
+
+---
+
 # 0.46 — Correcciones de UI: Menú y Mute
 
 **Fecha:** 17 de abril de 2026

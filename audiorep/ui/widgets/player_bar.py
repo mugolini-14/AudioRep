@@ -128,7 +128,7 @@ class PlayerBar(QWidget):
         # Tiempo transcurrido (antes del track label)
         self._pos_label = QLabel("0:00")
         self._pos_label.setObjectName("timeLabel")
-        self._pos_label.setFixedWidth(36)
+        self._pos_label.setFixedWidth(52)
         self._pos_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         row1.addWidget(self._pos_label)
 
@@ -147,7 +147,7 @@ class PlayerBar(QWidget):
         # Duración total (después del track label)
         self._dur_label = QLabel("0:00")
         self._dur_label.setObjectName("timeLabel")
-        self._dur_label.setFixedWidth(36)
+        self._dur_label.setFixedWidth(52)
         self._dur_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         row1.addWidget(self._dur_label)
 
