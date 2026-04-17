@@ -112,3 +112,4 @@ This affects `audiorep.db` and the cover art cache. No changes needed when addin
 - **VLC Media Player** must be installed (used by `python-vlc` for both playback and CD ripping via `sout` transcoding).
 - **fpcalc** (chromaprint) must be in PATH for AcoustID fingerprinting (`pyacoustid` uses it as a subprocess).
 - **AcoustID API key**: stored in `QSettings`. Seed it via `_ACOUSTID_KEY_SEED` in `main.py` on first run, or enter it through *Archivo → Configuración*.
+
