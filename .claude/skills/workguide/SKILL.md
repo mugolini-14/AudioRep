@@ -5,8 +5,9 @@ Debe ser leído y aplicado al pie de la letra cada vez que el usuario solicite u
 
 ---
 
-## PASO 0 — Proponer un plan de acción (REQUIERE APROBACIÓN)
+## PASO 0 — Proponer un plan de acción (REQUIERE APROBACIÓN — SIN EXCEPCIONES)
 
+**Este paso es obligatorio siempre, sin excepción, tanto para mejoras como para nuevas funcionalidades.**
 Antes de escribir una sola línea de código, se debe proponer un plan de acción estructurado.
 
 El plan debe:
@@ -17,6 +18,7 @@ El plan debe:
 - Ser presentado al usuario para su **aprobación expresa** antes de comenzar.
 
 **No se avanza al Paso 1 hasta recibir confirmación del usuario.**
+**No hay excepciones: ni para cambios "pequeños", ni para mejoras menores, ni para refactors. Siempre plan primero.**
 
 ---
 
@@ -157,13 +159,25 @@ Antes de que el usuario haga el commit, verificar que:
 - `.gitattributes` no tenga archivos de texto (`.py`, `.json`, `.sh`, `.md`, etc.) configurados como LFS ni binarios.
 - Si se agregaron nuevos tipos de archivo al proyecto, actualizar ambos archivos según corresponda.
 
-**El commit y push lo realiza el usuario por terminal.**
+---
+
+## PASO 9 — Commit y push
+
+**Responsabilidad del usuario.** Realizar por terminal una vez que el asistente haya completado todos los pasos anteriores.
+
+```bash
+git add <archivos>
+git commit -m "AudioRep X.Y"
+git push
+```
+
+El asistente espera confirmación del usuario antes de continuar con el PASO 10.
 
 ---
 
-## PASO 9 — Publicar el GitHub Release
+## PASO 10 — Publicar el GitHub Release
 
-**Responsabilidad del asistente.** Ejecutar después de que el usuario haya hecho push.
+**Responsabilidad del asistente.** Ejecutar después de que el usuario haya confirmado que hizo push.
 
 ```bash
 gh release create vX.Y.Z \
