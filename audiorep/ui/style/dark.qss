@@ -468,28 +468,39 @@ QTableWidget#RadioSavedTable QHeaderView::section:hover {
     color: #a0a0c0;
 }
 
-/* Lista de favoritas */
-QListWidget#RadioFavsList {
+/* Tabla de emisoras favoritas */
+QTableWidget#RadioFavsTable {
     background-color: #12121e;
     alternate-background-color: #16162a;
     color: #c0c0e0;
     border: none;
+    gridline-color: transparent;
+    selection-background-color: #2a2a4a;
+    selection-color: #e2e2f0;
     font-size: 12px;
     outline: none;
 }
 
-QListWidget#RadioFavsList::item {
-    padding: 5px 8px;
-    border-radius: 3px;
+QTableWidget#RadioFavsTable::item {
+    padding: 4px 6px;
 }
 
-QListWidget#RadioFavsList::item:selected {
-    background-color: #2a2a4a;
-    color: #e2e2f0;
+QTableWidget#RadioFavsTable QHeaderView::section {
+    background-color: #1e1e2e;
+    color: #7070a0;
+    border: none;
+    border-bottom: 1px solid #33334a;
+    border-right: 1px solid #2a2a3e;
+    padding: 4px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-QListWidget#RadioFavsList::item:hover:!selected {
-    background-color: #1e1e30;
+QTableWidget#RadioFavsTable QHeaderView::section:hover {
+    background-color: #2a2a3e;
+    color: #a0a0c0;
 }
 
 /* Etiqueta "en reproducción" */

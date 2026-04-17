@@ -212,11 +212,12 @@ Fila 2: [════════════════ progressSlider (ancho 
 | `RadioCountryInput` | `QLineEdit` | Filtro por país, maxWidth 160px |
 | `RadioGenreInput` | `QLineEdit` | Filtro por género, maxWidth 160px |
 | `RadioResultsTable` | `QTableWidget` | Resultados de búsqueda — columnas: Nombre (stretch), País (60px), Género (110px), Bitrate (75px). Mismo estilo visual que `trackTable` |
-| `RadioSavedTable` | `QTableWidget` | Emisoras guardadas — columnas: Nombre (stretch), País (60px), Género (110px), Bitrate (75px). Favoritas marcadas con ♥ en el nombre |
-| `RadioFavsList` | `QListWidget` | Emisoras favoritas |
+| `RadioSavedTable` | `QTableWidget` | Emisoras guardadas — columnas: Nombre (stretch), País (60px), Género (110px), Bitrate (75px). Favoritas marcadas con ♥. Incluye barra de filtro local (nombre/país/género) encima de la tabla |
+| `RadioFavsTable` | `QTableWidget` | Emisoras favoritas — mismas columnas y estilo que RadioSavedTable. Incluye barra de filtro local |
 
-> **Nota v0.40:** `RadioResultsList` (QListWidget) fue reemplazado por `RadioResultsTable` (QTableWidget). Los selectores QSS correspondientes cambiaron de `QListWidget#RadioResultsList` a `QTableWidget#RadioResultsTable`.
-> **Nota v0.42:** `RadioSavedList` (QListWidget) fue reemplazado por `RadioSavedTable` (QTableWidget). Los selectores QSS cambiaron de `QListWidget#RadioSavedList` a `QTableWidget#RadioSavedTable`.
+> **Nota v0.40:** `RadioResultsList` (QListWidget) fue reemplazado por `RadioResultsTable` (QTableWidget).
+> **Nota v0.42:** `RadioSavedList` (QListWidget) fue reemplazado por `RadioSavedTable` (QTableWidget).
+> **Nota v0.44:** `RadioFavsList` (QListWidget) fue reemplazado por `RadioFavsTable` (QTableWidget). Se agregaron barras de filtro local en las pestañas Guardadas y Favoritas, con los mismos objectNames de inputs que la pestaña Buscar.
 | `RadioNowPlaying` | `QLabel` | Emisora en reproducción. `bg-toolbar`, color `accent` |
 | `RadioBtnPlay` | `QPushButton` | Reproducir. Fondo `accent` |
 | `RadioBtnStop` | `QPushButton` | Detener. Estilo secundario |

@@ -42,9 +42,9 @@ class PlayerController:
         self._connect_player_bar()
         self._connect_app_events()
 
-        # Sincronizar volumen inicial
+        # Sincronizar volumen inicial (audio_get_volume devuelve -1 en modo callback)
         vol = self._service.get_volume()
-        self._player_bar.set_volume(vol)
+        self._player_bar.set_volume(vol if vol > 0 else 100)
 
         logger.debug("PlayerController iniciado.")
 

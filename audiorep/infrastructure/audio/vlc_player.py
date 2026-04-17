@@ -172,7 +172,6 @@ class VLCPlayer:
         self._bridge: _SDAudioBridge | None = None
 
         self._setup_audio_analysis()
-        self._player.audio_set_volume(100)
         logger.debug("VLCPlayer inicializado (análisis=%s).", self._bridge is not None)
 
     # ------------------------------------------------------------------

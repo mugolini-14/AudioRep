@@ -2,6 +2,18 @@
 
 ---
 
+# 0.44 — Mejoras de Interfaz: Radio con Filtros y Volumen
+
+**Fecha:** 17 de abril de 2026
+
+### Modificado
+
+- **Barra de filtro en "Guardadas" y "Favoritas"** — ambas pestañas de Radio ahora incluyen una fila de búsqueda idéntica a la de "Buscar" (nombre, país, género + botón Filtrar) que filtra el contenido de la tabla localmente en tiempo real, sin llamada a API.
+- **"Favoritas" convertida a tabla** — la pestaña Favoritas ahora muestra sus emisoras en una `QTableWidget` con columnas Nombre, País, Género y Bitrate, en línea con el estándar visual del resto de las pestañas de Radio.
+- **Volumen inicial al 100% (fix correcto)** — se corrige la causa raíz del slider silenciado al arranque: `audio_get_volume()` devuelve `-1` en modo callback PCM (sounddevice), que se clampeaba a 0. El `PlayerController` ahora inicializa a 100 cuando el player reporta un valor inválido.
+
+---
+
 # 0.42 — Mejoras de Interfaz: Radio y Volumen Inicial
 
 **Fecha:** 16 de abril de 2026

@@ -2,9 +2,9 @@
 AudioRep — Panel de radio por internet.
 
 Presenta tres pestañas:
-  1. Buscar  — formulario de búsqueda + lista de resultados
-  2. Guardadas — emisoras persistidas localmente
-  3. Favoritas — subconjunto marcado como favorito
+  1. Buscar    — formulario de búsqueda + tabla de resultados (llamada a API)
+  2. Guardadas — emisoras persistidas localmente con barra de filtro
+  3. Favoritas — subconjunto marcado como favorito con barra de filtro
 
 El widget solo emite señales; no llama a ningún service directamente.
 El `RadioController` conecta estas señales con `RadioService`.
@@ -17,8 +17,6 @@ from PyQt6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
-    QListWidget,
-    QListWidgetItem,
     QPushButton,
     QSizePolicy,
     QTabWidget,
@@ -60,6 +58,8 @@ class RadioPanel(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("RadioPanel")
+        self._all_saved_stations: list[RadioStation] = []
+        self._all_fav_stations: list[RadioStation] = []
         self._build_ui()
         self._connect_internal()
 
@@ -72,7 +72,6 @@ class RadioPanel(QWidget):
         root.setContentsMargins(8, 8, 8, 8)
         root.setSpacing(6)
 
-        # ── Tabs ──────────────────────────────────────────────────────
         self._tabs = QTabWidget()
         self._tabs.setObjectName("RadioTabs")
         self._tabs.addTab(self._build_search_tab(),  "Buscar")
@@ -80,13 +79,11 @@ class RadioPanel(QWidget):
         self._tabs.addTab(self._build_favs_tab(),    "Favoritas")
         root.addWidget(self._tabs)
 
-        # ── Barra de estado de reproducción ──────────────────────────
         self._now_playing_label = QLabel("Sin emisora en reproducción")
         self._now_playing_label.setObjectName("RadioNowPlaying")
         self._now_playing_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(self._now_playing_label)
 
-        # ── Botones de acción (zona inferior) ─────────────────────────
         btn_row = QHBoxLayout()
         btn_row.setSpacing(6)
 
@@ -112,30 +109,29 @@ class RadioPanel(QWidget):
         root.addLayout(btn_row)
 
     def _build_search_tab(self) -> QWidget:
-        """Pestaña de búsqueda: campos + lista de resultados."""
+        """Pestaña de búsqueda: campos + tabla de resultados."""
         tab = QWidget()
         tab.setObjectName("RadioSearchTab")
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(4, 8, 4, 4)
         layout.setSpacing(6)
 
-        # Fila de búsqueda
         search_row = QHBoxLayout()
-        self._search_input   = QLineEdit()
+        self._search_input = QLineEdit()
         self._search_input.setObjectName("RadioSearchInput")
         self._search_input.setPlaceholderText("Nombre de la emisora…")
 
-        self._country_input  = QLineEdit()
+        self._country_input = QLineEdit()
         self._country_input.setObjectName("RadioCountryInput")
         self._country_input.setPlaceholderText("País (ej: AR)")
         self._country_input.setMaximumWidth(160)
 
-        self._genre_input    = QLineEdit()
+        self._genre_input = QLineEdit()
         self._genre_input.setObjectName("RadioGenreInput")
         self._genre_input.setPlaceholderText("Género (ej: rock)")
         self._genre_input.setMaximumWidth(160)
 
-        self._btn_search     = QPushButton("Buscar")
+        self._btn_search = QPushButton("Buscar")
         self._btn_search.setObjectName("RadioBtnSearch")
         self._btn_search.setDefault(True)
         self._btn_search.setMinimumWidth(100)
@@ -146,7 +142,6 @@ class RadioPanel(QWidget):
         search_row.addWidget(self._btn_search)
         layout.addLayout(search_row)
 
-        # Tabla de resultados
         self._results_list = QTableWidget()
         self._results_list.setObjectName("RadioResultsTable")
         self._results_list.setColumnCount(4)
@@ -173,11 +168,37 @@ class RadioPanel(QWidget):
         return tab
 
     def _build_saved_tab(self) -> QWidget:
-        """Pestaña de emisoras guardadas."""
+        """Pestaña de emisoras guardadas con barra de filtro local."""
         tab = QWidget()
         tab.setObjectName("RadioSavedTab")
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(4, 8, 4, 4)
+        layout.setSpacing(6)
+
+        filter_row = QHBoxLayout()
+        self._saved_filter_input = QLineEdit()
+        self._saved_filter_input.setObjectName("RadioSearchInput")
+        self._saved_filter_input.setPlaceholderText("Nombre de la emisora…")
+
+        self._saved_country_filter = QLineEdit()
+        self._saved_country_filter.setObjectName("RadioCountryInput")
+        self._saved_country_filter.setPlaceholderText("País (ej: AR)")
+        self._saved_country_filter.setMaximumWidth(160)
+
+        self._saved_genre_filter = QLineEdit()
+        self._saved_genre_filter.setObjectName("RadioGenreInput")
+        self._saved_genre_filter.setPlaceholderText("Género (ej: rock)")
+        self._saved_genre_filter.setMaximumWidth(160)
+
+        self._btn_saved_filter = QPushButton("Buscar")
+        self._btn_saved_filter.setObjectName("RadioBtnSearch")
+        self._btn_saved_filter.setMinimumWidth(100)
+
+        filter_row.addWidget(self._saved_filter_input)
+        filter_row.addWidget(self._saved_country_filter)
+        filter_row.addWidget(self._saved_genre_filter)
+        filter_row.addWidget(self._btn_saved_filter)
+        layout.addLayout(filter_row)
 
         self._saved_table = QTableWidget()
         self._saved_table.setObjectName("RadioSavedTable")
@@ -205,16 +226,60 @@ class RadioPanel(QWidget):
         return tab
 
     def _build_favs_tab(self) -> QWidget:
-        """Pestaña de emisoras favoritas."""
+        """Pestaña de emisoras favoritas con barra de filtro local."""
         tab = QWidget()
         tab.setObjectName("RadioFavsTab")
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(4, 8, 4, 4)
+        layout.setSpacing(6)
 
-        self._favs_list = QListWidget()
-        self._favs_list.setObjectName("RadioFavsList")
-        self._favs_list.setAlternatingRowColors(True)
-        layout.addWidget(self._favs_list)
+        filter_row = QHBoxLayout()
+        self._favs_filter_input = QLineEdit()
+        self._favs_filter_input.setObjectName("RadioSearchInput")
+        self._favs_filter_input.setPlaceholderText("Nombre de la emisora…")
+
+        self._favs_country_filter = QLineEdit()
+        self._favs_country_filter.setObjectName("RadioCountryInput")
+        self._favs_country_filter.setPlaceholderText("País (ej: AR)")
+        self._favs_country_filter.setMaximumWidth(160)
+
+        self._favs_genre_filter = QLineEdit()
+        self._favs_genre_filter.setObjectName("RadioGenreInput")
+        self._favs_genre_filter.setPlaceholderText("Género (ej: rock)")
+        self._favs_genre_filter.setMaximumWidth(160)
+
+        self._btn_favs_filter = QPushButton("Buscar")
+        self._btn_favs_filter.setObjectName("RadioBtnSearch")
+        self._btn_favs_filter.setMinimumWidth(100)
+
+        filter_row.addWidget(self._favs_filter_input)
+        filter_row.addWidget(self._favs_country_filter)
+        filter_row.addWidget(self._favs_genre_filter)
+        filter_row.addWidget(self._btn_favs_filter)
+        layout.addLayout(filter_row)
+
+        self._favs_table = QTableWidget()
+        self._favs_table.setObjectName("RadioFavsTable")
+        self._favs_table.setColumnCount(4)
+        self._favs_table.setHorizontalHeaderLabels(["Nombre", "País", "Género", "Bitrate"])
+        self._favs_table.setAlternatingRowColors(True)
+        self._favs_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self._favs_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self._favs_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self._favs_table.verticalHeader().setVisible(False)
+        self._favs_table.setShowGrid(False)
+        self._favs_table.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
+        header = self._favs_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
+        self._favs_table.setColumnWidth(1, 60)
+        self._favs_table.setColumnWidth(2, 110)
+        self._favs_table.setColumnWidth(3, 75)
+        layout.addWidget(self._favs_table)
 
         return tab
 
@@ -231,16 +296,30 @@ class RadioPanel(QWidget):
         self._btn_delete.clicked.connect(self._on_delete_clicked)
         self._btn_fav.clicked.connect(self._on_fav_clicked)
 
-        # Doble clic en cualquier lista/tabla → reproducir
+        # Filtros locales — Guardadas
+        self._btn_saved_filter.clicked.connect(self._apply_saved_filter)
+        self._saved_filter_input.returnPressed.connect(self._apply_saved_filter)
+        self._saved_filter_input.textChanged.connect(self._apply_saved_filter)
+        self._saved_country_filter.textChanged.connect(self._apply_saved_filter)
+        self._saved_genre_filter.textChanged.connect(self._apply_saved_filter)
+
+        # Filtros locales — Favoritas
+        self._btn_favs_filter.clicked.connect(self._apply_favs_filter)
+        self._favs_filter_input.returnPressed.connect(self._apply_favs_filter)
+        self._favs_filter_input.textChanged.connect(self._apply_favs_filter)
+        self._favs_country_filter.textChanged.connect(self._apply_favs_filter)
+        self._favs_genre_filter.textChanged.connect(self._apply_favs_filter)
+
+        # Doble clic en cualquier tabla → reproducir
         self._results_list.doubleClicked.connect(self._on_play_clicked)
         self._saved_table.doubleClicked.connect(self._on_play_clicked)
-        self._favs_list.itemDoubleClicked.connect(self._on_play_clicked)
+        self._favs_table.doubleClicked.connect(self._on_play_clicked)
 
         # Actualizar botones según selección activa
         self._tabs.currentChanged.connect(self._update_buttons)
         self._results_list.itemSelectionChanged.connect(self._update_buttons)
         self._saved_table.itemSelectionChanged.connect(self._update_buttons)
-        self._favs_list.itemSelectionChanged.connect(self._update_buttons)
+        self._favs_table.itemSelectionChanged.connect(self._update_buttons)
 
         self._update_buttons()
 
@@ -260,7 +339,6 @@ class RadioPanel(QWidget):
             self.play_requested.emit(station)
 
     def _on_save_clicked(self) -> None:
-        # Solo tiene sentido guardar desde la pestaña de resultados
         station = self._selected_from_results()
         if station is not None:
             self.save_requested.emit(station)
@@ -277,10 +355,10 @@ class RadioPanel(QWidget):
 
     def _update_buttons(self) -> None:
         """Habilita/deshabilita botones según la pestaña y selección activa."""
-        tab_idx  = self._tabs.currentIndex()
-        has_result  = self._selected_from_results() is not None
-        has_saved   = self._selected_saved_station() is not None
-        has_any     = self._selected_station() is not None
+        tab_idx    = self._tabs.currentIndex()
+        has_result = self._selected_from_results() is not None
+        has_saved  = self._selected_saved_station() is not None
+        has_any    = self._selected_station() is not None
 
         self._btn_play.setEnabled(has_any)
         self._btn_save.setEnabled(tab_idx == 0 and has_result)
@@ -288,17 +366,44 @@ class RadioPanel(QWidget):
         self._btn_fav.setEnabled(tab_idx in (1, 2) and has_saved)
 
     # ------------------------------------------------------------------
+    # Filtros locales
+    # ------------------------------------------------------------------
+
+    def _apply_saved_filter(self) -> None:
+        name    = self._saved_filter_input.text().strip().lower()
+        country = self._saved_country_filter.text().strip().lower()
+        genre   = self._saved_genre_filter.text().strip().lower()
+        filtered = [
+            s for s in self._all_saved_stations
+            if (not name    or name    in s.name.lower())
+            and (not country or country in (s.country or "").lower())
+            and (not genre   or genre   in (s.genre   or "").lower())
+        ]
+        self._populate_table(self._saved_table, filtered)
+
+    def _apply_favs_filter(self) -> None:
+        name    = self._favs_filter_input.text().strip().lower()
+        country = self._favs_country_filter.text().strip().lower()
+        genre   = self._favs_genre_filter.text().strip().lower()
+        filtered = [
+            s for s in self._all_fav_stations
+            if (not name    or name    in s.name.lower())
+            and (not country or country in (s.country or "").lower())
+            and (not genre   or genre   in (s.genre   or "").lower())
+        ]
+        self._populate_table(self._favs_table, filtered)
+
+    # ------------------------------------------------------------------
     # Helpers de selección
     # ------------------------------------------------------------------
 
     def _selected_station(self) -> RadioStation | None:
-        """Retorna la emisora seleccionada en la pestaña activa."""
         tab_idx = self._tabs.currentIndex()
         if tab_idx == 0:
             return self._station_from_table(self._results_list)
         if tab_idx == 1:
             return self._station_from_table(self._saved_table)
-        return self._station_from_list(self._favs_list)
+        return self._station_from_table(self._favs_table)
 
     def _selected_from_results(self) -> RadioStation | None:
         return self._station_from_table(self._results_list)
@@ -308,7 +413,7 @@ class RadioPanel(QWidget):
         if tab_idx == 1:
             return self._station_from_table(self._saved_table)
         if tab_idx == 2:
-            return self._station_from_list(self._favs_list)
+            return self._station_from_table(self._favs_table)
         return None
 
     @staticmethod
@@ -318,19 +423,12 @@ class RadioPanel(QWidget):
             return None
         return table.item(rows[0].row(), 0).data(Qt.ItemDataRole.UserRole)
 
-    @staticmethod
-    def _station_from_list(lst: QListWidget) -> RadioStation | None:
-        items = lst.selectedItems()
-        if not items:
-            return None
-        return items[0].data(Qt.ItemDataRole.UserRole)
-
     # ------------------------------------------------------------------
     # API pública (llamada por el controller)
     # ------------------------------------------------------------------
 
     def set_search_results(self, stations: list[RadioStation]) -> None:
-        """Muestra los resultados de búsqueda en la tabla correspondiente."""
+        """Muestra los resultados de búsqueda en la tabla de la pestaña Buscar."""
         self._results_list.setRowCount(0)
         self._results_list.setRowCount(len(stations))
         for row, station in enumerate(stations):
@@ -359,42 +457,14 @@ class RadioPanel(QWidget):
         self._update_buttons()
 
     def set_saved_stations(self, stations: list[RadioStation]) -> None:
-        """Actualiza la tabla de emisoras guardadas."""
-        self._saved_table.setRowCount(0)
-        self._saved_table.setRowCount(len(stations))
-        for row, station in enumerate(stations):
-            name_text = f"♥  {station.name}" if station.is_favorite else station.name
-            name_item = QTableWidgetItem(name_text)
-            name_item.setData(Qt.ItemDataRole.UserRole, station)
-            name_item.setToolTip(station.stream_url)
-
-            country_item = QTableWidgetItem(station.country or "")
-            country_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-
-            genre_item = QTableWidgetItem(station.genre or "")
-            genre_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-
-            bitrate_text = f"{station.bitrate_kbps} kbps" if station.bitrate_kbps else ""
-            bitrate_item = QTableWidgetItem(bitrate_text)
-            bitrate_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
-
-            self._saved_table.setItem(row, 0, name_item)
-            self._saved_table.setItem(row, 1, country_item)
-            self._saved_table.setItem(row, 2, genre_item)
-            self._saved_table.setItem(row, 3, bitrate_item)
-
-        self._saved_table.resizeRowsToContents()
-        self._update_buttons()
+        """Almacena y muestra las emisoras guardadas aplicando el filtro activo."""
+        self._all_saved_stations = stations
+        self._apply_saved_filter()
 
     def set_favorite_stations(self, stations: list[RadioStation]) -> None:
-        """Actualiza la lista de emisoras favoritas."""
-        self._favs_list.clear()
-        for station in stations:
-            item = QListWidgetItem(self._station_label(station))
-            item.setData(Qt.ItemDataRole.UserRole, station)
-            item.setToolTip(station.stream_url)
-            self._favs_list.addItem(item)
-        self._update_buttons()
+        """Almacena y muestra las emisoras favoritas aplicando el filtro activo."""
+        self._all_fav_stations = stations
+        self._apply_favs_filter()
 
     def set_now_playing(self, station: RadioStation | None) -> None:
         """Actualiza la etiqueta de reproducción actual y el botón Detener."""
@@ -412,19 +482,32 @@ class RadioPanel(QWidget):
         self._btn_search.setText("Buscando…" if active else "Buscar")
 
     # ------------------------------------------------------------------
-    # Helpers de formato (para listas de guardadas y favoritas)
+    # Helpers de poblado de tabla (compartido por Guardadas y Favoritas)
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _station_label(station: RadioStation) -> str:
-        parts = [station.name]
-        if station.genre:
-            parts.append(station.genre)
-        if station.country:
-            parts.append(station.country)
-        if station.bitrate_kbps:
-            parts.append(f"{station.bitrate_kbps} kbps")
-        if station.is_favorite:
-            parts.append("♥")
-        return "  ·  ".join(parts)
+    def _populate_table(table: QTableWidget, stations: list[RadioStation]) -> None:
+        table.setRowCount(0)
+        table.setRowCount(len(stations))
+        for row, station in enumerate(stations):
+            name_text = f"♥  {station.name}" if station.is_favorite else station.name
+            name_item = QTableWidgetItem(name_text)
+            name_item.setData(Qt.ItemDataRole.UserRole, station)
+            name_item.setToolTip(station.stream_url)
 
+            country_item = QTableWidgetItem(station.country or "")
+            country_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+
+            genre_item = QTableWidgetItem(station.genre or "")
+            genre_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+            bitrate_text = f"{station.bitrate_kbps} kbps" if station.bitrate_kbps else ""
+            bitrate_item = QTableWidgetItem(bitrate_text)
+            bitrate_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+
+            table.setItem(row, 0, name_item)
+            table.setItem(row, 1, country_item)
+            table.setItem(row, 2, genre_item)
+            table.setItem(row, 3, bitrate_item)
+
+        table.resizeRowsToContents()
