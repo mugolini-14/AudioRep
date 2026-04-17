@@ -4,7 +4,7 @@ AudioRep es un reproductor de música de escritorio para Windows, hecho en Pytho
 
 ## Funciones principales
 
-- **Reproducción de música local** — soporta MP3, FLAC, OGG, OPUS, AAC, M4A, WMA, WAV, APE y MPC. Controles de play/pausa/stop/anterior/siguiente con íconos blancos y barra de progreso a ancho completo. El control de volumen aparece junto a los controles principales.
+- **Reproducción de música local** — soporta MP3, FLAC, OGG, OPUS, AAC, M4A, WMA, WAV, APE y MPC. Controles de play/pausa/stop/anterior/siguiente con íconos blancos y barra de progreso a ancho completo. El control de volumen aparece junto a los controles principales. El ícono del parlante actúa como botón de silencio: al hacer clic se mutea o desmutea el audio, restaurando automáticamente el nivel anterior.
 
 - **Biblioteca musical** — importá carpetas para agregar canciones. Navegación por artista y álbum, búsqueda en tiempo real y edición de metadatos (tags). Los archivos se organizan automáticamente siguiendo la estructura `Artista/Álbum/NN - Título`.
 
@@ -79,8 +79,8 @@ Toda la inyección de dependencias ocurre en `main.py`, que actúa como raíz de
 
 | Plataforma | Versión | Fecha | Archivo | Tamaño |
 |---|---|---|---|---|
-| Windows 10/11 | 0.44 | Abril 2026 | `AudioRep-0.44.0-windows.zip` | ~119 MB |
-| Linux Debian/Ubuntu | 0.44 | Abril 2026 | `audiorep_0.44.0_amd64.deb` | ~84 MB |
+| Windows 10/11 | 0.46 | Abril 2026 | `AudioRep-0.46.0-windows.zip` | ~120 MB |
+| Linux Debian/Ubuntu | 0.46 | Abril 2026 | `audiorep_0.46.0_amd64.deb` | ~84 MB |
 
 Los instaladores están disponibles en la sección [Releases](https://github.com/mugolini-14/AudioRep/releases) del repositorio.
 

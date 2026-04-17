@@ -24,6 +24,46 @@ QSplitter::handle {
     background-color: #33334a;
 }
 
+/* ── Menú ─────────────────────────────────────────────────────────── */
+
+QMenuBar {
+    background-color: #1e1e2e;
+    color: #e2e2f0;
+    border-bottom: 1px solid #33334a;
+}
+
+QMenuBar::item {
+    padding: 4px 10px;
+    background-color: transparent;
+}
+
+QMenuBar::item:selected {
+    background-color: #2a2a3e;
+    color: #e0e0f0;
+}
+
+QMenu {
+    background-color: #1e1e2e;
+    color: #e2e2f0;
+    border: 1px solid #33334a;
+    padding: 4px 0;
+}
+
+QMenu::item {
+    padding: 5px 24px 5px 12px;
+}
+
+QMenu::item:selected {
+    background-color: #2a2a3e;
+    color: #e0e0f0;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #33334a;
+    margin: 3px 0;
+}
+
 QFrame#separator {
     background-color: #33334a;
     max-height: 1px;
@@ -173,9 +213,21 @@ QSlider#volumeSlider::handle:horizontal {
     background-color: #a090c0;
 }
 
-QLabel#volumeIcon {
+QPushButton#volumeIcon {
+    background-color: transparent;
     color: #55557a;
-    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+QPushButton#volumeIcon:hover {
+    background-color: rgba(255, 255, 255, 0.10);
+    color: #a0a0c0;
+}
+
+QPushButton#volumeIcon:pressed {
+    background-color: rgba(255, 255, 255, 0.18);
 }
 
 /* ── Barra de estado ──────────────────────────────────────────────── */

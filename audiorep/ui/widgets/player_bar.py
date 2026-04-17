@@ -51,6 +51,8 @@ class PlayerBar(QWidget):
         self.setObjectName("playerBar")
         self._duration_ms = 0
         self._seeking = False
+        self._last_volume: int = 100
+        self._muted: bool = False
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -152,9 +154,12 @@ class PlayerBar(QWidget):
         row1.addSpacing(8)
 
         # Volumen
-        vol_icon = QLabel("🔊")
-        vol_icon.setObjectName("volumeIcon")
-        row1.addWidget(vol_icon)
+        self._vol_icon_btn = QPushButton("🔊")
+        self._vol_icon_btn.setObjectName("volumeIcon")
+        self._vol_icon_btn.setFixedSize(46, 46)
+        self._vol_icon_btn.setToolTip("Silenciar / Activar sonido")
+        self._vol_icon_btn.clicked.connect(self._toggle_mute)
+        row1.addWidget(self._vol_icon_btn)
 
         self._vol_slider = QSlider(Qt.Orientation.Horizontal)
         self._vol_slider.setObjectName("volumeSlider")
@@ -209,6 +214,28 @@ class PlayerBar(QWidget):
         self._vol_slider.blockSignals(True)
         self._vol_slider.setValue(volume)
         self._vol_slider.blockSignals(False)
+        if volume > 0:
+            self._last_volume = volume
+            if self._muted:
+                self._muted = False
+                self._vol_icon_btn.setText("🔊")
+
+    # ------------------------------------------------------------------
+    # Mute toggle
+    # ------------------------------------------------------------------
+
+    def _toggle_mute(self) -> None:
+        if self._muted:
+            self._muted = False
+            self._vol_icon_btn.setText("🔊")
+            self._vol_slider.setValue(self._last_volume)
+        else:
+            current = self._vol_slider.value()
+            if current > 0:
+                self._last_volume = current
+            self._muted = True
+            self._vol_icon_btn.setText("🔇")
+            self._vol_slider.setValue(0)
 
     # ------------------------------------------------------------------
     # Seek

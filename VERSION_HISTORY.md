@@ -2,6 +2,17 @@
 
 ---
 
+# 0.46 — Correcciones de UI: Menú y Mute
+
+**Fecha:** 17 de abril de 2026
+
+### Modificado
+
+- **Hover del menú "Archivo" corregido** — el menú de la barra superior ahora respeta la paleta oscura del tema en hover y selección (`QMenuBar` y `QMenu` con reglas QSS estándar: fondo `#2a2a3e`, texto `#e0e0f0`).
+- **Ícono de volumen con toggle de silencio** — el ícono del parlante es ahora un botón clickeable (mismo tamaño que los controles secundarios, 46×46 px). Al hacer clic silencia el audio (🔇) y al hacer clic nuevamente restaura el volumen previo (🔊).
+
+---
+
 # 0.44 — Mejoras de Interfaz: Radio con Filtros y Volumen
 
 **Fecha:** 17 de abril de 2026
