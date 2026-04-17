@@ -2,6 +2,17 @@
 
 ---
 
+# 0.42 — Mejoras de Interfaz: Radio y Volumen Inicial
+
+**Fecha:** 16 de abril de 2026
+
+### Modificado
+
+- **Emisoras guardadas como tabla** — la pestaña "Guardadas" de Radio ahora muestra las emisoras en una `QTableWidget` con columnas Nombre, País, Género y Bitrate, en línea con el estándar visual de la pestaña de resultados. Las emisoras marcadas como favorita muestran ♥ al inicio del nombre.
+- **Volumen inicial al 100%** — al iniciar la aplicación, el slider de volumen arranca correctamente en el 100% en lugar de quedar en 0 por falta de inicialización del player VLC.
+
+---
+
 # 0.40 — Mejoras de Interfaz: Radio, CD y Barra de Reproducción
 
 **Fecha:** 15 de abril de 2026

@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
-    QAbstractItemView,
     QHBoxLayout,
     QHeaderView,
     QLabel,
@@ -180,10 +179,28 @@ class RadioPanel(QWidget):
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(4, 8, 4, 4)
 
-        self._saved_list = QListWidget()
-        self._saved_list.setObjectName("RadioSavedList")
-        self._saved_list.setAlternatingRowColors(True)
-        layout.addWidget(self._saved_list)
+        self._saved_table = QTableWidget()
+        self._saved_table.setObjectName("RadioSavedTable")
+        self._saved_table.setColumnCount(4)
+        self._saved_table.setHorizontalHeaderLabels(["Nombre", "País", "Género", "Bitrate"])
+        self._saved_table.setAlternatingRowColors(True)
+        self._saved_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self._saved_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self._saved_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self._saved_table.verticalHeader().setVisible(False)
+        self._saved_table.setShowGrid(False)
+        self._saved_table.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
+        header = self._saved_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
+        self._saved_table.setColumnWidth(1, 60)
+        self._saved_table.setColumnWidth(2, 110)
+        self._saved_table.setColumnWidth(3, 75)
+        layout.addWidget(self._saved_table)
 
         return tab
 
@@ -214,15 +231,15 @@ class RadioPanel(QWidget):
         self._btn_delete.clicked.connect(self._on_delete_clicked)
         self._btn_fav.clicked.connect(self._on_fav_clicked)
 
-        # Doble clic en cualquier lista → reproducir
+        # Doble clic en cualquier lista/tabla → reproducir
         self._results_list.doubleClicked.connect(self._on_play_clicked)
-        self._saved_list.itemDoubleClicked.connect(self._on_play_clicked)
+        self._saved_table.doubleClicked.connect(self._on_play_clicked)
         self._favs_list.itemDoubleClicked.connect(self._on_play_clicked)
 
         # Actualizar botones según selección activa
         self._tabs.currentChanged.connect(self._update_buttons)
         self._results_list.itemSelectionChanged.connect(self._update_buttons)
-        self._saved_list.itemSelectionChanged.connect(self._update_buttons)
+        self._saved_table.itemSelectionChanged.connect(self._update_buttons)
         self._favs_list.itemSelectionChanged.connect(self._update_buttons)
 
         self._update_buttons()
@@ -280,7 +297,7 @@ class RadioPanel(QWidget):
         if tab_idx == 0:
             return self._station_from_table(self._results_list)
         if tab_idx == 1:
-            return self._station_from_list(self._saved_list)
+            return self._station_from_table(self._saved_table)
         return self._station_from_list(self._favs_list)
 
     def _selected_from_results(self) -> RadioStation | None:
@@ -289,7 +306,7 @@ class RadioPanel(QWidget):
     def _selected_saved_station(self) -> RadioStation | None:
         tab_idx = self._tabs.currentIndex()
         if tab_idx == 1:
-            return self._station_from_list(self._saved_list)
+            return self._station_from_table(self._saved_table)
         if tab_idx == 2:
             return self._station_from_list(self._favs_list)
         return None
@@ -342,13 +359,31 @@ class RadioPanel(QWidget):
         self._update_buttons()
 
     def set_saved_stations(self, stations: list[RadioStation]) -> None:
-        """Actualiza la lista de emisoras guardadas."""
-        self._saved_list.clear()
-        for station in stations:
-            item = QListWidgetItem(self._station_label(station))
-            item.setData(Qt.ItemDataRole.UserRole, station)
-            item.setToolTip(station.stream_url)
-            self._saved_list.addItem(item)
+        """Actualiza la tabla de emisoras guardadas."""
+        self._saved_table.setRowCount(0)
+        self._saved_table.setRowCount(len(stations))
+        for row, station in enumerate(stations):
+            name_text = f"♥  {station.name}" if station.is_favorite else station.name
+            name_item = QTableWidgetItem(name_text)
+            name_item.setData(Qt.ItemDataRole.UserRole, station)
+            name_item.setToolTip(station.stream_url)
+
+            country_item = QTableWidgetItem(station.country or "")
+            country_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+
+            genre_item = QTableWidgetItem(station.genre or "")
+            genre_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+            bitrate_text = f"{station.bitrate_kbps} kbps" if station.bitrate_kbps else ""
+            bitrate_item = QTableWidgetItem(bitrate_text)
+            bitrate_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+
+            self._saved_table.setItem(row, 0, name_item)
+            self._saved_table.setItem(row, 1, country_item)
+            self._saved_table.setItem(row, 2, genre_item)
+            self._saved_table.setItem(row, 3, bitrate_item)
+
+        self._saved_table.resizeRowsToContents()
         self._update_buttons()
 
     def set_favorite_stations(self, stations: list[RadioStation]) -> None:

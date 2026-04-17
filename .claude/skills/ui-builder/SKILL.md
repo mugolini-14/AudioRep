@@ -212,10 +212,11 @@ Fila 2: [════════════════ progressSlider (ancho 
 | `RadioCountryInput` | `QLineEdit` | Filtro por país, maxWidth 160px |
 | `RadioGenreInput` | `QLineEdit` | Filtro por género, maxWidth 160px |
 | `RadioResultsTable` | `QTableWidget` | Resultados de búsqueda — columnas: Nombre (stretch), País (60px), Género (110px), Bitrate (75px). Mismo estilo visual que `trackTable` |
-| `RadioSavedList` | `QListWidget` | Emisoras guardadas |
+| `RadioSavedTable` | `QTableWidget` | Emisoras guardadas — columnas: Nombre (stretch), País (60px), Género (110px), Bitrate (75px). Favoritas marcadas con ♥ en el nombre |
 | `RadioFavsList` | `QListWidget` | Emisoras favoritas |
 
 > **Nota v0.40:** `RadioResultsList` (QListWidget) fue reemplazado por `RadioResultsTable` (QTableWidget). Los selectores QSS correspondientes cambiaron de `QListWidget#RadioResultsList` a `QTableWidget#RadioResultsTable`.
+> **Nota v0.42:** `RadioSavedList` (QListWidget) fue reemplazado por `RadioSavedTable` (QTableWidget). Los selectores QSS cambiaron de `QListWidget#RadioSavedList` a `QTableWidget#RadioSavedTable`.
 | `RadioNowPlaying` | `QLabel` | Emisora en reproducción. `bg-toolbar`, color `accent` |
 | `RadioBtnPlay` | `QPushButton` | Reproducir. Fondo `accent` |
 | `RadioBtnStop` | `QPushButton` | Detener. Estilo secundario |
