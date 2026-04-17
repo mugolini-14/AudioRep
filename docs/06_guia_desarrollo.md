@@ -142,15 +142,24 @@ class MiController:
 | Paso | Módulos | Estado |
 |---|---|---|
 | 1 | `domain/`, `core/` | ✅ Completo |
-| 2 | `infrastructure/database/` | ⬜ Pendiente |
-| 3 | `infrastructure/audio/vlc_player.py`, `services/player_service.py` | ⬜ Pendiente |
-| 4 | UI mínima: `main_window.py`, `player_bar.py`, `PlayerController` | ⬜ Pendiente |
-| 5 | `infrastructure/filesystem/`, `services/library_service.py` | ⬜ Pendiente |
-| 6 | `infrastructure/api/musicbrainz_client.py`, `services/cd_service.py` | ⬜ Pendiente |
-| 7 | `services/ripper_service.py` | ⬜ Pendiente |
-| 8 | Tags automáticos: `tagger_service.py`, `acoustid_client.py` | ⬜ Pendiente |
-| 9 | Playlists, búsqueda, smart playlists | ⬜ Pendiente |
-| 10 | Temas visuales, settings, pulido general | ⬜ Pendiente |
+| 2 | `infrastructure/database/` | ✅ Completo |
+| 3 | `infrastructure/audio/vlc_player.py`, `services/player_service.py` | ✅ Completo |
+| 4 | UI mínima: `main_window.py`, `player_bar.py`, `PlayerController` | ✅ Completo |
+| 5 | `infrastructure/filesystem/`, `services/library_service.py` | ✅ Completo |
+| 6 | `infrastructure/api/musicbrainz_client.py`, `services/cd_service.py` | ✅ Completo |
+| 7 | `services/ripper_service.py` | ✅ Completo |
+| 8 | Tags automáticos: `tagger_service.py`, `acoustid_client.py` | ✅ Completo |
+| 9 | `playlist_service.py`, `PlaylistPanel`, `PlaylistController`, smart playlists | ✅ Completo |
+| 10 | `AppSettings`, `SettingsDialog`, menú, tema QSS completo | ✅ Completo — v0.10 |
+| 11 | Radio por internet: `radio_browser_client.py`, `RadioService`, `RadioPanel` | ✅ Completo — v0.20 |
+| 12 | UI v0.25: pestañas, controles, CD multi-lectora, VU meter, NowPlaying | ✅ Completo — v0.25 |
+| 13 | CD fix: CDDA URIs, GnuDB, panel de metadatos manual (`CDMetadataPanel`) | ✅ Completo — v0.30 |
+| 14 | VU metro real (PCM vía sounddevice), tabla CD con cabeceras | ✅ Completo — v0.35 |
+| 15 | `RadioResultsTable`, CD sin portada inline, `PlayerBar` barra tiempo + volumen | ✅ Completo — v0.40 |
+| 16 | Fix crash radio, fix tema QSS en listas CD | ✅ Completo — v0.40 |
+| 17 | `RadioSavedTable` (tabla), fix volumen inicial en `PlayerController` | ✅ Completo — v0.42 |
+| 18 | Filtros en las 3 sub-tabs de Radio, `RadioFavsTable`, fix volumen PCM callback | ✅ Completo — v0.44 |
+| 19 | Fix hover menú (`QMenuBar`/`QMenu` QSS), mute toggle en ícono de volumen | ✅ Completo — v0.46 |
 
 ---
 

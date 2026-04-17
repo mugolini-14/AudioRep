@@ -58,7 +58,7 @@ Métodos comunes a todos los repositories:
 
 ### `IMetadataProvider` — Metadatos Online
 
-Implementado por: `MusicBrainzClient`, `DiscogsClient`
+Implementado por: `MusicBrainzClient` (primario), `GnuDBClient` (alternativo para CDs)
 
 ```python
 class IMetadataProvider(Protocol):

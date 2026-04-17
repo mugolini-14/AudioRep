@@ -120,6 +120,26 @@ Representa un CD en la unidad lectora, antes o después de ser identificado.
 
 ---
 
+### `RadioStation` — Emisora de Radio por Internet
+
+Representa una emisora de radio en streaming. Puede provenir de una búsqueda en
+radio-browser.info o ser creada manualmente por el usuario.
+
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | `int \| None` | ID interno (None si no persistida) |
+| `name` | `str` | Nombre de la emisora |
+| `stream_url` | `str` | URL del stream (HTTP/HTTPS, M3U, PLS, etc.) |
+| `country` | `str` | País de origen (código ISO o nombre) |
+| `genre` | `str` | Género o categoría principal |
+| `logo_url` | `str` | URL del logo/ícono de la emisora |
+| `is_favorite` | `bool` | True si el usuario la marcó como favorita |
+| `added_at` | `datetime` | Fecha y hora en que fue guardada |
+| `bitrate_kbps` | `int` | Bitrate en kbps (0 si desconocido) |
+| `radio_browser_id` | `str` | UUID en radio-browser.info (vacío si es manual) |
+
+---
+
 ## Relaciones entre Entidades
 
 ```

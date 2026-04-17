@@ -25,13 +25,16 @@ audiorep/                                ← raíz del proyecto
 │   │   ├── album.py                     ← Album
 │   │   ├── artist.py                    ← Artist
 │   │   ├── playlist.py                  ← Playlist, PlaylistEntry
-│   │   └── cd_disc.py                   ← CDDisc, CDTrack, RipStatus
+│   │   ├── cd_disc.py                   ← CDDisc, CDTrack, RipStatus
+│   │   └── radio_station.py             ← RadioStation
 │   │
 │   ├── core/                            ← [CAPA 2] Contratos y utilidades compartidas
 │   │   ├── __init__.py
 │   │   ├── interfaces.py                ← Protocols: IAudioPlayer, IRepository, etc.
 │   │   ├── events.py                    ← Bus de eventos global (app_events)
-│   │   ├── exceptions.py               ← Jerarquía de excepciones del dominio
+│   │   ├── settings.py                  ← AppSettings (QSettings wrapper tipado)
+│   │   ├── audio_levels.py              ← Buffer thread-safe de niveles PCM (VU meter)
+│   │   ├── exceptions.py                ← Jerarquía de excepciones del dominio
 │   │   └── utils.py                     ← Funciones puras reutilizables
 │   │
 │   ├── infrastructure/                  ← [CAPA 3] Implementaciones concretas
@@ -42,15 +45,18 @@ audiorep/                                ← raíz del proyecto
 │   │   │   ├── connection.py            ← Conexión, migraciones de schema
 │   │   │   └── repositories/
 │   │   │       ├── __init__.py
+│   │   │       ├── base_repository.py   ← Clase base con helpers comunes
 │   │   │       ├── track_repository.py  ← Implementa ITrackRepository
 │   │   │       ├── album_repository.py  ← Implementa IAlbumRepository
 │   │   │       ├── artist_repository.py ← Implementa IArtistRepository
-│   │   │       └── playlist_repository.py
+│   │   │       ├── playlist_repository.py         ← Implementa IPlaylistRepository
+│   │   │       └── radio_station_repository.py    ← Implementa IRadioStationRepository
 │   │   │
 │   │   ├── audio/                       ← Reproducción y hardware de audio
 │   │   │   ├── __init__.py
 │   │   │   ├── vlc_player.py            ← Implementa IAudioPlayer con python-vlc
-│   │   │   └── cd_reader.py             ← Implementa ICDReader con discid
+│   │   │   ├── cd_reader.py             ← Implementa ICDReader con discid
+│   │   │   └── cd_ripper.py             ← Implementa ICDRipper (ripeo via VLC sout)
 │   │   │
 │   │   ├── filesystem/                  ← Operaciones con archivos
 │   │   │   ├── __init__.py
@@ -60,10 +66,11 @@ audiorep/                                ← raíz del proyecto
 │   │   │
 │   │   └── api/                         ← Clientes de APIs externas
 │   │       ├── __init__.py
-│   │       ├── musicbrainz_client.py    ← Implementa IMetadataProvider
+│   │       ├── musicbrainz_client.py    ← Implementa IMetadataProvider (primario)
+│   │       ├── gnudb_client.py          ← Implementa IMetadataProvider (CD alternativo)
 │   │       ├── coverart_client.py       ← Descarga portadas de Cover Art Archive
 │   │       ├── acoustid_client.py       ← Implementa IFingerprintProvider
-│   │       └── discogs_client.py        ← Implementa IMetadataProvider (alternativo)
+│   │       └── radio_browser_client.py  ← Implementa IRadioSearchProvider
 │   │
 │   ├── services/                        ← [CAPA 4] Casos de uso / lógica de negocio
 │   │   ├── __init__.py
@@ -72,7 +79,9 @@ audiorep/                                ← raíz del proyecto
 │   │   ├── cd_service.py                ← Detectar CD, leer pistas, buscar info online
 │   │   ├── ripper_service.py            ← Orquestar el ripeo de CD
 │   │   ├── tagger_service.py            ← Leer/escribir tags, buscar metadatos
-│   │   └── search_service.py            ← Búsqueda full-text en la biblioteca
+│   │   ├── search_service.py            ← Búsqueda full-text en la biblioteca
+│   │   ├── playlist_service.py          ← CRUD de playlists, smart playlists
+│   │   └── radio_service.py             ← Reproducción y gestión de emisoras de radio
 │   │
 │   └── ui/                              ← [CAPA 5] Interfaz gráfica PyQt6
 │       ├── __init__.py
@@ -80,37 +89,36 @@ audiorep/                                ← raíz del proyecto
 │       │
 │       ├── controllers/                 ← Conectan señales UI ↔ services
 │       │   ├── __init__.py
-│       │   ├── player_controller.py
-│       │   ├── library_controller.py
-│       │   ├── cd_controller.py
-│       │   └── tagger_controller.py
+│       │   ├── player_controller.py     ← PlayerBar + NowPlaying ↔ PlayerService
+│       │   ├── library_controller.py    ← LibraryPanel ↔ LibraryService
+│       │   ├── cd_controller.py         ← CDPanel ↔ CDService + RipperService
+│       │   ├── playlist_controller.py   ← PlaylistPanel ↔ PlaylistService
+│       │   ├── radio_controller.py      ← RadioPanel ↔ RadioService
+│       │   └── tagger_controller.py     ← TagEditorDialog ↔ TaggerService
 │       │
 │       ├── widgets/                     ← Componentes visuales reutilizables
 │       │   ├── __init__.py
-│       │   ├── player_bar.py            ← Play/Pausa/Stop/Sig./Vol./Progreso
+│       │   ├── player_bar.py            ← Play/Pausa/Stop/Sig./Mute/Vol./Progreso
 │       │   ├── library_panel.py         ← Árbol Artistas > Álbumes > Pistas
 │       │   ├── now_playing.py           ← Portada + info de la pista actual (panel derecho)
 │       │   ├── cd_panel.py              ← Estado del CD, selector de lectora, pistas, ripeo
+│       │   ├── cd_metadata_panel.py     ← Panel lateral de metadatos manuales del CD
 │       │   ├── playlist_panel.py        ← Gestión de playlists + grilla estándar
-│       │   ├── vu_meter.py              ← Vúmetro animado con barras de colores (panel derecho)
-│       │   └── search_bar.py
+│       │   ├── radio_panel.py           ← Pestañas Buscar / Guardadas / Favoritas
+│       │   └── vu_meter.py              ← Vúmetro animado con barras de colores (panel derecho)
 │       │
 │       ├── dialogs/                     ← Ventanas modales
 │       │   ├── __init__.py
-│       │   ├── settings_dialog.py
+│       │   ├── settings_dialog.py       ← Configuración (AcoustID key, formato ripeo, tema)
 │       │   ├── tag_editor_dialog.py     ← Edición manual de tags
-│       │   ├── ripper_dialog.py         ← Progreso del ripeo
-│       │   └── import_dialog.py         ← Importar carpetas a la biblioteca
+│       │   └── ripper_dialog.py         ← Progreso del ripeo
 │       │
 │       ├── qt_models/                   ← QAbstractItemModel para las vistas Qt
 │       │   ├── __init__.py
-│       │   ├── track_table_model.py     ← Para QTableView de pistas
-│       │   ├── album_list_model.py      ← Para QListView de álbumes
-│       │   └── playlist_model.py
+│       │   └── track_table_model.py     ← Para QTableView de pistas en la biblioteca
 │       │
 │       └── style/
-│           ├── dark.qss                 ← Tema oscuro
-│           └── light.qss               ← Tema claro
+│           └── dark.qss                 ← Tema oscuro (único tema activo)
 │
 └── tests/                               ← Tests automatizados
     ├── __init__.py
