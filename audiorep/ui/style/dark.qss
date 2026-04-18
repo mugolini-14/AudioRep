@@ -803,30 +803,20 @@ QPushButton#cdDetectBtn,
 QPushButton#cdIdentifyBtn,
 QPushButton#cdPlayBtn,
 QPushButton#cdRipAllBtn {
-    background-color: #2a2a3e;
-    color: #a0a0c0;
-    border: 1px solid #33334a;
-    border-radius: 4px;
-    padding: 4px 10px;
+    background-color: #4a3480;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
     font-size: 12px;
+    font-weight: bold;
 }
 
 QPushButton#cdDetectBtn:hover,
 QPushButton#cdIdentifyBtn:hover,
 QPushButton#cdPlayBtn:hover,
 QPushButton#cdRipAllBtn:hover {
-    background-color: #33334a;
-    color: #e2e2f0;
-}
-
-QPushButton#cdPlayBtn {
-    background-color: #5a3d9a;
-    color: #ffffff;
-    border-color: #7c5cbf;
-}
-
-QPushButton#cdPlayBtn:hover {
-    background-color: #7c5cbf;
+    background-color: #5a409a;
 }
 
 QTableWidget#cdTrackTable {

@@ -4,10 +4,9 @@ CDPanel — Panel del CD físico.
 Muestra el estado del disco, selector de lectora, lista de pistas y controles.
 
 Layout:
-    [Selector de lectora]
-    [Portada] | [Estado / Álbum / Artista]
+    [Lectora:] [drive_combo] [status] [disc_info ── stretch ──]
     [Tabla de pistas (expande)]
-    [Detectar] [Identificar] [▶ Play] [Ripear]
+    [Detectar ──] [Identificar ──] [▶ Reproducir CD ──] [Ripear todo ──]
 
 Signals:
     detect_requested:           El usuario quiere detectar el CD.
@@ -78,7 +77,7 @@ class CDPanel(QWidget):
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(8)
 
-        # ── Selector de lectora ───────────────────────────────────── #
+        # ── Fila única: lectora + estado + info del disco ─────────── #
         drive_row = QHBoxLayout()
         drive_row.setSpacing(8)
 
@@ -90,21 +89,20 @@ class CDPanel(QWidget):
         self._drive_combo = QComboBox()
         self._drive_combo.setObjectName("cdDriveCombo")
         self._drive_combo.setToolTip("Seleccionar unidad de CD")
+        self._drive_combo.setFixedWidth(120)
         self._drive_combo.currentTextChanged.connect(self._on_drive_changed)
-        drive_row.addWidget(self._drive_combo, stretch=1)
+        drive_row.addWidget(self._drive_combo)
 
-        # ── Estado inline en la fila de lectora ──────────────────── #
         self._status_label = QLabel("No hay CD en la unidad.")
         self._status_label.setObjectName("cdStatus")
         drive_row.addWidget(self._status_label)
 
-        layout.addLayout(drive_row)
-
-        # ── Info del disco (una sola línea: Artista — Álbum (Año)) ── #
-        self._disc_info_label = QLabel("")
+        self._disc_info_label = QLabel("Sin información.")
         self._disc_info_label.setObjectName("cdDiscInfo")
         self._disc_info_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(self._disc_info_label)
+        drive_row.addWidget(self._disc_info_label, stretch=1)
+
+        layout.addLayout(drive_row)
 
         # ── Tabla de pistas ───────────────────────────────────────── #
         self._track_table = QTableWidget()
@@ -139,24 +137,22 @@ class CDPanel(QWidget):
         detect_btn = QPushButton("🔍 Detectar")
         detect_btn.setObjectName("cdDetectBtn")
         detect_btn.clicked.connect(self.detect_requested)
-        btn_row.addWidget(detect_btn)
+        btn_row.addWidget(detect_btn, stretch=1)
 
         identify_btn = QPushButton("🌐 Identificar")
         identify_btn.setObjectName("cdIdentifyBtn")
         identify_btn.clicked.connect(self.identify_requested)
-        btn_row.addWidget(identify_btn)
+        btn_row.addWidget(identify_btn, stretch=1)
 
         play_btn = QPushButton("▶ Reproducir CD")
         play_btn.setObjectName("cdPlayBtn")
         play_btn.clicked.connect(self.play_cd_requested)
-        btn_row.addWidget(play_btn)
+        btn_row.addWidget(play_btn, stretch=1)
 
         rip_btn = QPushButton("💾 Ripear todo")
         rip_btn.setObjectName("cdRipAllBtn")
         rip_btn.clicked.connect(self.rip_all_requested)
-        btn_row.addWidget(rip_btn)
-
-        btn_row.addStretch()
+        btn_row.addWidget(rip_btn, stretch=1)
         layout.addLayout(btn_row)
 
     # ------------------------------------------------------------------
@@ -179,7 +175,7 @@ class CDPanel(QWidget):
 
     def show_no_cd(self) -> None:
         self._status_label.setText("No hay CD en la unidad.")
-        self._disc_info_label.setText("")
+        self._disc_info_label.setText("Sin información.")
         self._track_table.setRowCount(0)
 
     def show_reading(self) -> None:

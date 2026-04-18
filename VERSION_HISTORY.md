@@ -2,6 +2,18 @@
 
 ---
 
+# 0.48 — Rediseño de la pestaña CD
+
+**Fecha:** 17 de abril de 2026
+
+### Modificado
+
+- **Fila superior unificada** — el selector de lectora, el estado de detección y la información del disco (artista, álbum, año) ahora conviven en una única fila compacta. Si no hay disco en la unidad, la zona de información muestra "Sin información.".
+- **Tabla de pistas más alta** — al eliminar la fila separada de información del disco, la tabla de pistas sube y muestra más pistas sin necesidad de scroll.
+- **Botones a ancho completo** — los botones Detectar, Identificar, Reproducir CD y Ripear todo se distribuyen a lo ancho de todo el panel con altura y estilo unificados (mismo diseño que el botón "Aplicar al disco").
+
+---
+
 # 0.47 — Números de tiempo más grandes
 
 **Fecha:** 17 de abril de 2026
