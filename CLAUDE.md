@@ -71,6 +71,11 @@ domain → core → services ← infrastructure
 
 ## Building installers
 
+> **Read `.claude/skills/compiler-instructions/SKILL.md` before building.** It contains the required procedure, system paths, preferred shell, and the recovery process if a version was missed.
+> **Read `.claude/skills/github-releases-publisher/SKILL.md` before publishing a GitHub Release.** It contains the required tag format, title format, and body template.
+
+
+
 These steps must be run **after every feature release** (version bump in `pyproject.toml` + `main.py` + both `setWindowTitle` calls in `main_window.py`).
 
 ### Windows (.exe — directory bundle)
