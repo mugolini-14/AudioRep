@@ -160,6 +160,10 @@ class MiController:
 | 17 | `RadioSavedTable` (tabla), fix volumen inicial en `PlayerController` | ✅ Completo — v0.42 |
 | 18 | Filtros en las 3 sub-tabs de Radio, `RadioFavsTable`, fix volumen PCM callback | ✅ Completo — v0.44 |
 | 19 | Fix hover menú (`QMenuBar`/`QMenu` QSS), mute toggle en ícono de volumen | ✅ Completo — v0.46 |
+| 20 | Números de tiempo de reproducción más grandes (font-size 16px, fixedWidth 52px) | ✅ Completo — v0.47 |
+| 21 | Rediseño pestaña CD: fila única lectora+estado+info, tabla más alta, botones a ancho completo | ✅ Completo — v0.48 |
+| 22 | Estandarización de todos los botones de acción, fix alineación botón play (46×46) | ✅ Completo — v0.49 |
+| 23 | Dropdowns unificados (QComboBox global + arrow_down.svg), refactor performance reproductor | ✅ Completo — v0.50 |
 
 ---
 

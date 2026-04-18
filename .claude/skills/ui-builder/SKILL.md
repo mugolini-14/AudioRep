@@ -59,7 +59,7 @@ Antes de escribir cualquier widget nuevo o reconstruir uno existente, **leer dar
 | Rating (`trackRating`) | 12px | normal |
 | Botones de biblioteca | 12px | normal |
 | Headers de tabla | 11px | 600, uppercase, letter-spacing 0.5px |
-| Labels de tiempo | 11px | tabular-nums |
+| Labels de tiempo | 16px | tabular-nums |
 | Status bar | 11px | normal |
 
 ---
@@ -78,7 +78,7 @@ Antes de escribir cualquier widget nuevo o reconstruir uno existente, **leer dar
 │                                                      │ (stretch=1)      │
 │                                                      ├──────────────────┤
 │                                                      │ VUMeterWidget    │
-│                                                      │ #vuMeter (90px)  │
+│                                                      │ #vuMeter (110px) │
 ├──────────────────────────────────────────────────────┴──────────────────┤
 │ QFrame#separator (1px, #33334a)                                         │
 ├─────────────────────────────────────────────────────────────────────────┤
@@ -153,8 +153,8 @@ El tab CD contiene un `QSplitter#cdTabSplitter` horizontal con dos columnas:
 | `transportFrame` | `QFrame` | — | Contenedor redondeado para los 6 botones de transporte. `border-radius: 14px`, fondo `#252538` |
 | `modeButton` | `QPushButton` | 46×46 | Shuffle (⇄) y Repeat (↺). Checkable. Inactivo: blanco `#ffffff`. Activo: `#b090ff` |
 | `transportButton` | `QPushButton` | 46×46 | Prev (⏮), Stop (⏹) y Next (⏭). Fondo transparente, color blanco, font-size 22px |
-| `playButton` | `QPushButton` | 54×54 | Play/Pause. Fondo transparente, color blanco, font-size 28px |
-| `timeLabel` | `QLabel` | fixed 36px | Tiempo transcurrido y total, en fila 1 flanqueando el track label. `#7070a0`, 11px tabular-nums |
+| `playButton` | `QPushButton` | 46×46 | Play/Pause. Fondo transparente, color blanco, font-size 28px |
+| `timeLabel` | `QLabel` | fixed 52px | Tiempo transcurrido y total, en fila 1 flanqueando el track label. `#7070a0`, 16px tabular-nums |
 | `progressSlider` | `QSlider` | stretch (fila 2) | Barra de progreso a ancho completo. Handle blanco `#e2e2f0` |
 | `volumeIcon` | `QLabel` | — | Ícono 🔊. Color `text-ghost`, 14px |
 | `volumeSlider` | `QSlider` | min 180px / max 280px | Volumen. Groove 3px, handle `#a090c0` |
@@ -193,7 +193,9 @@ Fila 2: [════════════════ progressSlider (ancho 
 | `libraryPanel` | `QWidget` (raíz) | Panel completo |
 | `libraryToolbar` | `QWidget` | Toolbar superior. Fondo `#1a1a2e`, border-bottom |
 | `searchBox` | `QLineEdit` | Buscador. `bg-raised`, focus: border `accent` |
-| `importButton` | `QPushButton` | Botones de acción (Importar, Editar tags, Identificar). `bg-raised`, border `border` |
+| `importButton` | `QPushButton` | Botón "Importar carpeta" en la toolbar. Estilo unificado de acción (`#4a3480`, bold) |
+| `libraryEditBtn` | `QPushButton` | Botón "✏ Editar tags" en la barra inferior. Estilo unificado de acción, `stretch=1` |
+| `libraryIdentifyBtn` | `QPushButton` | Botón "🔍 Identificar" en la barra inferior. Estilo unificado de acción, `stretch=1` |
 | `importProgress` | `QProgressBar` | Barra de progreso de scan. 3px de alto, oculta por defecto |
 | `librarySplitter` | `QSplitter` | Splitter horizontal árbol / tabla |
 | `treeContainer` | `QWidget` | Contenedor del árbol. Fondo `#1a1a2e`, border-right |
@@ -228,6 +230,43 @@ Fila 2: [════════════════ progressSlider (ancho 
 
 ---
 
+## Estándar de botones de acción
+
+Todos los botones que aparecen debajo de tablas o listas en cualquier panel deben seguir este estándar sin excepción:
+
+- **QSS**: `background-color: #4a3480; color: #ffffff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold;`
+  - `:hover` → `background-color: #5a409a`
+  - `:disabled` → `background-color: #252538; color: #55557a`
+- **Layout**: `btn_row.addWidget(btn, stretch=1)` para distribución a igual ancho. **Nunca** usar `setSizePolicy(Expanding, Fixed)` en botones de acción.
+- **Márgenes del contenedor**: `setContentsMargins(8, 8, 8, 8)` y `setSpacing(8)` en el `QHBoxLayout` que agrupa los botones. El layout exterior del panel debe proveer al menos 8px de margen inferior.
+
+---
+
+## Estándar de QComboBox (dropdowns)
+
+Todos los `QComboBox` de la aplicación comparten una regla base global en `dark.qss`:
+
+```css
+QComboBox {
+    background-color: #2a2a3e;
+    color: #c0c0e0;
+    border: 1px solid #33334a;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 12px;
+}
+QComboBox:hover, QComboBox:focus { border: 1px solid #7c5cbf; }
+QComboBox::drop-down { border-left: 1px solid #33334a; width: 22px; border-radius: 0 6px 6px 0; }
+QComboBox::down-arrow { image: url(./arrow_down.svg); width: 10px; height: 6px; }
+QComboBox QAbstractItemView { background-color: #2a2a3e; ... }
+```
+
+- El archivo `audiorep/ui/style/arrow_down.svg` contiene el ícono de la flecha chevron en color `#c0c0e0`.
+- La URL `url(./arrow_down.svg)` se resuelve a ruta absoluta en `main_window._load_stylesheet()` para compatibilidad con PyInstaller.
+- **No crear reglas `QComboBox#objectName`** para estilos visuales generales. Solo usar objectName-specific si el combo necesita un tamaño o comportamiento realmente diferente.
+
+---
+
 ## Reglas obligatorias al crear o modificar widgets
 
 ### 1. Todo widget estilizado DEBE tener `setObjectName()`
@@ -247,7 +286,7 @@ Si el widget es nuevo, agregar la regla en dark.qss **en el mismo commit** en qu
 
 ### 3. Un mismo objectName puede usarse en varios widgets del mismo tipo
 
-Por ejemplo, `importButton` se usa en el botón "Importar carpeta", "Editar tags" e "Identificar" de `LibraryPanel`. Todos comparten el mismo estilo. Esto es correcto e intencional.
+Los botones de acción inferiores de `LibraryPanel` tienen objectNames propios: `libraryEditBtn` y `libraryIdentifyBtn`. El botón "Importar carpeta" usa `importButton`. Cada uno tiene su regla en `dark.qss` con el estilo unificado de acción.
 
 ### 4. No usar estilos inline (`setStyleSheet` en el widget)
 

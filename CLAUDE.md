@@ -65,6 +65,10 @@ domain → core → services ← infrastructure
 - **Layout**: use `btn_row.addWidget(btn, stretch=1)` (equal-width distribution). Never use `setSizePolicy(Expanding, Fixed)` on action buttons.
 - **Container margins**: `setContentsMargins(8, 8, 8, 8)` and `setSpacing(8)` for the `QHBoxLayout` that holds the buttons. The outer panel layout must provide at least 8px bottom margin so buttons don't appear flush against the window edge.
 
+**QComboBox standard**: All dropdowns share a single global `QComboBox { ... }` rule in `dark.qss`. Do not add per-objectName QComboBox rules for general visual styling.
+- Arrow icon: `audiorep/ui/style/arrow_down.svg` — referenced as `url(./arrow_down.svg)` in QSS.
+- The `url(./...)` placeholder is expanded to an absolute path in `main_window._load_stylesheet()` so it works both from source and from a frozen PyInstaller bundle.
+
 ## Building installers
 
 These steps must be run **after every feature release** (version bump in `pyproject.toml` + `main.py` + both `setWindowTitle` calls in `main_window.py`).

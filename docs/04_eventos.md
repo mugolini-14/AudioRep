@@ -35,7 +35,7 @@ app_events.track_changed.connect(self._on_track_changed)
 | `playback_paused` | — | Se pausa |
 | `playback_resumed` | — | Se reanuda desde pausa |
 | `playback_stopped` | — | Se detiene completamente |
-| `position_changed` | `(int, int)` | Cada ~500ms: (posición_ms, duración_ms) |
+| `position_changed` | `(int, int)` | Cada ~200ms: (posición_ms, duración_ms) |
 | `track_finished` | — | La pista terminó naturalmente |
 | `volume_changed` | `int` | Cambio de volumen (0–100) |
 

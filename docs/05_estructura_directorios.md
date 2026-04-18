@@ -6,6 +6,8 @@ audiorep/                                ← raíz del proyecto
 ├── main.py                              ← Entry point y composición raíz (DI)
 ├── pyproject.toml                       ← Configuración del proyecto y dependencias
 ├── requirements.txt                     ← Dependencias para pip install
+├── VERSION_HISTORY.md                   ← Historial de versiones (más reciente primero)
+├── NEXT_VERSIONS.md                     ← Mejoras y refactorizaciones pendientes para versiones futuras
 │
 ├── docs/                                ← Documentación técnica
 │   ├── 01_arquitectura.md
@@ -118,7 +120,8 @@ audiorep/                                ← raíz del proyecto
 │       │   └── track_table_model.py     ← Para QTableView de pistas en la biblioteca
 │       │
 │       └── style/
-│           └── dark.qss                 ← Tema oscuro (único tema activo)
+│           ├── dark.qss                 ← Tema oscuro (único tema activo)
+│           └── arrow_down.svg           ← Ícono de flecha para QComboBox::down-arrow
 │
 └── tests/                               ← Tests automatizados
     ├── __init__.py
