@@ -11,13 +11,29 @@ from __future__ import annotations
 
 import logging
 
-from PyQt6.QtCore import QObject, QTimer
+from PyQt6.QtCore import QObject, QThread, QTimer
 
 from audiorep.core.events import app_events
 from audiorep.core.interfaces import IAudioPlayer, ITrackRepository
 from audiorep.domain.track import Track
 
 logger = logging.getLogger(__name__)
+
+
+class _IncrementPlayCountWorker(QThread):
+    """Worker de vida corta para actualizar play_count sin bloquear la UI."""
+
+    def __init__(self, repo: ITrackRepository, track_id: int, parent: QObject | None = None) -> None:
+        super().__init__(parent)
+        self._repo = repo
+        self._track_id = track_id
+        self.finished.connect(self.deleteLater)
+
+    def run(self) -> None:
+        try:
+            self._repo.increment_play_count(self._track_id)
+        except Exception as exc:
+            logger.warning("No se pudo actualizar play_count: %s", exc)
 
 
 class PlayerService(QObject):
@@ -43,9 +59,9 @@ class PlayerService(QObject):
         self._current_track: Track | None = None
         self._finish_pending: bool = False   # evita que el timer dispare _on_track_finished varias veces
 
-        # Poll position every 500 ms
+        # Poll position every 200 ms (reduce track-end detection latency)
         self._timer = QTimer(self)
-        self._timer.setInterval(500)
+        self._timer.setInterval(200)
         self._timer.timeout.connect(self._poll_position)
         self._timer.start()
 
@@ -133,10 +149,10 @@ class PlayerService(QObject):
 
     def _on_track_finished(self) -> None:
         if self._current_track and self._current_track.id is not None:
-            try:
-                self._track_repo.increment_play_count(self._current_track.id)
-            except Exception as exc:
-                logger.warning("No se pudo actualizar play_count: %s", exc)
+            worker = _IncrementPlayCountWorker(
+                self._track_repo, self._current_track.id, self
+            )
+            worker.start()
         app_events.track_finished.emit()
         self.next_track()
 

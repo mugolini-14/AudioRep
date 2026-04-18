@@ -92,8 +92,12 @@ class VUMeterWidget(QWidget):
 
     def _on_stop(self) -> None:
         self._playing = False
-        self._peaks = [0.0] * (_BARS_PER_CH * 2)
+        n = _BARS_PER_CH * 2
+        self._levels = [0.0] * n
+        self._peaks  = [0.0] * n
+        self._timer.stop()
         audio_levels.reset()
+        self.update()
 
     # ------------------------------------------------------------------
     # Tick

@@ -2,6 +2,19 @@
 
 ---
 
+# 0.50 — Dropdowns unificados y refactor de performance
+
+**Fecha:** 18 de abril de 2026
+
+### Modificado
+
+- **Dropdowns estandarizados** — todos los desplegables de la aplicación (selector de lectora de CD, servicio de metadatos, formato de ripeo en Configuración) adoptan ahora un estilo visual unificado: fondo oscuro, borde sutil, `border-radius: 6px` y flecha indicadora chevron en el lateral derecho. El estilo aplica globalmente vía una regla `QComboBox` en `dark.qss`; los estados hover y foco resaltan con el color de acento violeta.
+- **Latencia de avance de pista reducida** — el intervalo de polling de posición bajó de 500 ms a 200 ms, reduciendo la latencia promedio de detección de fin de pista de ~500 ms a ~200 ms.
+- **VU metro apaga inmediatamente al detener** — al presionar Stop, el vúmetro se apaga al instante (en lugar de esperar el ciclo de decay). En pausa mantiene el decay visual gradual.
+- **Actualización de play_count asíncrona** — la escritura en la base de datos al terminar cada pista ahora se ejecuta en un hilo de fondo (`QThread`), eliminando el bloqueo del hilo principal de la UI en la transición entre pistas.
+
+---
+
 # 0.49 — Estandarización de botones
 
 **Fecha:** 17 de abril de 2026

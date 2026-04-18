@@ -27,6 +27,7 @@ Estado de implementación:
     ✅ Paso 20 — Números de tiempo de reproducción más grandes (font-size 11px → 16px), v0.47
     ✅ Paso 21 — Rediseño pestaña CD: fila única lectora+estado+info, tabla más alta, botones a ancho completo con estilo unificado, v0.48
     ✅ Paso 22 — Estandarización de todos los botones de acción, fix alineación botón play, v0.49
+    ✅ Paso 23 — Estandarización de dropdowns, refactor performance reproductor (poll 200ms, VU stop, DB async), v0.50
 """
 import os
 import sys
@@ -66,7 +67,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.49.0")
+    app.setApplicationVersion("0.50.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #

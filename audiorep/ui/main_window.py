@@ -128,7 +128,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.setWindowTitle("AudioRep 0.49")
+        self.setWindowTitle("AudioRep 0.50")
         self.setMinimumSize(860, 520)
         self.resize(1200, 700)
 
@@ -322,7 +322,11 @@ class MainWindow(QMainWindow):
     def _load_stylesheet(self) -> None:
         qss_path = _STYLE_DIR / "dark.qss"
         if qss_path.exists():
-            self.setStyleSheet(qss_path.read_text(encoding="utf-8"))
+            qss = qss_path.read_text(encoding="utf-8")
+            # Expand relative SVG URLs to absolute paths so they work
+            # both from source and from a frozen PyInstaller bundle.
+            qss = qss.replace("url(./", f"url({_STYLE_DIR.as_posix()}/")
+            self.setStyleSheet(qss)
             logger.debug("Tema cargado: %s", qss_path)
         else:
             logger.warning("Archivo de tema no encontrado: %s", qss_path)
@@ -343,7 +347,7 @@ class MainWindow(QMainWindow):
 
     def _on_track_changed(self, track) -> None:  # type: ignore[override]
         artist = track.artist_name or "Desconocido"
-        self.setWindowTitle(f"{track.title} — {artist}  ·  AudioRep 0.49")
+        self.setWindowTitle(f"{track.title} — {artist}  ·  AudioRep 0.50")
         self._status_bar.showMessage(f"▶  {track.title}  —  {artist}")
 
     def _on_cd_inserted(self, _disc_id: str) -> None:
