@@ -2,6 +2,17 @@
 
 ---
 
+# 0.51 — Análisis de audio sin bloqueo
+
+**Fecha:** 18 de abril de 2026
+
+### Modificado
+
+- **Hilo RMS dedicado** — el cálculo de niveles L/R para el vúmetro ya no ocurre dentro del hilo de audio de VLC. Los frames PCM se encolan y son procesados por un hilo `_RMSAnalyzer` separado, eliminando el riesgo de glitches o saltos en la reproducción bajo carga del sistema.
+- **Notificación de underruns de audio** — cuando la cola de audio (`_SDAudioBridge`) se llena y descarta frames, ahora se registra una advertencia en el log cada 10 descartes acumulados. El contador se resetea en cada seek o stop.
+
+---
+
 # 0.50 — Dropdowns unificados y refactor de performance
 
 **Fecha:** 18 de abril de 2026

@@ -3,7 +3,9 @@ VLCPlayer — Implementación de IAudioPlayer usando python-vlc (libVLC).
 
 Incorpora análisis de audio en tiempo real para el VU meter:
   - libvlc_audio_set_callbacks intercepta el PCM decodificado.
-  - sounddevice reproduce el PCM hacia la tarjeta de sonido.
+  - _SDAudioBridge reproduce el PCM hacia sounddevice en un thread escritor.
+  - _RMSAnalyzer calcula los niveles RMS en un thread separado, sin bloquear
+    el thread de audio de VLC.
   - Los niveles RMS (L/R) se escriben en audiorep.core.audio_levels.
 
 Si sounddevice no puede abrirse (conflicto de dispositivo, no instalado, etc.)
@@ -70,6 +72,7 @@ class _SDAudioBridge:
 
         self._queue: queue.Queue[bytes] = queue.Queue(maxsize=_MAX_QUEUE)
         self._stop  = threading.Event()
+        self._underrun_count = 0
 
         self._stream = sd.RawOutputStream(
             samplerate=_SAMPLE_RATE,
@@ -87,10 +90,16 @@ class _SDAudioBridge:
     # ── API pública ────────────────────────────────────────────────── #
 
     def push(self, pcm: bytes) -> None:
-        """Encola PCM para reproducción. Si la cola está llena descarta."""
+        """Encola PCM para reproducción. Si la cola está llena descarta el frame más antiguo."""
         try:
             self._queue.put_nowait(pcm)
         except queue.Full:
+            self._underrun_count += 1
+            if self._underrun_count % 10 == 1:
+                logger.warning(
+                    "SDAudioBridge: cola llena, frame descartado (underruns acumulados: %d)",
+                    self._underrun_count,
+                )
             try:
                 self._queue.get_nowait()   # descartar el más antiguo
             except queue.Empty:
@@ -107,6 +116,7 @@ class _SDAudioBridge:
                 self._queue.get_nowait()
             except queue.Empty:
                 break
+        self._underrun_count = 0
 
     def close(self) -> None:
         self._stop.set()
@@ -134,11 +144,12 @@ class _SDAudioBridge:
 
 # ── Cálculo de niveles RMS ─────────────────────────────────────────── #
 
-def _compute_levels(buf: bytes, frame_count: int) -> None:
+def _compute_levels(buf: bytes) -> None:
     """
     Calcula el RMS de los canales L/R desde PCM S16N y actualiza audio_levels.
 
     Submuestrea para no exceder ~128 frames por cálculo.
+    Debe llamarse siempre desde un hilo que no sea el thread de audio de VLC.
     """
     a = _pyarray.array("h", buf)   # int16, nativo
     n = len(a) // _CHANNELS
@@ -157,6 +168,61 @@ def _compute_levels(buf: bytes, frame_count: int) -> None:
         audio_levels.update(math.sqrt(l_sum / k), math.sqrt(r_sum / k))
 
 
+# ── Analizador RMS asíncrono ───────────────────────────────────────── #
+
+_MAX_ANALYZER_QUEUE = 50   # frames de análisis en cola; descartar si supera
+
+class _RMSAnalyzer:
+    """
+    Hilo dedicado de análisis RMS.
+
+    El callback PCM de VLC encola frames PCM crudos aquí en lugar de calcular
+    directamente. El worker consume la cola y llama _compute_levels() sin
+    bloquear el thread de audio de VLC.
+    """
+
+    def __init__(self) -> None:
+        self._queue: queue.Queue[bytes | None] = queue.Queue(maxsize=_MAX_ANALYZER_QUEUE)
+        self._stop = threading.Event()
+        self._thread = threading.Thread(
+            target=self._worker, daemon=True, name="rms-analyzer"
+        )
+        self._thread.start()
+        logger.debug("RMSAnalyzer iniciado.")
+
+    def push(self, buf: bytes) -> None:
+        """Encola un frame PCM para análisis. Descarta silenciosamente si la cola está llena."""
+        try:
+            self._queue.put_nowait(buf)
+        except queue.Full:
+            pass   # pérdida de precisión del VU meter, sin consecuencias de audio
+
+    def flush(self) -> None:
+        """Vacía la cola pendiente (llamado en seek/stop)."""
+        while True:
+            try:
+                self._queue.get_nowait()
+            except queue.Empty:
+                break
+
+    def close(self) -> None:
+        self._stop.set()
+        try:
+            self._queue.put_nowait(None)   # desbloquear el worker
+        except queue.Full:
+            pass
+
+    def _worker(self) -> None:
+        while not self._stop.is_set():
+            try:
+                buf = self._queue.get(timeout=0.1)
+                if buf is None:
+                    break
+                _compute_levels(buf)
+            except queue.Empty:
+                pass
+
+
 # ── VLCPlayer ─────────────────────────────────────────────────────────── #
 
 class VLCPlayer:
@@ -170,6 +236,7 @@ class VLCPlayer:
         self._instance = vlc.Instance("--no-video", "--quiet")
         self._player: vlc.MediaPlayer = self._instance.media_player_new()
         self._bridge: _SDAudioBridge | None = None
+        self._analyzer: _RMSAnalyzer | None = None
 
         self._setup_audio_analysis()
         logger.debug("VLCPlayer inicializado (análisis=%s).", self._bridge is not None)
@@ -188,19 +255,22 @@ class VLCPlayer:
         """
         try:
             bridge = _SDAudioBridge()
+            analyzer = _RMSAnalyzer()
             self._bridge = bridge
+            self._analyzer = analyzer
 
-            # Closures que capturan el puente y evitan GC de los ctypes obj.
+            # Closures que capturan el puente y el analyzer; evitan GC de los ctypes obj.
             def _play(data, samples, count, pts):  # type: ignore[misc]
                 if not samples or not count:
                     return
                 n_bytes = int(count) * _CHANNELS * _BYTES_PER_SAMPLE
                 buf = ctypes.string_at(samples, n_bytes)
                 bridge.push(buf)
-                _compute_levels(buf, int(count))
+                analyzer.push(buf)   # RMS calculado en el hilo del analyzer, no aquí
 
             def _flush(data, pts):  # type: ignore[misc]
                 bridge.flush()
+                analyzer.flush()
                 audio_levels.reset()
 
             # Guardar referencias para impedir que el GC destruya los wrappers
@@ -223,6 +293,7 @@ class VLCPlayer:
         except Exception as exc:
             logger.warning("Análisis de audio no disponible: %s", exc)
             self._bridge = None
+            self._analyzer = None
 
     # ------------------------------------------------------------------
     # IAudioPlayer
@@ -262,12 +333,16 @@ class VLCPlayer:
     def stop(self) -> None:
         if self._bridge:
             self._bridge.flush()
+        if self._analyzer:
+            self._analyzer.flush()
         audio_levels.reset()
         self._player.stop()
 
     def seek(self, position_ms: int) -> None:
         if self._bridge:
             self._bridge.flush()
+        if self._analyzer:
+            self._analyzer.flush()
         audio_levels.reset()
         duration = self.get_duration_ms()
         if duration > 0:

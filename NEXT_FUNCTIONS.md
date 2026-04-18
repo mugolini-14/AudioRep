@@ -6,29 +6,12 @@ Este archivo registra funcionalidades que fueron consideradas pero que no pudier
 
 ## Refactorización de performance del reproductor
 
-Identificada en v0.50. Se implementaron los problemas 2, 3 y 4. Quedan pendientes:
+~~Identificada en v0.50. Se implementaron los problemas 2, 3 y 4. Quedan pendientes:~~
 
-### Problema 1 — Cálculo RMS en el hilo de audio de VLC
-
-**Descripción:** El callback PCM de VLC llama `_compute_levels()` de forma sincrónica en el hilo
-de audio interno de VLC. Si el cálculo tarda (e.g., bajo carga del sistema), bloquea el thread
-de audio y puede causar glitches o saltos en la reproducción.
-
-**Solución propuesta:** Mover el cálculo RMS a un hilo dedicado de análisis. El callback PCM
-solo encola el frame crudo (raw bytes), y el hilo de análisis calcula los niveles y los publica
-en `audio_levels` atómicamente. Archivos afectados: `infrastructure/vlc_player.py`.
-
----
-
-### Problema 5 — Sin backpressure en la cola del bridge PCM
-
-**Descripción:** `_SDAudioBridge` tiene una cola con límite de 200 frames. Cuando la cola se
-llena, los frames más viejos se descartan silenciosamente (sin notificación al UI ni al sistema).
-Esto puede provocar gaps de audio sin que el usuario o el sistema de logs lo detecte.
-
-**Solución propuesta:** Agregar un flag/señal `underrun` al bridge que se emita cuando la cola
-alcanza su límite. El UI puede mostrar un indicador de buffer bajo o simplemente loguearlo para
-diagnóstico. Archivos afectados: `infrastructure/vlc_player.py`.
+✅ **Resuelto en v0.51** — Todos los problemas de performance del reproductor han sido implementados:
+- Problemas 2, 3 y 4: resueltos en v0.50.
+- Problema 1 (hilo RMS dedicado): resuelto en v0.51.
+- Problema 5 (backpressure con log de underruns): resuelto en v0.51.
 
 ---
 

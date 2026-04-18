@@ -28,6 +28,7 @@ Estado de implementación:
     ✅ Paso 21 — Rediseño pestaña CD: fila única lectora+estado+info, tabla más alta, botones a ancho completo con estilo unificado, v0.48
     ✅ Paso 22 — Estandarización de todos los botones de acción, fix alineación botón play, v0.49
     ✅ Paso 23 — Estandarización de dropdowns, refactor performance reproductor (poll 200ms, VU stop, DB async), v0.50
+    ✅ Paso 24 — Hilo RMS dedicado (_RMSAnalyzer), backpressure con log de underruns en _SDAudioBridge, v0.51
 """
 import os
 import sys
@@ -67,7 +68,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.50.0")
+    app.setApplicationVersion("0.51.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
