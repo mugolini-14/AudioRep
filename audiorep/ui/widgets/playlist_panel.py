@@ -114,17 +114,15 @@ class PlaylistPanel(QWidget):
         right_layout.addWidget(self._track_table)
 
         action_row = QHBoxLayout()
-        play_btn = QPushButton("Play")
+        play_btn = QPushButton("Reproducir")
         play_btn.setObjectName("playlistPlayBtn")
         play_btn.clicked.connect(self._on_play)
-        action_row.addWidget(play_btn)
+        action_row.addWidget(play_btn, stretch=1)
 
         remove_btn = QPushButton("Quitar pista")
         remove_btn.setObjectName("playlistRemoveBtn")
         remove_btn.clicked.connect(self._on_remove_track)
-        action_row.addWidget(remove_btn)
-
-        action_row.addStretch()
+        action_row.addWidget(remove_btn, stretch=1)
         right_layout.addLayout(action_row)
 
         splitter.addWidget(left)

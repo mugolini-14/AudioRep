@@ -60,6 +60,11 @@ domain → core → services ← infrastructure
 
 **objectName for QSS**: Every styled widget has `setObjectName(...)` called. All styles are in `dark.qss` targeting those names. When adding new widgets, always assign an `objectName` and add the corresponding QSS rule.
 
+**Action button standard**: All action buttons (below tables/lists in every panel) must follow this unified style:
+- **QSS**: `background-color: #4a3480; color: #ffffff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: bold;` — hover: `#5a409a` — disabled: bg `#252538` color `#55557a`.
+- **Layout**: use `btn_row.addWidget(btn, stretch=1)` (equal-width distribution). Never use `setSizePolicy(Expanding, Fixed)` on action buttons.
+- **Container margins**: `setContentsMargins(8, 8, 8, 8)` and `setSpacing(8)` for the `QHBoxLayout` that holds the buttons. The outer panel layout must provide at least 8px bottom margin so buttons don't appear flush against the window edge.
+
 ## Building installers
 
 These steps must be run **after every feature release** (version bump in `pyproject.toml` + `main.py` + both `setWindowTitle` calls in `main_window.py`).

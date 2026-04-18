@@ -292,18 +292,28 @@ QWidget#libraryToolbar {
     border-bottom: 1px solid #33334a;
 }
 
-QPushButton#importButton {
-    background-color: #2a2a3e;
-    color: #a0a0c0;
-    border: 1px solid #33334a;
-    border-radius: 4px;
-    padding: 4px 12px;
+QPushButton#importButton,
+QPushButton#libraryEditBtn,
+QPushButton#libraryIdentifyBtn {
+    background-color: #4a3480;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
     font-size: 12px;
+    font-weight: bold;
 }
 
-QPushButton#importButton:hover {
-    background-color: #33334a;
-    color: #e2e2f0;
+QPushButton#importButton:hover,
+QPushButton#libraryEditBtn:hover,
+QPushButton#libraryIdentifyBtn:hover {
+    background-color: #5a409a;
+}
+
+QPushButton#libraryEditBtn:disabled,
+QPushButton#libraryIdentifyBtn:disabled {
+    background-color: #252538;
+    color: #55557a;
 }
 
 QLineEdit#searchBox {
@@ -566,91 +576,38 @@ QLabel#RadioNowPlaying {
 }
 
 /* Botones de acción del radio */
-QPushButton#RadioBtnPlay {
-    background-color: #7c5cbf;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    padding: 5px 4px;
-    font-size: 12px;
-}
-
-QPushButton#RadioBtnPlay:hover {
-    background-color: #8d6dd0;
-}
-
-QPushButton#RadioBtnPlay:pressed {
-    background-color: #5a3d9a;
-}
-
-QPushButton#RadioBtnPlay:disabled {
-    background-color: #2a2a3e;
-    color: #55557a;
-}
-
-QPushButton#RadioBtnStop {
-    background-color: #2a2a3e;
-    color: #e2e2f0;
-    border: 1px solid #33334a;
-    border-radius: 4px;
-    padding: 5px 4px;
-    font-size: 12px;
-}
-
-QPushButton#RadioBtnStop:hover {
-    background-color: #33334a;
-}
-
-QPushButton#RadioBtnStop:disabled {
-    color: #55557a;
-    border-color: #252535;
-}
-
-QPushButton#RadioBtnSearch {
-    background-color: #5a3d9a;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    padding: 5px 14px;
-    font-size: 12px;
-}
-
-QPushButton#RadioBtnSearch:hover {
-    background-color: #7c5cbf;
-}
-
-QPushButton#RadioBtnSearch:disabled {
-    background-color: #2a2a3e;
-    color: #55557a;
-}
-
+QPushButton#RadioBtnPlay,
+QPushButton#RadioBtnStop,
+QPushButton#RadioBtnSearch,
 QPushButton#RadioBtnSave,
 QPushButton#RadioBtnDelete,
 QPushButton#RadioBtnFav {
-    background-color: #2a2a3e;
-    color: #a0a0c0;
-    border: 1px solid #33334a;
-    border-radius: 4px;
-    padding: 5px 4px;
+    background-color: #4a3480;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
     font-size: 12px;
+    font-weight: bold;
 }
 
+QPushButton#RadioBtnPlay:hover,
+QPushButton#RadioBtnStop:hover,
+QPushButton#RadioBtnSearch:hover,
 QPushButton#RadioBtnSave:hover,
 QPushButton#RadioBtnDelete:hover,
 QPushButton#RadioBtnFav:hover {
-    background-color: #33334a;
-    color: #e2e2f0;
+    background-color: #5a409a;
 }
 
-QPushButton#RadioBtnFav:hover {
-    color: #e06080;
-}
-
+QPushButton#RadioBtnPlay:disabled,
+QPushButton#RadioBtnStop:disabled,
+QPushButton#RadioBtnSearch:disabled,
 QPushButton#RadioBtnSave:disabled,
 QPushButton#RadioBtnDelete:disabled,
 QPushButton#RadioBtnFav:disabled {
-    color: #33334a;
-    border-color: #252535;
+    background-color: #252538;
+    color: #55557a;
 }
 
 /* ── Pestañas principales (mainTabs) ─────────────────────────────── */
@@ -741,12 +698,13 @@ QPushButton#playlistRenameBtn,
 QPushButton#playlistDeleteBtn,
 QPushButton#playlistPlayBtn,
 QPushButton#playlistRemoveBtn {
-    background-color: #2a2a3e;
-    color: #a0a0c0;
-    border: 1px solid #33334a;
-    border-radius: 4px;
-    padding: 4px 10px;
+    background-color: #4a3480;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
     font-size: 12px;
+    font-weight: bold;
 }
 
 QPushButton#playlistNewBtn:hover,
@@ -754,8 +712,7 @@ QPushButton#playlistRenameBtn:hover,
 QPushButton#playlistDeleteBtn:hover,
 QPushButton#playlistPlayBtn:hover,
 QPushButton#playlistRemoveBtn:hover {
-    background-color: #33334a;
-    color: #e2e2f0;
+    background-color: #5a409a;
 }
 
 /* ── CD Panel ─────────────────────────────────────────────────────── */
@@ -905,21 +862,22 @@ QComboBox#cdMetaServiceCombo::drop-down {
 }
 
 QPushButton#cdMetaSearchBtn {
-    background-color: #252538;
-    color: #e2e2f0;
-    border: 1px solid #3a3a5a;
+    background-color: #4a3480;
+    color: #ffffff;
+    border: none;
     border-radius: 6px;
-    padding: 5px 12px;
+    padding: 6px 14px;
     font-size: 12px;
+    font-weight: bold;
 }
 
 QPushButton#cdMetaSearchBtn:hover {
-    background-color: #2e2e48;
+    background-color: #5a409a;
 }
 
 QPushButton#cdMetaSearchBtn:disabled {
+    background-color: #252538;
     color: #55557a;
-    border-color: #2a2a3e;
 }
 
 QPushButton#cdMetaApplyBtn {

@@ -102,7 +102,7 @@ class PlayerBar(QWidget):
         # Play / Pause (botón principal)
         self._play_btn = QPushButton("▶")
         self._play_btn.setObjectName("playButton")
-        self._play_btn.setFixedSize(54, 54)
+        self._play_btn.setFixedSize(46, 46)
         self._play_btn.clicked.connect(self.play_pause_clicked)
         transport_layout.addWidget(self._play_btn)
 

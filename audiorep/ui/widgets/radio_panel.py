@@ -85,7 +85,8 @@ class RadioPanel(QWidget):
         root.addWidget(self._now_playing_label)
 
         btn_row = QHBoxLayout()
-        btn_row.setSpacing(6)
+        btn_row.setContentsMargins(0, 0, 0, 0)
+        btn_row.setSpacing(8)
 
         self._btn_play   = QPushButton("▶  Reproducir")
         self._btn_stop   = QPushButton("■  Detener")
@@ -103,8 +104,7 @@ class RadioPanel(QWidget):
 
         for btn in (self._btn_play, self._btn_stop, self._btn_save,
                     self._btn_delete, self._btn_fav):
-            btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-            btn_row.addWidget(btn)
+            btn_row.addWidget(btn, stretch=1)
 
         root.addLayout(btn_row)
 

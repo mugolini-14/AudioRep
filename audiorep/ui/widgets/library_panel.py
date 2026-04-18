@@ -140,20 +140,18 @@ class LibraryPanel(QWidget):
 
         # Botones de acción
         action_bar = QHBoxLayout()
-        action_bar.setContentsMargins(6, 4, 6, 4)
-        action_bar.setSpacing(6)
+        action_bar.setContentsMargins(8, 8, 8, 8)
+        action_bar.setSpacing(8)
 
         edit_btn = QPushButton("✏  Editar tags")
-        edit_btn.setObjectName("importButton")
+        edit_btn.setObjectName("libraryEditBtn")
         edit_btn.clicked.connect(self._on_edit_tags)
-        action_bar.addWidget(edit_btn)
+        action_bar.addWidget(edit_btn, stretch=1)
 
         identify_btn = QPushButton("🔍  Identificar")
-        identify_btn.setObjectName("importButton")
+        identify_btn.setObjectName("libraryIdentifyBtn")
         identify_btn.clicked.connect(self._on_identify)
-        action_bar.addWidget(identify_btn)
-
-        action_bar.addStretch()
+        action_bar.addWidget(identify_btn, stretch=1)
         table_layout.addLayout(action_bar)
 
         splitter.addWidget(table_container)

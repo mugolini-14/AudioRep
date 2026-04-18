@@ -2,6 +2,19 @@
 
 ---
 
+# 0.49 — Estandarización de botones
+
+**Fecha:** 17 de abril de 2026
+
+### Modificado
+
+- **Estilo de botones unificado** — todos los botones de acción de la aplicación (Biblioteca, Playlists, Radio, CD) adoptan el mismo estilo: fondo púrpura (`#4a3480`), texto blanco, negrita y bordes redondeados.
+- **Botones de Biblioteca alargados** — "Editar tags" e "Identificar" ahora se distribuyen a lo ancho del panel de pistas.
+- **Botones de Playlists alargados** — "Reproducir" (antes "Play") y "Quitar pista" ahora se distribuyen a lo ancho del panel de pistas.
+- **Botón Play alineado** — el botón de reproducción en la barra de controles ahora tiene el mismo tamaño que los botones secundarios (46×46 px), eliminando el desalineamiento al redimensionar la ventana.
+
+---
+
 # 0.48 — Rediseño de la pestaña CD
 
 **Fecha:** 17 de abril de 2026
