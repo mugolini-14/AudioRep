@@ -1,0 +1,79 @@
+SDR Manual — Links de descarga y recursos
+==========================================
+
+--- DESCARGA DEL CD DE SOFTWARE ---
+
+https://bit.ly/3n5Fxuh
+  Enlace corto para bajar el CD de software incluido con el receptor.
+
+https://mega.nz/file/m34EFZyK#7vHyXkoGc2l-lNFFbWKY5dXf39sx2zY81-mbl7tz2jg
+  Enlace alternativo al CD de software desde MEGA. Contiene: carpeta "drivers"
+  (driver ZADIG) y carpeta "para instalar receptor" (instalable de SDRSHARP).
+
+
+--- DRIVER ZADIG ---
+
+http://zadig.akeo.ie/downloads
+  Descarga de otras versiones de ZADIG para Windows (XP, 7 en adelante).
+
+http://zadig.akeo.ie/
+  Sitio oficial de ZADIG. Permite verificar si hay actualizaciones del driver
+  para otros sistemas operativos.
+
+https://www.youtube.com/watch?v=LEJC5gv-1N8
+  Video tutorial: explica paso a paso la instalacion del driver ZADIG.
+
+
+--- SOFTWARE RECEPTOR: SDRSHARP ---
+
+http://sdrsharp.com/#download
+  Descarga de la ultima version de SDRSharp desde su sitio oficial.
+  Opcion: "SDR Package (Change log)".
+
+https://www.youtube.com/watch?time_continue=334&v=E-aM7nlQ7PU
+  Video tutorial: instalacion de SDR bajando la nueva version desde AIRSPY.
+
+http://www.radioamatoripeligni.it/i6ibe/sdrsharp/sdrsharp.htm
+  Guia detallada sobre SDRSharp (en italiano).
+
+
+--- SOFTWARE RECEPTOR: HDSDR (alternativa a SDRSharp) ---
+
+http://www.hdsdr.de/
+  Sitio oficial de HDSDR, programa receptor alternativo compatible con el SDR.
+
+http://hdsdr.de/download/ExtIO/ExtIO_RTL2832.dll
+  Driver ExtIO necesario para usar HDSDR con el receptor RTL2832.
+
+
+--- ANTENA (para mejorar el alcance) ---
+
+http://listado.mercadolibre.com.ar/cable-rg6-rollo-20#D[A:cable-rg6-rollo-20]
+  Cable RG6 en MercadoLibre. Sirve para extender la antena y mejorar el
+  alcance del receptor hasta un 80% (colocar en techo o mastil).
+
+
+--- RECURSOS GENERALES Y COMUNIDAD ---
+
+http://www.rtl-sdr.com/rtl-sdr-supported-software/
+  Lista completa de todos los programas compatibles con el receptor RTL-SDR.
+  Incluye software para trafico de aviones, decodificacion de comunicaciones, etc.
+
+http://www.rtl-sdr.com/rtl-sdr-tutorial-receiving-noaa-weather-satellite-images/
+  Tutorial para recibir imagenes de satelites meteorologicos NOAA con el SDR.
+
+http://www.rtl-sdr.com/
+  Sitio principal sobre RTL-SDR en ingles. Cubre todo lo que se puede hacer
+  con el receptor (con traductor es facilmente accesible).
+
+http://www.forococheS.com/foro/showthread.php?t=3627170#
+  Pagina en espanol con muy buen material sobre SDR.
+
+
+--- GUIAS DE INSTALACION EN ESPANOL ---
+
+http://www.radioaficion.com/HamNews/articles/13247-sdr-barato-y-facil.html
+  Articulo guia en espanol: instalacion del controlador y SDRSharp paso a paso.
+
+http://www.escanerfrecuencias.es/FORO/viewtopic.php?f=157&t=32562
+  Foro en espanol sobre instalacion del driver y configuracion del receptor.
