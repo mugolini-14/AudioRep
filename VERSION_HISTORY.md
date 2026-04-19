@@ -2,6 +2,16 @@
 
 ---
 
+# 0.53 — Columnas ordenables en Playlists
+
+**Fecha:** 19 de abril de 2026
+
+### Agregado
+
+- **Ordenamiento de columnas en la tabla de pistas de Playlists** — al igual que en la Biblioteca, todas las columnas de la grilla de pistas en el panel de Playlists son ahora clickeables para ordenar de forma ascendente o descendente.
+
+---
+
 # 0.52 — Columnas ordenables en la Biblioteca
 
 **Fecha:** 19 de abril de 2026

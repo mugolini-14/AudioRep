@@ -110,6 +110,7 @@ class PlaylistPanel(QWidget):
         self._track_table.setAlternatingRowColors(True)
         self._track_table.verticalHeader().setVisible(False)
         self._track_table.horizontalHeader().setStretchLastSection(True)
+        self._track_table.setSortingEnabled(True)
         self._track_table.doubleClicked.connect(self._on_track_double_clicked)
         right_layout.addWidget(self._track_table)
 
