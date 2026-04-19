@@ -448,6 +448,11 @@ QHeaderView::section:hover {
     color: #a0a0c0;
 }
 
+QHeaderView::section:pressed {
+    background-color: #252538;
+    color: #c0c0e0;
+}
+
 QProgressBar#importProgress {
     background-color: #2a2a3e;
     border: none;

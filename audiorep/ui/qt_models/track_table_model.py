@@ -21,6 +21,26 @@ _COL_DURATION = 6
 _COL_FORMAT   = 7
 
 
+def _sort_key(track: Track, column: int):
+    if column == _COL_INDEX:
+        return track.track_number or 0
+    if column == _COL_TITLE:
+        return (track.title or "").lower()
+    if column == _COL_ARTIST:
+        return (track.artist_name or "").lower()
+    if column == _COL_ALBUM:
+        return (track.album_title or "").lower()
+    if column == _COL_YEAR:
+        return track.year or 0
+    if column == _COL_GENRE:
+        return (track.genre or "").lower()
+    if column == _COL_DURATION:
+        return track.duration_ms or 0
+    if column == _COL_FORMAT:
+        return (track.format.value if track.format else "").lower()
+    return ""
+
+
 class TrackTableModel(QAbstractTableModel):
     """
     Modelo de tabla para pistas de audio.
@@ -34,6 +54,8 @@ class TrackTableModel(QAbstractTableModel):
     def __init__(self, tracks: list[Track] | None = None) -> None:
         super().__init__()
         self._tracks: list[Track] = tracks or []
+        self._sort_column: int = -1
+        self._sort_order: Qt.SortOrder = Qt.SortOrder.AscendingOrder
 
     # ------------------------------------------------------------------
     # API pública
@@ -42,7 +64,18 @@ class TrackTableModel(QAbstractTableModel):
     def set_tracks(self, tracks: list[Track]) -> None:
         self.beginResetModel()
         self._tracks = list(tracks)
+        if self._sort_column >= 0:
+            reverse = self._sort_order == Qt.SortOrder.DescendingOrder
+            self._tracks.sort(key=lambda t: _sort_key(t, self._sort_column), reverse=reverse)
         self.endResetModel()
+
+    def sort(self, column: int, order: Qt.SortOrder = Qt.SortOrder.AscendingOrder) -> None:
+        self.layoutAboutToBeChanged.emit()
+        self._sort_column = column
+        self._sort_order = order
+        reverse = order == Qt.SortOrder.DescendingOrder
+        self._tracks.sort(key=lambda t: _sort_key(t, column), reverse=reverse)
+        self.layoutChanged.emit()
 
     def track_at(self, row: int) -> Track | None:
         if 0 <= row < len(self._tracks):

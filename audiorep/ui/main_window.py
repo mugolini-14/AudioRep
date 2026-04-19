@@ -128,7 +128,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.setWindowTitle("AudioRep 0.51")
+        self.setWindowTitle("AudioRep 0.52")
         self.setMinimumSize(860, 520)
         self.resize(1200, 700)
 
@@ -347,7 +347,7 @@ class MainWindow(QMainWindow):
 
     def _on_track_changed(self, track) -> None:  # type: ignore[override]
         artist = track.artist_name or "Desconocido"
-        self.setWindowTitle(f"{track.title} — {artist}  ·  AudioRep 0.51")
+        self.setWindowTitle(f"{track.title} — {artist}  ·  AudioRep 0.52")
         self._status_bar.showMessage(f"▶  {track.title}  —  {artist}")
 
     def _on_cd_inserted(self, _disc_id: str) -> None:

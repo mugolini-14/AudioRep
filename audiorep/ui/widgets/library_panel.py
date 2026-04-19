@@ -135,6 +135,7 @@ class LibraryPanel(QWidget):
             1, QHeaderView.ResizeMode.Stretch
         )
         self._table.verticalHeader().setVisible(False)
+        self._table.setSortingEnabled(True)
         self._table.doubleClicked.connect(self._on_double_click)
         table_layout.addWidget(self._table)
 

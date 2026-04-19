@@ -2,6 +2,16 @@
 
 ---
 
+# 0.52 — Columnas ordenables en la Biblioteca
+
+**Fecha:** 19 de abril de 2026
+
+### Agregado
+
+- **Ordenamiento de columnas en la tabla de pistas** — todas las columnas de la Biblioteca (Título, Artista, Álbum, Año, Género, Duración, Formato y #) son ahora clickeables. Un clic ordena de forma ascendente; otro clic en la misma columna invierte al orden descendente. La flecha indicadora aparece en el encabezado activo. El orden se mantiene al cambiar la selección del árbol (artista o álbum).
+
+---
+
 # 0.51 — Análisis de audio sin bloqueo
 
 **Fecha:** 18 de abril de 2026
