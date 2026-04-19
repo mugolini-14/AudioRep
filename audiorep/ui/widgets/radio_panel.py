@@ -29,6 +29,13 @@ from PyQt6.QtWidgets import (
 from audiorep.domain.radio_station import RadioStation
 
 
+class _BitrateItem(QTableWidgetItem):
+    """QTableWidgetItem que ordena el bitrate numéricamente."""
+
+    def __lt__(self, other: "QTableWidgetItem") -> bool:
+        return (self.data(Qt.ItemDataRole.UserRole) or 0) < (other.data(Qt.ItemDataRole.UserRole) or 0)
+
+
 class RadioPanel(QWidget):
     """
     Panel principal de radio por internet.
@@ -163,6 +170,7 @@ class RadioPanel(QWidget):
         self._results_list.setColumnWidth(1, 60)
         self._results_list.setColumnWidth(2, 110)
         self._results_list.setColumnWidth(3, 75)
+        self._results_list.setSortingEnabled(True)
         layout.addWidget(self._results_list)
 
         return tab
@@ -445,7 +453,8 @@ class RadioPanel(QWidget):
             genre_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
             bitrate_text = f"{station.bitrate_kbps} kbps" if station.bitrate_kbps else ""
-            bitrate_item = QTableWidgetItem(bitrate_text)
+            bitrate_item = _BitrateItem(bitrate_text)
+            bitrate_item.setData(Qt.ItemDataRole.UserRole, station.bitrate_kbps or 0)
             bitrate_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
 
             self._results_list.setItem(row, 0, name_item)

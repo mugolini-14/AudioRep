@@ -41,8 +41,8 @@ logger = logging.getLogger(__name__)
 class PlaylistPanel(QWidget):
     """Panel de playlists."""
 
-    playlist_selected      = pyqtSignal(object)   # Playlist
-    play_requested         = pyqtSignal(object)   # Playlist
+    playlist_selected      = pyqtSignal(object)      # Playlist
+    play_requested         = pyqtSignal(object, int) # Playlist, start_index
     create_requested       = pyqtSignal(str)
     rename_requested       = pyqtSignal(int, str)
     delete_requested       = pyqtSignal(int)
@@ -174,7 +174,7 @@ class PlaylistPanel(QWidget):
 
     def _on_play(self) -> None:
         if self._current_playlist:
-            self.play_requested.emit(self._current_playlist)
+            self.play_requested.emit(self._current_playlist, 0)
 
     def _on_new_playlist(self) -> None:
         name, ok = QInputDialog.getText(self, "Nueva playlist", "Nombre:")
@@ -205,7 +205,7 @@ class PlaylistPanel(QWidget):
 
     def _on_track_double_clicked(self, index) -> None:
         if self._current_playlist:
-            self.play_requested.emit(self._current_playlist)
+            self.play_requested.emit(self._current_playlist, index.row())
 
     def _on_remove_track(self) -> None:
         if self._current_playlist is None or self._current_playlist.id is None:

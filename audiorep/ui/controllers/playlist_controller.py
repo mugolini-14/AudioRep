@@ -76,10 +76,10 @@ class PlaylistController:
         tracks = self._playlist_svc.get_tracks(playlist)
         self._panel.set_playlist_tracks(tracks)
 
-    def _on_play_requested(self, playlist: Playlist) -> None:
+    def _on_play_requested(self, playlist: Playlist, start_index: int = 0) -> None:
         tracks = self._playlist_svc.get_tracks(playlist)
         if tracks:
-            self._player.set_queue(tracks, start_index=0)
+            self._player.set_queue(tracks, start_index=min(start_index, len(tracks) - 1))
 
     def _on_create_requested(self, name: str) -> None:
         self._playlist_svc.create_playlist(name)

@@ -2,6 +2,20 @@
 
 ---
 
+# 0.54 — Ordenamiento en Radio y fix de reproducción en Playlists
+
+**Fecha:** 19 de abril de 2026
+
+### Agregado
+
+- **Columnas ordenables en Radio (pestaña Buscar)** — las columnas Nombre, País, Género y Bitrate son ahora clickeables para ordenar ascendente o descendente. El bitrate se ordena numéricamente (no como texto).
+
+### Corregido
+
+- **Doble-clic en Playlists siempre reproducía desde el principio** — al hacer doble-clic en cualquier pista de una playlist, la reproducción ahora comienza desde esa pista en lugar de comenzar siempre desde la primera.
+
+---
+
 # 0.53 — Columnas ordenables en Playlists
 
 **Fecha:** 19 de abril de 2026
