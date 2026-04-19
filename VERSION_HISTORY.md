@@ -2,6 +2,20 @@
 
 ---
 
+# 0.56 — Columnas ordenables en Radio (Favoritas) y ajuste visual del reproductor
+
+**Fecha:** 19 de abril de 2026
+
+### Agregado
+
+- **Columnas ordenables en Radio (pestaña Favoritas)** — las columnas Nombre, Pais, Genero y Bitrate son ahora clickeables para ordenar ascendente o descendente.
+
+### Modificado
+
+- **Tamaño del texto de pista en reproduccion** — el nombre de la pista y artista que se muestra en el centro de la barra de controles ahora tiene el mismo tamaño de fuente que los contadores de tiempo (16px).
+
+---
+
 # 0.55 — Columnas ordenables en Radio (Guardadas)
 
 **Fecha:** 19 de abril de 2026

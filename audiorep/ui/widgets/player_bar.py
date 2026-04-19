@@ -136,6 +136,7 @@ class PlayerBar(QWidget):
 
         # Info de pista (centro, expande)
         self._track_label = QLabel("")
+        self._track_label.setObjectName("trackLabel")
         self._track_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._track_label.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred

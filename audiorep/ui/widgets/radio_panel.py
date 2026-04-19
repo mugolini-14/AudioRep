@@ -288,6 +288,7 @@ class RadioPanel(QWidget):
         self._favs_table.setColumnWidth(1, 60)
         self._favs_table.setColumnWidth(2, 110)
         self._favs_table.setColumnWidth(3, 75)
+        self._favs_table.setSortingEnabled(True)
         layout.addWidget(self._favs_table)
 
         return tab

@@ -165,6 +165,12 @@ QLabel#timeLabel {
     font-variant-numeric: tabular-nums;
 }
 
+/* Etiqueta de pista en reproducción */
+QLabel#trackLabel {
+    font-size: 16px;
+    color: #e2e2f0;
+}
+
 /* Botones de transporte (prev / stop / next) */
 QPushButton#transportButton {
     background-color: transparent;
