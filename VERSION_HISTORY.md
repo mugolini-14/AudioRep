@@ -2,6 +2,16 @@
 
 ---
 
+# 0.55 — Columnas ordenables en Radio (Guardadas)
+
+**Fecha:** 19 de abril de 2026
+
+### Agregado
+
+- **Columnas ordenables en Radio (pestaña Guardadas)** — las columnas Nombre, Pais, Genero y Bitrate son ahora clickeables para ordenar ascendente o descendente. El bitrate se ordena numericamente.
+
+---
+
 # 0.54 — Ordenamiento en Radio y fix de reproducción en Playlists
 
 **Fecha:** 19 de abril de 2026

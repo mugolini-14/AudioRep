@@ -229,6 +229,7 @@ class RadioPanel(QWidget):
         self._saved_table.setColumnWidth(1, 60)
         self._saved_table.setColumnWidth(2, 110)
         self._saved_table.setColumnWidth(3, 75)
+        self._saved_table.setSortingEnabled(True)
         layout.addWidget(self._saved_table)
 
         return tab
@@ -511,7 +512,8 @@ class RadioPanel(QWidget):
             genre_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
             bitrate_text = f"{station.bitrate_kbps} kbps" if station.bitrate_kbps else ""
-            bitrate_item = QTableWidgetItem(bitrate_text)
+            bitrate_item = _BitrateItem(bitrate_text)
+            bitrate_item.setData(Qt.ItemDataRole.UserRole, station.bitrate_kbps or 0)
             bitrate_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
 
             table.setItem(row, 0, name_item)
