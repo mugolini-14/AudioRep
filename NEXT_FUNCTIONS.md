@@ -45,6 +45,603 @@ Los cambios en el spec no afectan el código fuente, pero sí requieren un rebui
 
 ---
 
+## Pantalla de estadísticas de la biblioteca
+
+**Descripción:**
+Una pantalla accesible desde un botón en la Biblioteca que muestra estadísticas visuales del contenido musical del usuario: totales, distribuciones por género, por década, por formato, artistas con más pistas, canciones más reproducidas, y más. Los datos se presentan con gráficos de barras y/o torta según el tipo de información.
+
+---
+
+### Estadísticas propuestas
+
+| Estadística | Tipo de gráfico | Fuente de datos |
+|---|---|---|
+| Totales: pistas, artistas, álbumes, tiempo total | Tarjetas de resumen (números grandes) | `COUNT`, `SUM(duration_ms)` |
+| Distribución por género | Torta + leyenda | `GROUP BY genre` |
+| Distribución por década (60s, 70s, 80s…) | Barras verticales | `GROUP BY (year / 10) * 10` |
+| Distribución por formato (MP3, FLAC, OGG…) | Torta o barras | `GROUP BY format` |
+| Top 10 artistas por cantidad de pistas | Barras horizontales | `GROUP BY artist ORDER BY COUNT DESC` |
+| Top 10 pistas más reproducidas | Barras horizontales | `ORDER BY play_count DESC LIMIT 10` |
+| Distribución de ratings (0★ a 5★) | Barras verticales | `GROUP BY rating` |
+| Distribución de bitrate (128, 192, 320 kbps…) | Histograma de barras | `GROUP BY bitrate_kbps` |
+
+---
+
+### Librerías disponibles
+
+#### 1. `PyQt6-Charts` — `PyQt6.QtCharts` (recomendado)
+
+**Librería nativa del ecosistema Qt.** Se instala como paquete aparte pero es parte oficial de Qt6. Integra perfectamente con el tema visual de AudioRep porque los gráficos son widgets de Qt que heredan el sistema de colores.
+
+- **PyPI:** `PyQt6-Charts`
+- **Licencia:** GPL v3 (misma que PyQt6)
+- **Ventaja principal:** los gráficos son `QWidget` — se insertan en cualquier layout de PyQt6 como cualquier otro widget, sin fricción de incrustación.
+
+```python
+from PyQt6.QtCharts import QChart, QChartView, QPieSeries, QBarSeries, QBarSet, QBarCategoryAxis, QValueAxis
+from PyQt6.QtWidgets import QWidget, QVBoxLayout
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QColor
+
+# ── Gráfico de torta: géneros ──────────────────────────────────────── #
+def make_genre_pie(genre_counts: dict[str, int]) -> QChartView:
+    series = QPieSeries()
+    for genre, count in genre_counts.items():
+        series.append(genre, count)
+
+    # Estilo: colores de la paleta de AudioRep
+    for i, slice_ in enumerate(series.slices()):
+        slice_.setLabelVisible(True)
+        slice_.setLabelColor(QColor("#e2e2f0"))
+
+    chart = QChart()
+    chart.addSeries(series)
+    chart.setTitle("Géneros")
+    chart.setBackgroundBrush(QColor("#1e1e2e"))   # bg-surface
+    chart.setTitleBrush(QColor("#e2e2f0"))
+    chart.legend().setLabelColor(QColor("#c0c0e0"))
+
+    view = QChartView(chart)
+    view.setRenderHint(view.renderHints() | view.renderHints().Antialiasing)
+    return view
+
+# ── Gráfico de barras: pistas por década ──────────────────────────── #
+def make_decade_bars(decade_counts: dict[str, int]) -> QChartView:
+    bar_set = QBarSet("Pistas")
+    bar_set.setColor(QColor("#7c5cbf"))   # accent
+    categories = []
+
+    for decade, count in sorted(decade_counts.items()):
+        bar_set.append(count)
+        categories.append(decade)
+
+    series = QBarSeries()
+    series.append(bar_set)
+
+    axis_x = QBarCategoryAxis()
+    axis_x.append(categories)
+    axis_x.setLabelsColor(QColor("#8888aa"))
+
+    axis_y = QValueAxis()
+    axis_y.setLabelFormat("%d")
+    axis_y.setLabelsColor(QColor("#8888aa"))
+    axis_y.setGridLineColor(QColor("#2a2a3e"))
+
+    chart = QChart()
+    chart.addSeries(series)
+    chart.addAxis(axis_x, Qt.AlignmentFlag.AlignBottom)
+    chart.addAxis(axis_y, Qt.AlignmentFlag.AlignLeft)
+    series.attachAxis(axis_x)
+    series.attachAxis(axis_y)
+    chart.setBackgroundBrush(QColor("#1e1e2e"))
+    chart.setTitleBrush(QColor("#e2e2f0"))
+    chart.setTitle("Pistas por década")
+    chart.legend().setVisible(False)
+
+    view = QChartView(chart)
+    return view
+```
+
+**Ventajas:** integración nativa Qt, mismo sistema de colores del tema, animaciones incluidas, no requiere canvas externo.
+**Desventajas:** licencia GPL (compatible con el proyecto); tipos de gráficos más limitados que matplotlib.
+
+---
+
+#### 2. `matplotlib` con backend Qt — `FigureCanvasQTAgg`
+
+La librería de gráficos más usada en Python. Se puede incrustar en PyQt6 usando su backend `Qt6Agg`.
+
+- **PyPI:** `matplotlib`
+- **Licencia:** PSF (BSD-like, muy permisiva)
+- **Dependencia adicional:** `numpy` (casi siempre ya está instalado)
+
+```python
+import matplotlib
+matplotlib.use('QtAgg')   # backend Qt6
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+import matplotlib.patches as mpatches
+
+class GenrePieChart(FigureCanvas):
+    def __init__(self, genre_counts: dict[str, int], parent=None):
+        fig = Figure(figsize=(5, 4), facecolor='#1e1e2e')
+        super().__init__(fig)
+        self.setParent(parent)
+
+        ax = fig.add_subplot(111)
+        ax.set_facecolor('#1e1e2e')
+
+        labels  = list(genre_counts.keys())
+        sizes   = list(genre_counts.values())
+        colors  = ['#7c5cbf', '#5a3d9a', '#9b7dd4', '#4a3480',
+                   '#b090ff', '#c0a8ff', '#3a2470', '#8a6cbf']
+
+        wedges, texts, autotexts = ax.pie(
+            sizes, labels=labels, colors=colors,
+            autopct='%1.1f%%', startangle=90,
+            textprops={'color': '#c0c0e0', 'fontsize': 10}
+        )
+        for t in autotexts:
+            t.set_color('#e2e2f0')
+
+        ax.set_title('Géneros', color='#e2e2f0', fontsize=13)
+        fig.tight_layout()
+
+class DecadeBarChart(FigureCanvas):
+    def __init__(self, decade_counts: dict[str, int], parent=None):
+        fig = Figure(figsize=(6, 3), facecolor='#1e1e2e')
+        super().__init__(fig)
+
+        ax = fig.add_subplot(111)
+        ax.set_facecolor('#12121e')
+        ax.tick_params(colors='#8888aa')
+        ax.spines[:].set_color('#33334a')
+
+        decades = sorted(decade_counts.keys())
+        counts  = [decade_counts[d] for d in decades]
+
+        bars = ax.bar(decades, counts, color='#7c5cbf', edgecolor='#5a3d9a')
+        ax.set_title('Pistas por década', color='#e2e2f0', fontsize=12)
+        ax.set_xlabel('Década', color='#8888aa')
+        ax.set_ylabel('Pistas', color='#8888aa')
+
+        for bar, val in zip(bars, counts):
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3,
+                    str(val), ha='center', color='#c0c0e0', fontsize=9)
+        fig.tight_layout()
+```
+
+**Ventajas:** mayor variedad de gráficos, documentación extensa, paleta personalizable con cualquier color hex.
+**Desventajas:** requiere incrustación via `FigureCanvas` (leve fricción), agrega ~30 MB al bundle de PyInstaller.
+
+---
+
+### Tabla comparativa
+
+| Aspecto | `PyQt6-Charts` | `matplotlib` |
+|---|---|---|
+| Integración con PyQt6 | Nativa (es un QWidget) | Via `FigureCanvasQTAgg` |
+| Licencia | GPL v3 | BSD (PSF) |
+| Peso en bundle | ~2 MB | ~30 MB |
+| Tipos de gráfico | Barras, torta, línea, spline, scatter, área | +50 tipos incluyendo mapas de calor, radar, etc. |
+| Personalización de colores | QColor / QPalette | Cualquier color hex/RGBA |
+| Animaciones | Sí (integradas) | No nativas (requieren libs extra) |
+| Recomendación | ✓ Preferido para AudioRep | Alternativa si se necesitan más tipos |
+
+**Conclusión:** `PyQt6-Charts` es la mejor opción para AudioRep — se integra con el layout sin fricción, los colores de la paleta del tema se aplican directamente, y el peso en el instalador es mínimo. `matplotlib` queda como alternativa si en el futuro se necesitan gráficos más complejos (radar de géneros, histograma acumulado, etc.).
+
+---
+
+### Arquitectura propuesta
+
+**Nuevo `StatsService`** (`services/stats_service.py`):
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class LibraryStats:
+    total_tracks:    int
+    total_artists:   int
+    total_albums:    int
+    total_hours:     float                  # suma de duration_ms convertida
+    genre_counts:    dict[str, int]         # género → cantidad
+    decade_counts:   dict[str, int]         # "1980s" → cantidad
+    format_counts:   dict[str, int]         # "MP3" → cantidad
+    rating_counts:   dict[int, int]         # 0-5 → cantidad
+    top_artists:     list[tuple[str, int]]  # [(nombre, n_pistas), ...]
+    top_tracks:      list[tuple[str, int]]  # [(título, play_count), ...]
+
+class StatsService:
+    def __init__(self, track_repo, artist_repo, album_repo): ...
+
+    def compute(self) -> LibraryStats:
+        """Calcula todas las estadísticas en un solo pase."""
+        tracks = self._track_repo.get_all()
+        # ... agrupar, contar, ordenar ...
+        return LibraryStats(...)
+```
+
+**Nuevo `StatsPanel`** (`ui/widgets/stats_panel.py`):
+- `QScrollArea` que contiene un grid de gráficos: 2 columnas, N filas.
+- Fila 0: tarjetas de resumen (totales en texto grande).
+- Fila 1: torta géneros + barras décadas.
+- Fila 2: torta formatos + barras ratings.
+- Fila 3: barras horizontales top artistas.
+- Fila 4: barras horizontales top pistas reproducidas.
+
+**Acceso desde `LibraryPanel`:**
+- Botón `📊 Estadísticas` en la toolbar, junto al botón "Importar carpeta".
+- Al hacer clic, muestra/oculta el `StatsPanel` como un tab adicional o un `QStackedWidget` que reemplaza la vista de tabla.
+
+---
+
+### Dependencias a agregar
+
+```toml
+# pyproject.toml — elegir UNA de las dos:
+PyQt6-Charts>=6.6.0   # opción recomendada
+# matplotlib>=3.8.0   # alternativa
+```
+
+---
+
+### Consideraciones de performance
+
+Las estadísticas se calculan sobre todos los tracks de la biblioteca. Con colecciones grandes (>10.000 pistas), el cálculo debe hacerse en un `QThread` worker para no bloquear la UI:
+
+```python
+class _StatsWorker(QThread):
+    stats_ready = pyqtSignal(object)   # LibraryStats
+
+    def run(self):
+        stats = self._stats_service.compute()
+        self.stats_ready.emit(stats)
+```
+
+Los gráficos se construyen en el hilo principal una vez que llegan los datos.
+
+---
+
+## Crossfade entre pistas
+
+**Descripción:**
+Transición suave entre el final de una pista y el comienzo de la siguiente: la pista actual va bajando de volumen gradualmente mientras la siguiente sube, durante un período configurable por el usuario (por ejemplo, 0 a 12 segundos). Cuando está en 0 el comportamiento es el actual (sin crossfade).
+
+---
+
+### Por qué no existe un crossfade nativo en VLC
+
+`libVLC` no expone una API de crossfade entre medias. El método `audio_set_volume()` sí existe y es accesible desde python-vlc, pero no hay un mecanismo automático de fundido cruzado entre dos instancias.
+
+La solución es implementarlo a nivel de aplicación: usar **dos instancias de `vlc.MediaPlayer`** en simultáneo y manejar el fundido con un `QTimer`.
+
+---
+
+### Arquitectura propuesta
+
+#### Dos instancias de MediaPlayer
+
+```python
+# En VLCPlayer.__init__():
+self._player_a = self._instance.media_player_new()  # player principal (actual)
+self._player_b = self._instance.media_player_new()  # player secundario (crossfade)
+self._active   = 'a'   # cuál está reproduciendo ahora
+```
+
+Se alternan: la pista activa reproduce en `_player_a`; cuando hay crossfade, la siguiente pista arranca en `_player_b`. Al terminar el crossfade, `_player_b` pasa a ser el activo y viceversa.
+
+#### Lógica del crossfade en `PlayerService`
+
+```python
+def _poll_position(self) -> None:
+    # ... lógica existente ...
+    remaining_ms = dur - pos
+    cf_ms = self._crossfade_ms   # leído de AppSettings
+
+    if cf_ms > 0 and not self._crossfading and remaining_ms <= cf_ms + 200:
+        next_track = self._peek_next()
+        if next_track:
+            self._start_crossfade(next_track)
+
+def _start_crossfade(self, next_track: Track) -> None:
+    self._crossfading = True
+    self._player.start_crossfade(next_track, duration_ms=self._crossfade_ms)
+
+def _on_crossfade_done(self) -> None:
+    self._crossfading = False
+    self._finish_pending = True
+    self._on_track_finished()   # contabiliza play_count, avanza índice
+```
+
+#### Fundido en `VLCPlayer`
+
+```python
+def start_crossfade(self, next_track: Track, duration_ms: int) -> None:
+    """Arranca el jugador secundario y comienza el fundido cruzado."""
+    # Cargar siguiente pista en el player inactivo a volumen 0
+    inactive = self._player_b if self._active == 'a' else self._player_a
+    media = self._instance.media_new(next_track.file_path)
+    inactive.set_media(media)
+    inactive.audio_set_volume(0)
+    inactive.play()
+
+    # Timer de fundido: cada 50ms ajusta los volúmenes
+    self._cf_duration   = duration_ms
+    self._cf_elapsed    = 0
+    self._cf_timer      = QTimer()
+    self._cf_timer.setInterval(50)
+    self._cf_timer.timeout.connect(self._crossfade_tick)
+    self._cf_timer.start()
+
+def _crossfade_tick(self) -> None:
+    self._cf_elapsed += 50
+    ratio = min(self._cf_elapsed / self._cf_duration, 1.0)
+
+    master_vol = self.get_volume()   # volumen configurado por el usuario
+    active   = self._player_a if self._active == 'a' else self._player_b
+    inactive = self._player_b if self._active == 'a' else self._player_a
+
+    active.audio_set_volume(int(master_vol * (1.0 - ratio)))
+    inactive.audio_set_volume(int(master_vol * ratio))
+
+    if ratio >= 1.0:
+        self._cf_timer.stop()
+        active.stop()
+        self._active = 'b' if self._active == 'a' else 'a'
+        self.crossfade_finished.emit()   # señal al PlayerService
+```
+
+---
+
+### Curva de fundido
+
+La interpolación lineal (`ratio = elapsed / duration`) es la más simple y ya suena bien. Se puede mejorar con una curva suave (ease-in-out):
+
+```python
+# Curva suave: más natural que lineal
+ratio_smooth = ratio * ratio * (3 - 2 * ratio)  # smoothstep
+
+# O curva logarítmica (más parecida a cómo percibe el oído):
+import math
+vol_out = int(master_vol * math.cos(ratio * math.pi / 2))
+vol_in  = int(master_vol * math.sin(ratio * math.pi / 2))
+```
+
+La curva logarítmica (seno/coseno) se recomienda porque el oído percibe el volumen de forma logarítmica — da la sensación de un fundido más parejo.
+
+---
+
+### Configuración en SettingsDialog
+
+```python
+# core/settings.py — agregar:
+@property
+def crossfade_seconds(self) -> int:
+    return int(self._s.value("crossfade_seconds", 0))
+
+@crossfade_seconds.setter
+def crossfade_seconds(self, v: int) -> None:
+    self._s.setValue("crossfade_seconds", v)
+```
+
+En `SettingsDialog`, agregar un `QSpinBox` o `QSlider` con rango 0–12 y label "Crossfade (segundos)". Cuando el valor es 0, el crossfade está desactivado y el comportamiento es idéntico al actual.
+
+---
+
+### Casos especiales a considerar
+
+| Caso | Comportamiento esperado |
+|---|---|
+| Crossfade = 0 | Sin cambios — flujo actual |
+| Pista siguiente no existe (última de la cola) | No iniciar crossfade, dejar terminar normalmente |
+| El usuario hace skip antes de terminar el crossfade | Cancelar timer, detener ambos players, reproducir la pista elegida |
+| Pista muy corta (< duración del crossfade) | Empezar el crossfade desde el inicio de la pista si ya arrancó dentro del período |
+| Radio (stream continuo) | Crossfade no aplica — deshabilitarlo cuando `source == TrackSource.CD` o radio |
+
+---
+
+### Dependencias nuevas
+
+**Ninguna.** `audio_set_volume()` ya existe en python-vlc. El fundido se implementa íntegramente con `QTimer` y dos instancias de `vlc.MediaPlayer`, ambas cosas disponibles en el stack actual.
+
+---
+
+### Archivos a modificar
+
+| Archivo | Cambio |
+|---|---|
+| `core/settings.py` | Agregar `crossfade_seconds` property |
+| `infrastructure/audio/vlc_player.py` | Agregar segundo `MediaPlayer`, `start_crossfade()`, `_crossfade_tick()` |
+| `services/player_service.py` | Detectar cuando iniciar el crossfade en `_poll_position()` |
+| `ui/dialogs/settings_dialog.py` | Agregar control de crossfade (QSpinBox 0–12s) |
+| `audiorep/ui/style/dark.qss` | Estilo del nuevo control en Settings si es necesario |
+
+---
+
+## Mini-reproductor (modo compacto)
+
+**Descripción:**
+Un botón pequeño en la interfaz que colapsa la ventana principal a un reproductor mínimo: solo muestra los controles de transporte, el nombre de la pista y el control de volumen. Útil para escuchar música mientras se trabaja en otra aplicación. La ventana se mantiene al frente de las demás.
+
+---
+
+### Diseño del mini-reproductor
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ ⇄  ⏮  ⏹  ▶  ⏭  ↺   Don't Come Close — Ramones   🔊 ███░░ │  ← ~40px alto
+└──────────────────────────────────────────────────────────────┘
+```
+
+- Ancho: ~520px fijo. Alto: ~52px (una sola fila, sin barra de progreso).
+- Sin menú, sin pestañas, sin NowPlaying, sin VU meter, sin barra de estado.
+- Ventana sin marco (`Qt.WindowType.FramelessWindowHint`) opcional, o con barra de título mínima.
+- `Qt.WindowType.WindowStaysOnTopHint` para que quede por encima de otras ventanas.
+- Arrastrable desde cualquier punto (sin barra de título, el usuario arrastra la ventana entera).
+
+---
+
+### Estrategia de implementación
+
+**Opción A (recomendada): ocultar/mostrar componentes de la ventana existente**
+
+No crear una segunda ventana. En cambio, al entrar en modo mini:
+1. Guardar el tamaño y posición actual de la ventana.
+2. Ocultar: `mainTabs`, `rightPanel`, barra de progreso (`progressSlider`), barra de estado.
+3. Remover márgenes y el layout exterior para que la `PlayerBar` ocupe toda la ventana.
+4. `setFixedSize(520, 52)` y aplicar `WindowStaysOnTopHint`.
+5. Al salir del modo mini: restaurar todo al estado guardado.
+
+**Opción B: ventana separada**
+
+Crear un `MiniPlayerWindow(QWidget)` independiente, ocultar la ventana principal y mostrar la mini. Más aislamiento pero más código de sincronización de estado.
+
+La Opción A es preferida porque reutiliza todos los widgets y señales ya conectados — el `PlayerBar` existente con sus controles sigue funcionando sin cambios.
+
+---
+
+### Implementación de la Opción A
+
+```python
+# En MainWindow:
+
+def _setup_mini_toggle(self) -> None:
+    """Agrega el botón de mini-reproductor a la PlayerBar."""
+    self._mini_btn = QPushButton("⤢")   # o un ícono SVG pequeño
+    self._mini_btn.setObjectName("miniPlayerBtn")
+    self._mini_btn.setFixedSize(24, 24)
+    self._mini_btn.setToolTip("Mini-reproductor")
+    self._mini_btn.setCheckable(True)
+    self._mini_btn.clicked.connect(self._toggle_mini_player)
+    # Agregar al layout de la PlayerBar, alineado a la derecha
+
+def _toggle_mini_player(self, checked: bool) -> None:
+    if checked:
+        self._enter_mini_mode()
+    else:
+        self._exit_mini_mode()
+
+def _enter_mini_mode(self) -> None:
+    self._normal_geometry = self.saveGeometry()
+    self._normal_flags    = self.windowFlags()
+
+    # Ocultar componentes
+    self._tabs.setVisible(False)
+    self._right_panel.setVisible(False)
+    self._status_bar.setVisible(False)
+    self._player_bar.hide_progress_row()   # método nuevo en PlayerBar
+
+    # Ajustar ventana
+    self.setWindowFlags(
+        Qt.WindowType.Window |
+        Qt.WindowType.WindowStaysOnTopHint |
+        Qt.WindowType.FramelessWindowHint
+    )
+    self.setFixedSize(520, 52)
+    self.show()
+
+def _exit_mini_mode(self) -> None:
+    # Restaurar
+    self._tabs.setVisible(True)
+    self._right_panel.setVisible(True)
+    self._status_bar.setVisible(True)
+    self._player_bar.show_progress_row()
+
+    self.setWindowFlags(self._normal_flags)
+    self.setMinimumSize(860, 520)
+    self.setMaximumSize(16777215, 16777215)  # quitar el fixed
+    self.restoreGeometry(self._normal_geometry)
+    self.show()
+```
+
+**Métodos nuevos en `PlayerBar`:**
+```python
+def hide_progress_row(self) -> None:
+    """Oculta la fila 2 (barra de progreso) para el modo mini."""
+    self._seek_slider.setVisible(False)
+    self._pos_label.setVisible(False)
+    self._dur_label.setVisible(False)
+
+def show_progress_row(self) -> None:
+    self._seek_slider.setVisible(True)
+    self._pos_label.setVisible(True)
+    self._dur_label.setVisible(True)
+```
+
+---
+
+### Arrastre de ventana sin barra de título
+
+Con `FramelessWindowHint`, la ventana no tiene barra de título y no se puede arrastrar por defecto. Implementar arrastre manual en `PlayerBar` o `MainWindow`:
+
+```python
+def mousePressEvent(self, event) -> None:
+    if event.button() == Qt.MouseButton.LeftButton:
+        self._drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+
+def mouseMoveEvent(self, event) -> None:
+    if event.buttons() & Qt.MouseButton.LeftButton and self._drag_pos:
+        self.move(event.globalPosition().toPoint() - self._drag_pos)
+```
+
+---
+
+### Posición del botón de mini-reproductor
+
+Opciones:
+- **En la `PlayerBar`**, extremo derecho (después del volumen slider): integrado, siempre visible.
+- **En la barra de menú**, como ícono pequeño a la derecha: separado de los controles de audio.
+
+La primera opción es más natural para el usuario — el botón está junto a los demás controles.
+
+**objectName y QSS propuestos:**
+```css
+QPushButton#miniPlayerBtn {
+    background-color: transparent;
+    color: #55557a;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+}
+QPushButton#miniPlayerBtn:hover {
+    background-color: rgba(255, 255, 255, 0.10);
+    color: #a0a0c0;
+}
+QPushButton#miniPlayerBtn:checked {
+    color: #7c5cbf;
+}
+```
+
+---
+
+### Persistencia
+
+Guardar en `QSettings`:
+- Si el mini-reproductor estaba activo al cerrar → restaurarlo al abrir.
+- Posición de la mini-ventana → restaurarla en la misma ubicación.
+
+---
+
+### Dependencias nuevas
+
+**Ninguna.** Todo con PyQt6 nativo: `setWindowFlags`, `setFixedSize`, `saveGeometry`, `restoreGeometry`, `setVisible`.
+
+---
+
+### Archivos a modificar
+
+| Archivo | Cambio |
+|---|---|
+| `audiorep/ui/main_window.py` | `_setup_mini_toggle()`, `_enter_mini_mode()`, `_exit_mini_mode()` |
+| `audiorep/ui/widgets/player_bar.py` | `hide_progress_row()`, `show_progress_row()`, botón `miniPlayerBtn` |
+| `audiorep/ui/style/dark.qss` | Regla `QPushButton#miniPlayerBtn` |
+| `core/settings.py` | `mini_player_active`, `mini_player_geometry` (persistencia) |
+
+---
+
 ## Ecualizador gráfico con presets
 
 **Descripción:**

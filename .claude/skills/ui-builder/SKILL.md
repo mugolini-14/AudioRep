@@ -143,7 +143,10 @@ El tab CD contiene un `QSplitter#cdTabSplitter` horizontal con dos columnas:
 | `trackTitle` | `QLabel` | Título, 14px bold |
 | `trackArtist` | `QLabel` | Artista, 12px, `#a0a0c0` |
 | `trackAlbum` | `QLabel` | Álbum, 11px, `#7070a0` |
+| `trackYear` | `QLabel` | Año, 11px, `#7070a0`. Oculto (`setVisible(False)`) si la pista no tiene año |
 | `trackRating` | `QLabel` | Estrellas ★☆, 12px, `accent`, letter-spacing 2px |
+
+> **Nota v0.57:** Todos los campos opcionales (artista, álbum, año) usan `setVisible(bool)` en lugar de mostrar "—". La portada se limpia a placeholder al iniciar `update_track()` para evitar que persista la portada de la pista anterior.
 
 ### PlayerBar (`audiorep/ui/widgets/player_bar.py`)
 
@@ -154,9 +157,10 @@ El tab CD contiene un `QSplitter#cdTabSplitter` horizontal con dos columnas:
 | `modeButton` | `QPushButton` | 46×46 | Shuffle (⇄) y Repeat (↺). Checkable. Inactivo: blanco `#ffffff`. Activo: `#b090ff` |
 | `transportButton` | `QPushButton` | 46×46 | Prev (⏮), Stop (⏹) y Next (⏭). Fondo transparente, color blanco, font-size 22px |
 | `playButton` | `QPushButton` | 46×46 | Play/Pause. Fondo transparente, color blanco, font-size 28px |
-| `timeLabel` | `QLabel` | fixed 52px | Tiempo transcurrido y total, en fila 1 flanqueando el track label. `#7070a0`, 16px tabular-nums |
+| `trackLabel` | `QLabel` | stretch=1 | Título y artista de la pista en reproducción (`"Título — Artista"`). 16px, `text-main`. Centrado en la fila 1 entre los dos `timeLabel` |
+| `timeLabel` | `QLabel` | fixed 52px | Tiempo transcurrido y total, flanqueando el `trackLabel`. `#7070a0`, 16px tabular-nums |
 | `progressSlider` | `QSlider` | stretch (fila 2) | Barra de progreso a ancho completo. Handle blanco `#e2e2f0` |
-| `volumeIcon` | `QLabel` | — | Ícono 🔊. Color `text-ghost`, 14px |
+| `volumeIcon` | `QPushButton` | 46×46 | Ícono 🔊/🔇. Actúa como botón de mute toggle. Color `text-ghost`. Al hacer clic silencia/restaura el volumen anterior |
 | `volumeSlider` | `QSlider` | min 180px / max 280px | Volumen. Groove 3px, handle `#a090c0` |
 
 **Layout de PlayerBar (2 filas):**

@@ -75,7 +75,8 @@ Actualizar el número de versión en **tres lugares** (siempre los tres, nunca u
 
 1. `pyproject.toml` → `version = "X.Y.Z"`
 2. `main.py` → `app.setApplicationVersion("X.Y.Z")`
-3. `audiorep/ui/main_window.py` → ambas llamadas a `setWindowTitle(...)` → `"AudioRep X.Y"`
+3. `audiorep/ui/main_window.py` → `setWindowTitle(...)` en `_setup_window()` → `"AudioRep X.Y"` (una sola llamada — el título dinámico fue eliminado en v0.59)
+4. `installers/linux/build_deb.sh` → `VERSION="X.Y.Z"`
 
 ---
 

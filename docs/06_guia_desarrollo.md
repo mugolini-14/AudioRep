@@ -164,6 +164,14 @@ class MiController:
 | 21 | Rediseño pestaña CD: fila única lectora+estado+info, tabla más alta, botones a ancho completo | ✅ Completo — v0.48 |
 | 22 | Estandarización de todos los botones de acción, fix alineación botón play (46×46) | ✅ Completo — v0.49 |
 | 23 | Dropdowns unificados (QComboBox global + arrow_down.svg), refactor performance reproductor | ✅ Completo — v0.50 |
+| 24 | Hilo RMS dedicado (`_RMSAnalyzer`), backpressure con log de underruns en `_SDAudioBridge` | ✅ Completo — v0.51 |
+| 25 | Columnas ordenables en Biblioteca (`TrackTableModel.sort()` + `setSortingEnabled`) | ✅ Completo — v0.52 |
+| 26 | Columnas ordenables en Playlists; fix doble-clic siempre reproducía desde pista 1 | ✅ Completo — v0.53–v0.54 |
+| 27 | Columnas ordenables en Radio (Buscar, Guardadas, Favoritas); `_BitrateItem` para orden numérico | ✅ Completo — v0.54–v0.56 |
+| 28 | `trackLabel` 16px en PlayerBar; botones de transporte sin highlight de foco (NoFocus) | ✅ Completo — v0.56–v0.57 |
+| 29 | NowPlaying: campo año, campos opcionales con `setVisible`, portada limpia al cambiar pista | ✅ Completo — v0.57 |
+| 30 | Estándar de diálogos modales: QLineEdit global, QDialogButtonBox, "Sí"/"No" en confirmaciones | ✅ Completo — v0.58 |
+| 31 | Título de ventana estático; Play tras Stop reproduce última pista (`replay_current()`) | ✅ Completo — v0.59 |
 
 ---
 

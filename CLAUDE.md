@@ -69,6 +69,10 @@ domain → core → services ← infrastructure
 - Arrow icon: `audiorep/ui/style/arrow_down.svg` — referenced as `url(./arrow_down.svg)` in QSS.
 - The `url(./...)` placeholder is expanded to an absolute path in `main_window._load_stylesheet()` so it works both from source and from a frozen PyInstaller bundle.
 
+**Modal dialog standard**: All modal dialogs (`QDialog`, `QInputDialog`, `QMessageBox`) use global QSS rules defined in `dark.qss` under the "Diálogos modales" section. Key rules: `QLineEdit` (general, dark bg), `QDialogButtonBox QPushButton` (action style), `QPushButton#SettingsDirBtn` (secondary style). Never use `QMessageBox.question()` with `StandardButton.Yes/No` — build the `QMessageBox` manually with Spanish button text ("Sí"/"No") via `addButton()`. See `ui-builder/SKILL.md` → "Estándar de diálogos modales" for full details and code example.
+
+**Window title**: The title is set once in `_setup_window()` and never updated dynamically. It always shows `"AudioRep X.Y"` regardless of what is playing. Track info in the status bar is updated via `_on_track_changed()` instead.
+
 ## Building installers
 
 > **Read `.claude/skills/compiler-instructions/SKILL.md` before building.** It contains the required procedure, system paths, preferred shell, and the recovery process if a version was missed.
@@ -119,7 +123,8 @@ This affects `audiorep.db` and the cover art cache. No changes needed when addin
 
 1. `pyproject.toml` → `version = "X.Y.Z"`
 2. `main.py` → `app.setApplicationVersion("X.Y.Z")`
-3. `audiorep/ui/main_window.py` → both `setWindowTitle` calls → `"AudioRep X.Y"`
+3. `audiorep/ui/main_window.py` → `setWindowTitle(...)` in `_setup_window()` → `"AudioRep X.Y"` (single call — the dynamic title update was removed in v0.59)
+4. `installers/linux/build_deb.sh` → `VERSION="X.Y.Z"`
 
 ## System dependencies
 
