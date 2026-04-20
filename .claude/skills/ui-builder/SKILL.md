@@ -242,6 +242,78 @@ Todos los botones que aparecen debajo de tablas o listas en cualquier panel debe
 
 ---
 
+## Estándar de diálogos modales
+
+Todos los diálogos emergentes (`QDialog`, `QInputDialog`, `QMessageBox`) usan este estándar visual definido en `dark.qss`. **No aplicar estilos inline.**
+
+### Campos de texto (`QLineEdit`)
+
+Regla global en `dark.qss` — aplica automáticamente a cualquier `QLineEdit` sin objectName específico:
+
+```css
+QLineEdit {
+    background-color: #2a2a3e;
+    color: #e2e2f0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    selection-background-color: #7c5cbf;
+}
+QLineEdit:focus { border-color: #7c5cbf; }
+```
+
+### Botones de diálogo (`QDialogButtonBox`)
+
+```css
+QDialogButtonBox QPushButton {
+    background-color: #4a3480;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 80px;
+}
+QDialogButtonBox QPushButton:hover { background-color: #5a409a; }
+QDialogButtonBox QPushButton:pressed { background-color: #3a2470; }
+```
+
+### Botón de selección de carpeta (`SettingsDirBtn`)
+
+El botón "…" que abre un `QFileDialog` sigue el estilo de input secundario:
+
+```css
+QPushButton#SettingsDirBtn {
+    background-color: #2a2a3e;
+    color: #c0c0e0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+QPushButton#SettingsDirBtn:hover { border-color: #7c5cbf; color: #e2e2f0; }
+```
+
+### Convención de textos en botones de confirmación
+
+- **Nunca usar** `QMessageBox.question()` con `StandardButton.Yes/No` — los textos son en inglés y no se pueden cambiar fácilmente.
+- **Siempre construir** el `QMessageBox` manualmente con botones en español:
+
+```python
+msg = QMessageBox(self)
+msg.setWindowTitle("Confirmar")
+msg.setText("¿Mensaje de confirmación?")
+msg.setIcon(QMessageBox.Icon.Question)
+yes_btn = msg.addButton("Sí", QMessageBox.ButtonRole.YesRole)
+msg.addButton("No", QMessageBox.ButtonRole.NoRole)
+msg.exec()
+if msg.clickedButton() == yes_btn:
+    # acción confirmada
+```
+
+---
+
 ## Estándar de QComboBox (dropdowns)
 
 Todos los `QComboBox` de la aplicación comparten una regla base global en `dark.qss`:
@@ -304,7 +376,7 @@ Los colores están en dark.qss. Si se necesita un color en Python (p. ej., para 
 
 ### 6. Widgets de modal y diálogo
 
-Los diálogos (`SettingsDialog`, `TagEditorDialog`, `RipperDialog`) heredan el estilo base de `QMainWindow, QWidget { background-color: #12121e; color: #e2e2f0; }`. Los campos específicos del diálogo deben tener objectNames únicos (ej. `SettingsAcoustID`, `SettingsRipFormat`) y sus reglas en dark.qss si necesitan estilo especial.
+Los diálogos (`SettingsDialog`, `TagEditorDialog`, `RipperDialog`, `QInputDialog`, `QMessageBox`) usan el estándar de diálogos modales definido en `dark.qss`. Ver sección **Estándar de diálogos modales** más abajo.
 
 ---
 

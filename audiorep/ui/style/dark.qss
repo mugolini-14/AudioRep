@@ -109,6 +109,55 @@ QFrame#separator {
     max-height: 1px;
 }
 
+/* ── Diálogos modales (QDialog, QInputDialog, QMessageBox) ───────── */
+
+QLineEdit {
+    background-color: #2a2a3e;
+    color: #e2e2f0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    selection-background-color: #7c5cbf;
+}
+
+QLineEdit:focus {
+    border-color: #7c5cbf;
+}
+
+QDialogButtonBox QPushButton {
+    background-color: #4a3480;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 80px;
+}
+
+QDialogButtonBox QPushButton:hover {
+    background-color: #5a409a;
+}
+
+QDialogButtonBox QPushButton:pressed {
+    background-color: #3a2470;
+}
+
+QPushButton#SettingsDirBtn {
+    background-color: #2a2a3e;
+    color: #c0c0e0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+QPushButton#SettingsDirBtn:hover {
+    border-color: #7c5cbf;
+    color: #e2e2f0;
+}
+
 /* ── Paneles principales ───────────────────────────────────────────── */
 
 QWidget#centralPanel {

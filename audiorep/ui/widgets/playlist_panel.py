@@ -194,13 +194,14 @@ class PlaylistPanel(QWidget):
     def _on_delete(self) -> None:
         if self._current_playlist is None:
             return
-        reply = QMessageBox.question(
-            self,
-            "Confirmar",
-            f"Eliminar la playlist {self._current_playlist.name!r}?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        )
-        if reply == QMessageBox.StandardButton.Yes and self._current_playlist.id is not None:
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Confirmar")
+        msg.setText(f"Eliminar la playlist {self._current_playlist.name!r}?")
+        msg.setIcon(QMessageBox.Icon.Question)
+        yes_btn = msg.addButton("Sí", QMessageBox.ButtonRole.YesRole)
+        msg.addButton("No", QMessageBox.ButtonRole.NoRole)
+        msg.exec()
+        if msg.clickedButton() == yes_btn and self._current_playlist.id is not None:
             self.delete_requested.emit(self._current_playlist.id)
 
     def _on_track_double_clicked(self, index) -> None:

@@ -2,6 +2,17 @@
 
 ---
 
+# 0.58 — Estandarización de diálogos modales
+
+**Fecha:** 19 de abril de 2026
+
+### Modificado
+
+- **Diálogos con tema oscuro** — los formularios emergentes (Configuración, Nueva playlist, Renombrar playlist) ahora aplican el tema visual oscuro de la aplicación: campos de texto con fondo `#2a2a3e`, borde sutil y foco con acento violeta; botones OK/Cancelar con el mismo estilo que los botones de acción del resto de la interfaz.
+- **Confirmación en español** — el diálogo "Eliminar playlist" reemplazó los botones "Yes"/"No" de sistema por "Sí"/"No" en español.
+
+---
+
 # 0.57 — Mejoras visuales en controles y panel NowPlaying
 
 **Fecha:** 19 de abril de 2026
