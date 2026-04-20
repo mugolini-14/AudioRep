@@ -106,6 +106,14 @@ class PlayerService(QObject):
         self._player.stop()
         app_events.playback_stopped.emit()
 
+    def replay_current(self) -> None:
+        """Reproduce desde el principio la pista actual tras un Stop."""
+        if self._current_track:
+            self._finish_pending = False
+            self.play(self._current_track)
+        elif self._queue and 0 <= self._current_index < len(self._queue):
+            self._play_current()
+
     def next_track(self) -> None:
         if not self._queue:
             return

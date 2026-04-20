@@ -90,6 +90,8 @@ class PlayerController:
             self._service.pause()
         elif player.is_paused:
             self._service.resume()
+        else:
+            self._service.replay_current()
 
     def _on_track_changed(self, track: Track) -> None:
         self._now_playing.update_track(track)

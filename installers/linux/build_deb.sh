@@ -24,7 +24,7 @@ STAGE_DIR="$PROJECT_ROOT/build/linux/stage"
 DIST_DIR="$PROJECT_ROOT/installers/linux"
 
 # ── Versión ───────────────────────────────────────────────────────────
-VERSION="0.58.0"
+VERSION="0.59.0"
 APP_NAME="audiorep"
 INSTALL_PATH="/opt/audiorep"
 

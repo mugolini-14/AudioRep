@@ -2,6 +2,17 @@
 
 ---
 
+# 0.59 — Corrección de título y comportamiento del botón Play tras Stop
+
+**Fecha:** 19 de abril de 2026
+
+### Modificado
+
+- **Título de la ventana simplificado** — la barra de título ya no muestra el nombre de la pista en reproducción; ahora muestra únicamente el nombre y versión de la aplicación ("AudioRep 0.59") en todo momento.
+- **Play tras Stop funcional** — al presionar Play después de detener la reproducción con Stop, la aplicación vuelve a reproducir la última pista desde el principio. Antes el botón no hacía nada en ese estado.
+
+---
+
 # 0.58 — Estandarización de diálogos modales
 
 **Fecha:** 19 de abril de 2026
