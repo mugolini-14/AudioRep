@@ -81,6 +81,7 @@ class PlayerBar(QWidget):
         self._shuffle_btn.setFixedSize(46, 46)
         self._shuffle_btn.setCheckable(True)
         self._shuffle_btn.setToolTip("Aleatorio")
+        self._shuffle_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         transport_layout.addWidget(self._shuffle_btn)
 
         # Anterior
@@ -88,6 +89,7 @@ class PlayerBar(QWidget):
         self._prev_btn.setObjectName("transportButton")
         self._prev_btn.setFixedSize(46, 46)
         self._prev_btn.setToolTip("Anterior")
+        self._prev_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._prev_btn.clicked.connect(self.previous_clicked)
         transport_layout.addWidget(self._prev_btn)
 
@@ -96,6 +98,7 @@ class PlayerBar(QWidget):
         self._stop_btn.setObjectName("transportButton")
         self._stop_btn.setFixedSize(46, 46)
         self._stop_btn.setToolTip("Detener")
+        self._stop_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._stop_btn.clicked.connect(self.stop_clicked)
         transport_layout.addWidget(self._stop_btn)
 
@@ -103,6 +106,7 @@ class PlayerBar(QWidget):
         self._play_btn = QPushButton("▶")
         self._play_btn.setObjectName("playButton")
         self._play_btn.setFixedSize(46, 46)
+        self._play_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._play_btn.clicked.connect(self.play_pause_clicked)
         transport_layout.addWidget(self._play_btn)
 
@@ -111,6 +115,7 @@ class PlayerBar(QWidget):
         self._next_btn.setObjectName("transportButton")
         self._next_btn.setFixedSize(46, 46)
         self._next_btn.setToolTip("Siguiente")
+        self._next_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._next_btn.clicked.connect(self.next_clicked)
         transport_layout.addWidget(self._next_btn)
 
@@ -120,6 +125,7 @@ class PlayerBar(QWidget):
         self._repeat_btn.setFixedSize(46, 46)
         self._repeat_btn.setCheckable(True)
         self._repeat_btn.setToolTip("Repetir")
+        self._repeat_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         transport_layout.addWidget(self._repeat_btn)
 
         row1.addWidget(transport_frame)

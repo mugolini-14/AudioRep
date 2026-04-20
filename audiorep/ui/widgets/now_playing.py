@@ -41,23 +41,28 @@ class NowPlaying(QWidget):
         self._show_placeholder()
         layout.addWidget(self._cover)
 
-        self._title = QLabel("—")
+        self._title = QLabel()
         self._title.setObjectName("trackTitle")
         self._title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._title.setWordWrap(True)
         layout.addWidget(self._title)
 
-        self._artist = QLabel("—")
+        self._artist = QLabel()
         self._artist.setObjectName("trackArtist")
         self._artist.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._artist.setWordWrap(True)
         layout.addWidget(self._artist)
 
-        self._album = QLabel("—")
+        self._album = QLabel()
         self._album.setObjectName("trackAlbum")
         self._album.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._album.setWordWrap(True)
         layout.addWidget(self._album)
+
+        self._year = QLabel()
+        self._year.setObjectName("trackYear")
+        self._year.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self._year)
 
         self._rating = QLabel("")
         self._rating.setObjectName("trackRating")
@@ -80,15 +85,23 @@ class NowPlaying(QWidget):
     # ------------------------------------------------------------------
 
     def update_track(self, track: Track) -> None:
-        self._title.setText(track.title or "—")
-        self._artist.setText(track.artist_name or "—")
-        self._album.setText(track.album_title or "—")
+        self._current_cover = None
+
+        self._title.setText(track.title or "")
+        self._title.setVisible(bool(track.title))
+
+        self._artist.setText(track.artist_name or "")
+        self._artist.setVisible(bool(track.artist_name))
+
+        self._album.setText(track.album_title or "")
+        self._album.setVisible(bool(track.album_title))
+
+        year_str = str(track.year) if track.year else ""
+        self._year.setText(year_str)
+        self._year.setVisible(bool(track.year))
+
         self._rating.setText(self._rating_stars(track.rating))
-        # Re-aplicar portada almacenada; si no hay, mostrar placeholder
-        if self._current_cover:
-            self._apply_cover(self._current_cover)
-        else:
-            self._show_placeholder()
+        self._show_placeholder()
 
     def update_cover(self, image_data: bytes) -> None:
         self._current_cover = image_data
@@ -101,9 +114,14 @@ class NowPlaying(QWidget):
 
     def clear(self) -> None:
         self._current_cover = None
-        self._title.setText("—")
-        self._artist.setText("—")
-        self._album.setText("—")
+        self._title.setText("")
+        self._title.setVisible(False)
+        self._artist.setText("")
+        self._artist.setVisible(False)
+        self._album.setText("")
+        self._album.setVisible(False)
+        self._year.setText("")
+        self._year.setVisible(False)
         self._rating.setText("")
         self._show_placeholder()
 

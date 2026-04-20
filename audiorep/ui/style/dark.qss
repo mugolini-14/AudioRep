@@ -144,6 +144,11 @@ QLabel#trackAlbum {
     color: #7070a0;
 }
 
+QLabel#trackYear {
+    font-size: 11px;
+    color: #7070a0;
+}
+
 QLabel#trackRating {
     font-size: 12px;
     color: #7c5cbf;

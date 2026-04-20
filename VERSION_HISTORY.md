@@ -2,6 +2,17 @@
 
 ---
 
+# 0.57 — Mejoras visuales en controles y panel NowPlaying
+
+**Fecha:** 19 de abril de 2026
+
+### Modificado
+
+- **Botones de transporte sin fondo de color** — los botones Anterior, Stop, Siguiente, Play/Pausa, Shuffle y Repeat ya no muestran el highlight de foco de Windows al hacer clic. Todos tienen fondo transparente y color blanco de forma consistente.
+- **Panel NowPlaying mejorado** — ahora muestra el año de la pista cuando está disponible. Los campos sin datos (artista, album, año) se ocultan en lugar de mostrar un guion. La portada del track anterior ya no persiste al cambiar de pista.
+
+---
+
 # 0.56 — Columnas ordenables en Radio (Favoritas) y ajuste visual del reproductor
 
 **Fecha:** 19 de abril de 2026
