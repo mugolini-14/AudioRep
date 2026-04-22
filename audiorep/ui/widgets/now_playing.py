@@ -10,6 +10,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QLabel, QSizePolicy, QVBoxLayout, QWidget
 
+from audiorep.domain.cd_disc import CDDisc
 from audiorep.domain.track import Track
 
 
@@ -59,6 +60,12 @@ class NowPlaying(QWidget):
         self._album.setWordWrap(True)
         layout.addWidget(self._album)
 
+        self._label = QLabel()
+        self._label.setObjectName("trackLabel")
+        self._label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._label.setWordWrap(True)
+        layout.addWidget(self._label)
+
         self._year = QLabel()
         self._year.setObjectName("trackYear")
         self._year.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -96,6 +103,9 @@ class NowPlaying(QWidget):
         self._album.setText(track.album_title or "")
         self._album.setVisible(bool(track.album_title))
 
+        self._label.setText(track.label or "")
+        self._label.setVisible(bool(track.label))
+
         year_str = str(track.year) if track.year else ""
         self._year.setText(year_str)
         self._year.setVisible(bool(track.year))
@@ -106,6 +116,38 @@ class NowPlaying(QWidget):
     def update_cover(self, image_data: bytes) -> None:
         self._current_cover = image_data
         self._apply_cover(image_data)
+
+    def update_label(self, label: str) -> None:
+        """Actualiza el sello discográfico (usado por CDController)."""
+        self._label.setText(label or "")
+        self._label.setVisible(bool(label))
+
+    def update_cd_disc(self, disc: CDDisc) -> None:
+        """Muestra la información del CD identificado (antes de reproducir una pista)."""
+        self._title.setText("")
+        self._title.setVisible(False)
+
+        self._artist.setText(disc.artist_name or "")
+        self._artist.setVisible(bool(disc.artist_name))
+
+        self._album.setText(disc.album_title or "")
+        self._album.setVisible(bool(disc.album_title))
+
+        self._label.setText(disc.label or "")
+        self._label.setVisible(bool(disc.label))
+
+        year_str = str(disc.year) if disc.year else ""
+        self._year.setText(year_str)
+        self._year.setVisible(bool(disc.year))
+
+        self._rating.setText("")
+
+        if disc.cover_data:
+            self._current_cover = disc.cover_data
+            self._apply_cover(disc.cover_data)
+        else:
+            self._current_cover = None
+            self._show_placeholder()
 
     def clear_cover(self) -> None:
         """Limpia sólo la portada (ej. al eyectar el CD), sin tocar título/artista."""
@@ -122,6 +164,8 @@ class NowPlaying(QWidget):
         self._album.setVisible(False)
         self._year.setText("")
         self._year.setVisible(False)
+        self._label.setText("")
+        self._label.setVisible(False)
         self._rating.setText("")
         self._show_placeholder()
 

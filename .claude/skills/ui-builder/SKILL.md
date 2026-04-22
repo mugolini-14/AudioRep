@@ -53,10 +53,12 @@ Antes de escribir cualquier widget nuevo o reconstruir uno existente, **leer dar
 
 | Contexto | Tamaño | Peso |
 |---|---|---|
-| Título de pista (`trackTitle`) | 14px | 700 (bold) |
-| Artista (`trackArtist`) | 12px | normal |
-| Álbum (`trackAlbum`) | 11px | normal |
-| Rating (`trackRating`) | 12px | normal |
+| Título de pista (`trackTitle`) | 14px | 700 (bold), italic |
+| Artista (`trackArtist`) | 13px | normal, italic |
+| Álbum/disco (`trackAlbum`) | 13px | normal, italic |
+| Sello (`trackLabel`) | 13px | normal, italic |
+| Año (`trackYear`) | 13px | normal, italic |
+| Rating (`trackRating`) | 13px | normal, italic |
 | Botones de biblioteca | 12px | normal |
 | Headers de tabla | 11px | 600, uppercase, letter-spacing 0.5px |
 | Labels de tiempo | 16px | tabular-nums |
@@ -140,13 +142,34 @@ El tab CD contiene un `QSplitter#cdTabSplitter` horizontal con dos columnas:
 |---|---|---|
 | `nowPlayingPanel` | `QWidget` (raíz) | Panel derecho superior, `bg-surface`, border-left |
 | `coverLabel` | `QLabel` | Portada del álbum, 190×190, `bg-raised`, border-radius 6px |
-| `trackTitle` | `QLabel` | Título, 14px bold |
+| `trackTitle` | `QLabel` | Título de la pista, 14px bold |
 | `trackArtist` | `QLabel` | Artista, 12px, `#a0a0c0` |
-| `trackAlbum` | `QLabel` | Álbum, 11px, `#7070a0` |
-| `trackYear` | `QLabel` | Año, 11px, `#7070a0`. Oculto (`setVisible(False)`) si la pista no tiene año |
+| `trackAlbum` | `QLabel` | Nombre del disco, 11px, `#7070a0` |
+| `trackLabel` | `QLabel` | Sello discográfico, 11px, `#7070a0`, cursiva |
+| `trackYear` | `QLabel` | Año, 11px, `#7070a0` |
 | `trackRating` | `QLabel` | Estrellas ★☆, 12px, `accent`, letter-spacing 2px |
 
-> **Nota v0.57:** Todos los campos opcionales (artista, álbum, año) usan `setVisible(bool)` en lugar de mostrar "—". La portada se limpia a placeholder al iniciar `update_track()` para evitar que persista la portada de la pista anterior.
+**Orden estándar obligatorio (v0.60+):**
+```
+1. coverLabel      — portada (siempre)
+2. trackTitle      — nombre de la pista (oculto en modo identificación de disco)
+3. trackArtist     — nombre del artista
+4. trackAlbum      — nombre del disco
+5. trackLabel      — sello discográfico
+6. trackYear       — año
+7. trackRating     — rating (solo pistas de biblioteca)
+```
+Todos los campos opcionales usan `setVisible(bool(valor))`. El orden del layout en `_build_ui()` debe respetar siempre esta secuencia. Nunca alterar el orden de los widgets entre versiones.
+
+**Modos de actualización:**
+- `update_track(track)` — pista de biblioteca o CD en reproducción. Muestra todos los campos disponibles, incluido `trackTitle`.
+- `update_cd_disc(disc)` — disco identificado pero sin pista en reproducción. `trackTitle` se oculta; `trackAlbum` muestra el título del disco.
+- `update_cover(data)` — reemplaza solo la portada sin tocar el texto.
+- `clear()` — limpia todo y vuelve al placeholder.
+
+> **Nota v0.57:** Todos los campos usan `setVisible(bool)` en lugar de mostrar "—".
+> **Nota v0.60:** Sello (`trackLabel`) añadido, orden fijo: portada → título → artista → disco → sello → año → rating. `update_cd_disc` oculta `trackTitle` y muestra el álbum en `trackAlbum`.
+> **Tipografía estándar (v0.60+):** `trackTitle` = 14px, bold, italic. Todos los demás campos = 13px, normal, italic. Misma familia tipográfica para todos. No alterar esta jerarquía.
 
 ### PlayerBar (`audiorep/ui/widgets/player_bar.py`)
 

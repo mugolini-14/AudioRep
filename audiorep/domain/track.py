@@ -45,6 +45,7 @@ class Track:
     bitrate_kbps:   int             = 0
     musicbrainz_id: str | None      = None
     acoustid:       str | None      = None
+    label:          str             = ""
     play_count:     int             = 0
     rating:         int             = 0
     album_id:       int | None      = None

@@ -54,6 +54,7 @@ class _IdentifyWorker(QThread):
             self._disc.year           = best.get("year", self._disc.year)
             self._disc.musicbrainz_id = best.get("release_id", "")
             self._disc.genre          = best.get("genre", "")
+            self._disc.label          = best.get("label", "")
 
             # Actualizar títulos y musicbrainz_id de pistas si están disponibles.
             # Formato normalizado esperado: [{"number": int, "title": str, "recording_id": str}]
@@ -189,6 +190,8 @@ class CDService(QObject):
                 album_title=self._current_disc.album_title or "",
                 track_number=cd_track.number,
                 duration_ms=cd_track.duration_ms,
+                year=self._current_disc.year,
+                label=self._current_disc.label or "",
                 format=AudioFormat.CD,
                 source=TrackSource.CD,
                 musicbrainz_id=cd_track.musicbrainz_id,

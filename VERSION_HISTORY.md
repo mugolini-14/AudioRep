@@ -2,6 +2,25 @@
 
 ---
 
+# 0.60 — Sello discográfico y corrección de portada en el panel CD
+
+**Fecha:** 21 de abril de 2026
+
+### Corregido
+
+- **Portada del CD no se mostraba tras búsqueda manual** — al aplicar metadatos desde el panel "Búsqueda de metadatos" por segunda vez o más, la portada del CD ya no desaparecía del panel NowPlaying. La causa era que el controlador de CD solo actualizaba la portada en la identificación automática, no en las aplicaciones manuales.
+
+### Agregado
+
+- **Sello discográfico en NowPlaying** — el panel NowPlaying ahora muestra el sello discográfico del disco cuando está disponible. Aparece debajo del año, en itálica, y se oculta automáticamente si el dato no está disponible.
+- **Sello discográfico desde MusicBrainz** — el cliente de MusicBrainz ahora extrae el primer sello (`label-info`) del release y lo incluye en los metadatos normalizados.
+
+### Modificado
+
+- **Panel de detalle en Búsqueda de metadatos rediseñado** — el sección "Detalle" del panel de búsqueda de metadatos de CD ahora muestra los campos con etiquetas explícitas: "Nombre del Disco:", "Artista:", "Sello Musical:" y "Año:". Los campos sin información (Sello Musical, Año) se ocultan automáticamente si el resultado no los incluye.
+
+---
+
 # 0.59 — Corrección de título y comportamiento del botón Play tras Stop
 
 **Fecha:** 19 de abril de 2026

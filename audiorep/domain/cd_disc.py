@@ -45,6 +45,7 @@ class CDDisc:
     artist_name:    str                 = ""
     year:           int | None          = None
     genre:          str                 = ""
+    label:          str                 = ""
     cover_data:     bytes | None        = None
     identified:     bool                = False
 

@@ -244,6 +244,7 @@ class GnuDBClient:
             "artist":     artist.strip(),
             "year":       year,
             "genre":      genre,
+            "label":      "",          # CDDB no expone sello discográfico
             "release_id": f"{category}/{entry_id}",
             "tracks":     tracks,
         }

@@ -118,23 +118,14 @@ class CDMetadataPanel(QWidget):
         detail_label.setObjectName("cdMetaLabel")
         layout.addWidget(detail_label)
 
-        self._album_label  = QLabel("—")
-        self._album_label.setObjectName("cdMetaDetail")
-        self._album_label.setWordWrap(True)
-        layout.addWidget(self._album_label)
+        self._album_row  = self._make_detail_row("Nombre del Disco:")
+        self._artist_row = self._make_detail_row("Artista:")
+        self._label_row  = self._make_detail_row("Sello Musical:")
+        self._year_row   = self._make_detail_row("Año:")
 
-        self._artist_label = QLabel("—")
-        self._artist_label.setObjectName("cdMetaDetail")
-        self._artist_label.setWordWrap(True)
-        layout.addWidget(self._artist_label)
-
-        self._year_label   = QLabel("")
-        self._year_label.setObjectName("cdMetaDetailSmall")
-        layout.addWidget(self._year_label)
-
-        self._genre_label  = QLabel("")
-        self._genre_label.setObjectName("cdMetaDetailSmall")
-        layout.addWidget(self._genre_label)
+        for _lbl, _val, row_w in (self._album_row, self._artist_row,
+                                   self._label_row, self._year_row):
+            layout.addWidget(row_w)
 
         # Lista de pistas del resultado
         self._track_list = QListWidget()
@@ -153,6 +144,9 @@ class CDMetadataPanel(QWidget):
         self._apply_btn.setEnabled(False)
         self._apply_btn.clicked.connect(self._on_apply)
         layout.addWidget(self._apply_btn)
+
+        # Estado inicial del Detalle (todos los campos instanciados ya)
+        self._clear_detail()
 
     # ------------------------------------------------------------------
     # API pública
@@ -233,12 +227,15 @@ class CDMetadataPanel(QWidget):
             self.apply_requested.emit(self._selected)
 
     def _show_detail(self, result: dict) -> None:
-        self._album_label.setText(result.get("album", "—") or "—")
-        self._artist_label.setText(result.get("artist", "—") or "—")
-        year  = result.get("year", "")
-        genre = result.get("genre", "")
-        self._year_label.setText(f"Año: {year}" if year else "")
-        self._genre_label.setText(f"Género: {genre}" if genre else "")
+        album  = result.get("album", "") or ""
+        artist = result.get("artist", "") or ""
+        label  = result.get("label", "") or ""
+        year   = result.get("year", "") or ""
+
+        self._set_detail_row(self._album_row,  album,  show_if_empty=True)
+        self._set_detail_row(self._artist_row, artist, show_if_empty=True)
+        self._set_detail_row(self._label_row,  label,  show_if_empty=False)
+        self._set_detail_row(self._year_row,   year,   show_if_empty=False)
 
         self._track_list.clear()
         for t in result.get("tracks", []):
@@ -248,11 +245,38 @@ class CDMetadataPanel(QWidget):
 
     def _clear_detail(self) -> None:
         self._selected = None
-        self._album_label.setText("—")
-        self._artist_label.setText("—")
-        self._year_label.setText("")
-        self._genre_label.setText("")
+        self._set_detail_row(self._album_row,  "—", show_if_empty=True)
+        self._set_detail_row(self._artist_row, "—", show_if_empty=True)
+        self._set_detail_row(self._label_row,  "",  show_if_empty=False)
+        self._set_detail_row(self._year_row,   "",  show_if_empty=False)
         self._track_list.clear()
+
+    def _make_detail_row(self, label_text: str) -> tuple:
+        """Crea una fila 'Label: Valor' y retorna (lbl_widget, val_widget, row_widget)."""
+        row_w = QWidget()
+        row_w.setObjectName("cdMetaDetailRow")
+        row_layout = QHBoxLayout(row_w)
+        row_layout.setContentsMargins(0, 1, 0, 1)
+        row_layout.setSpacing(4)
+
+        lbl = QLabel(label_text)
+        lbl.setObjectName("cdMetaDetailKey")
+        lbl.setFixedWidth(100)
+        lbl.setWordWrap(False)
+        row_layout.addWidget(lbl)
+
+        val = QLabel("")
+        val.setObjectName("cdMetaDetailVal")
+        val.setWordWrap(True)
+        row_layout.addWidget(val, stretch=1)
+
+        return lbl, val, row_w
+
+    @staticmethod
+    def _set_detail_row(row_tuple: tuple, value: str, show_if_empty: bool) -> None:
+        _lbl, val, row_w = row_tuple
+        val.setText(value)
+        row_w.setVisible(show_if_empty or bool(value))
 
     @staticmethod
     def _make_separator() -> QFrame:

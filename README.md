@@ -10,13 +10,13 @@ AudioRep es un reproductor de música de escritorio para Windows, hecho en Pytho
 
 - **Identificación automática de pistas** — usando huella de audio (AcoustID + MusicBrainz), AudioRep puede reconocer una canción y completar sus datos automáticamente.
 
-- **Soporte para CD** — detecta el disco insertado, lo identifica online y permite reproducirlo directamente o ripearlo (copiarlo) al disco en formato FLAC, MP3, OGG o WAV. Incluye selector de lectora para sistemas con varias unidades de CD. El panel muestra artista, álbum y año en una línea compacta sobre la tabla de pistas. El panel de metadatos manual permite buscar y aplicar información desde MusicBrainz o GnuDB con un clic, usando el desplegable "Servicio".
+- **Soporte para CD** — detecta el disco insertado, lo identifica online y permite reproducirlo directamente o ripearlo (copiarlo) al disco en formato FLAC, MP3, OGG o WAV. Incluye selector de lectora para sistemas con varias unidades de CD. El panel muestra artista, álbum y año en una línea compacta sobre la tabla de pistas. El panel de metadatos manual permite buscar y aplicar información desde MusicBrainz o GnuDB con un clic, usando el desplegable "Servicio". Los resultados muestran nombre del disco, artista, sello musical y año con etiquetas claras.
 
 - **Playlists** — creá, renombrá y eliminá listas de reproducción. También incluye listas inteligentes automáticas: las más reproducidas, las mejor valoradas y las agregadas recientemente.
 
 - **Radio por internet** — buscá emisoras en tiempo real usando radio-browser.info (más de 30.000 estaciones). Los resultados, las emisoras guardadas y las favoritas se muestran en tablas con columnas de nombre, país, género y bitrate. Las pestañas Guardadas y Favoritas incluyen una barra de filtro local por nombre, país y género. Guardá tus favoritas, marcalas con ♥ y reproducílas con un clic.
 
-- **Visualización en vivo** — panel derecho con información de la pista actual (portada, título, artista, álbum) y un vúmetro estéreo que analiza el audio en tiempo real (canales L/R con barras de colores y peak hold).
+- **Visualización en vivo** — panel derecho con información de la pista actual (portada, título, artista, álbum, año y sello discográfico cuando está disponible) y un vúmetro estéreo que analiza el audio en tiempo real (canales L/R con barras de colores y peak hold).
 
 - **Configuración** — accesible desde el menú *Archivo → Configuración*. Permite ingresar la API key de AcoustID y definir el formato y directorio de ripeo.
 
@@ -79,8 +79,8 @@ Toda la inyección de dependencias ocurre en `main.py`, que actúa como raíz de
 
 | Plataforma | Versión | Fecha | Archivo | Tamaño |
 |---|---|---|---|---|
-| Windows 10/11 | 0.59 | Abril 2026 | `AudioRep-0.59.0-windows.zip` | ~120 MB |
-| Linux Debian/Ubuntu | 0.59 | Abril 2026 | `audiorep_0.59.0_amd64.deb` | ~84 MB |
+| Windows 10/11 | 0.60 | Abril 2026 | `AudioRep-0.60.0-windows.zip` | ~120 MB |
+| Linux Debian/Ubuntu | 0.60 | Abril 2026 | `audiorep_0.60.0_amd64.deb` | ~84 MB |
 
 Los instaladores están disponibles en la sección [Releases](https://github.com/mugolini-14/AudioRep/releases) del repositorio.
 

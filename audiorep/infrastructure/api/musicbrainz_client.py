@@ -8,6 +8,7 @@ Formato normalizado de resultados de disc lookup:
         "artist":     str,
         "year":       str,          # "1994" o ""
         "genre":      str,          # MusicBrainz no tiene género, siempre ""
+        "label":      str,          # sello discográfico o ""
         "release_id": str,          # MBID del release
         "tracks": [
             {"number": int, "title": str, "recording_id": str, "duration_ms": int}
@@ -45,6 +46,15 @@ def _normalize_release(release: dict) -> dict:
     # Release ID (MBID)
     release_id = release.get("id", "")
 
+    # Sello discográfico (primer label-info con label name)
+    label = ""
+    for info in release.get("label-info-list", []):
+        lbl = info.get("label") or {}
+        name = lbl.get("name", "")
+        if name:
+            label = name
+            break
+
     # Pistas: buscar en medium-list → track-list → recording
     tracks: list[dict] = []
     for medium in release.get("medium-list", []):
@@ -75,6 +85,7 @@ def _normalize_release(release: dict) -> dict:
         "artist":     artist,
         "year":       year,
         "genre":      "",          # MusicBrainz no expone género por release
+        "label":      label,
         "release_id": release_id,
         "tracks":     tracks,
     }
@@ -107,7 +118,7 @@ class MusicBrainzClient:
         """
         try:
             result = musicbrainzngs.get_releases_by_discid(
-                disc_id, includes=["artists", "recordings"]
+                disc_id, includes=["artists", "recordings", "labels"]
             )
             releases = (
                 result.get("disc", {}).get("release-list", [])

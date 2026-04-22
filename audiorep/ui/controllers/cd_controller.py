@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import QFileDialog
 
 from audiorep.core.events import app_events
 from audiorep.domain.cd_disc import CDDisc, RipStatus
+from audiorep.domain.track import Track, TrackSource
 from audiorep.services.cd_service import CDService
 from audiorep.services.player_service import PlayerService
 from audiorep.services.ripper_service import RipperService
@@ -135,6 +136,7 @@ class CDController:
         app_events.rip_progress.connect(self._on_rip_progress)
         app_events.rip_track_done.connect(self._on_rip_track_done)
         app_events.rip_track_error.connect(self._on_rip_track_error)
+        app_events.track_changed.connect(self._on_track_changed_cd)
 
     # ------------------------------------------------------------------
     # Handlers: CDPanel
@@ -266,6 +268,7 @@ class CDController:
         disc.album_title    = result.get("album", disc.album_title) or disc.album_title
         disc.artist_name    = result.get("artist", disc.artist_name) or disc.artist_name
         disc.genre          = result.get("genre", disc.genre) or disc.genre
+        disc.label          = result.get("label", disc.label) or disc.label
         year_str = result.get("year", "")
         if year_str:
             try:
@@ -281,8 +284,10 @@ class CDController:
             if cd_track and mt.get("title"):
                 cd_track.title = mt["title"]
 
-        # Refrescar el panel principal
+        # Refrescar el panel principal y el NowPlaying
         self._panel.show_identified(disc)
+        self._now_playing.update_cd_disc(disc)
+
         app_events.status_message.emit(
             f"Metadatos aplicados: {disc.artist_name} — {disc.album_title}"
         )
@@ -321,16 +326,12 @@ class CDController:
 
     def _on_cd_identified(self, disc: CDDisc) -> None:
         self._panel.show_identified(disc)
-        if disc.cover_data:
-            self._panel.update_cover(disc.cover_data)
-            self._now_playing.update_cover(disc.cover_data)
-        else:
-            self._now_playing.clear_cover()
+        self._now_playing.update_cd_disc(disc)
 
     def _on_cd_ejected(self) -> None:
         self._panel.show_no_cd()
         self._meta_panel.set_disc_available(False)
-        self._now_playing.clear_cover()
+        self._now_playing.clear()
         app_events.status_message.emit("CD retirado de la unidad.")
 
     def _on_rip_progress(self, track_current: int, total: int, percent: int) -> None:
@@ -344,3 +345,15 @@ class CDController:
     def _on_rip_track_error(self, track_number: int, message: str) -> None:
         self._panel.update_track_rip_status(track_number, RipStatus.ERROR)
         logger.error("Error ripeando pista %d: %s", track_number, message)
+
+    def _on_track_changed_cd(self, track: Track) -> None:
+        """Re-aplica portada y sello del CD al cambiar de pista durante reproducción.
+
+        PlayerController.track_changed se conecta antes que este slot, por lo que
+        update_track() ya fue llamado (borrando la portada) cuando llegamos aquí.
+        """
+        if track.source != TrackSource.CD:
+            return
+        disc = self._cd_service.current_disc
+        if disc and disc.cover_data:
+            self._now_playing.update_cover(disc.cover_data)

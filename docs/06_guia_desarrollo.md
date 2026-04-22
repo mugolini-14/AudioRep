@@ -172,6 +172,7 @@ class MiController:
 | 29 | NowPlaying: campo año, campos opcionales con `setVisible`, portada limpia al cambiar pista | ✅ Completo — v0.57 |
 | 30 | Estándar de diálogos modales: QLineEdit global, QDialogButtonBox, "Sí"/"No" en confirmaciones | ✅ Completo — v0.58 |
 | 31 | Título de ventana estático; Play tras Stop reproduce última pista (`replay_current()`) | ✅ Completo — v0.59 |
+| 32 | Fix portada CD tras aplicación manual; sello discográfico en NowPlaying y CDMetadataPanel; rediseño Detalle con filas etiqueta+valor; orden estándar NowPlaying (portada→título→artista→disco→sello→año→rating) | ✅ Completo — v0.60 |
 
 ---
 

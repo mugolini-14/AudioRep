@@ -73,6 +73,10 @@ domain → core → services ← infrastructure
 
 **Window title**: The title is set once in `_setup_window()` and never updated dynamically. It always shows `"AudioRep X.Y"` regardless of what is playing. Track info in the status bar is updated via `_on_track_changed()` instead.
 
+**NowPlaying standard (v0.60+)**: The `NowPlaying` widget always displays fields in this fixed order: cover → track title → artist → disc name → record label → year → rating. Fields with no value are hidden via `setVisible(bool)`. Track title is hidden when showing disc-only info (`update_cd_disc`). Never change this order. Three update methods: `update_track(track)` for playback, `update_cd_disc(disc)` for identification (hides track title), `update_cover(data)` for cover-only refresh.
+
+**NowPlaying typography standard (v0.60+)**: All NowPlaying labels share the same font family. Track title (`trackTitle`): 14px, bold, italic. All other fields (artist, album, label, year, rating): 13px, normal weight, italic. Colors remain per-field (`#e2e2f0` title, `#a0a0c0` artist, `#7070a0` album/label/year, `#7c5cbf` rating). Never use different font sizes or weights between fields other than title vs. rest.
+
 ## Building installers
 
 > **Read `.claude/skills/compiler-instructions/SKILL.md` before building.** It contains the required procedure, system paths, preferred shell, and the recovery process if a version was missed.
