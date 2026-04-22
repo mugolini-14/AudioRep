@@ -2,22 +2,26 @@
 
 ---
 
-# 0.60 — Sello discográfico y corrección de portada en el panel CD
+# 0.60 — Sello discográfico, correcciones de NowPlaying y panel CD
 
-**Fecha:** 21 de abril de 2026
+**Fecha:** 22 de abril de 2026
 
 ### Corregido
 
-- **Portada del CD no se mostraba tras búsqueda manual** — al aplicar metadatos desde el panel "Búsqueda de metadatos" por segunda vez o más, la portada del CD ya no desaparecía del panel NowPlaying. La causa era que el controlador de CD solo actualizaba la portada en la identificación automática, no en las aplicaciones manuales.
+- **Portada del CD no se mostraba tras búsqueda manual** — al aplicar metadatos desde el panel "Búsqueda de metadatos" por segunda vez o más, la portada del CD ya no desaparecía del panel NowPlaying.
+- **Identificación automática por MusicBrainz fallaba silenciosamente** — el cliente de MusicBrainz usaba un parámetro interno inválido (`label-info`) que causaba error silencioso y devolvía resultados vacíos. Corregido a `labels`.
+- **Título de pista visible al identificar un disco** — el campo "Nombre de la pista" en NowPlaying ahora se oculta correctamente al mostrar información de un disco sin pista en reproducción.
 
 ### Agregado
 
-- **Sello discográfico en NowPlaying** — el panel NowPlaying ahora muestra el sello discográfico del disco cuando está disponible. Aparece debajo del año, en itálica, y se oculta automáticamente si el dato no está disponible.
-- **Sello discográfico desde MusicBrainz** — el cliente de MusicBrainz ahora extrae el primer sello (`label-info`) del release y lo incluye en los metadatos normalizados.
+- **Sello discográfico en NowPlaying** — el panel NowPlaying ahora muestra el sello discográfico cuando está disponible, entre el nombre del disco y el año.
+- **Sello discográfico desde MusicBrainz** — el cliente de MusicBrainz extrae el sello del release y lo incluye en los metadatos normalizados.
 
 ### Modificado
 
-- **Panel de detalle en Búsqueda de metadatos rediseñado** — el sección "Detalle" del panel de búsqueda de metadatos de CD ahora muestra los campos con etiquetas explícitas: "Nombre del Disco:", "Artista:", "Sello Musical:" y "Año:". Los campos sin información (Sello Musical, Año) se ocultan automáticamente si el resultado no los incluye.
+- **Panel de detalle en Búsqueda de metadatos rediseñado** — la sección "Detalle" ahora muestra los campos con etiquetas explícitas: "Nombre del Disco:", "Artista:", "Sello Musical:" y "Año:". Los campos sin información se ocultan automáticamente.
+- **Orden estándar de NowPlaying** — el panel NowPlaying adopta un orden fijo: portada, título de pista, artista, nombre del disco, sello, año. Este orden se aplica a todos los modos (biblioteca, CD identificado, CD en reproducción).
+- **Tipografía unificada en NowPlaying** — el título de pista aparece en negrita e itálica (14px); el resto de los campos en itálica peso normal (13px).
 
 ---
 
