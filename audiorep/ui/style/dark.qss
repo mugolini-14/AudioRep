@@ -405,7 +405,8 @@ QWidget#libraryToolbar {
 
 QPushButton#importButton,
 QPushButton#libraryEditBtn,
-QPushButton#libraryIdentifyBtn {
+QPushButton#libraryIdentifyBtn,
+QPushButton#libraryExportBtn {
     background-color: #4a3480;
     color: #ffffff;
     border: none;
@@ -417,7 +418,8 @@ QPushButton#libraryIdentifyBtn {
 
 QPushButton#importButton:hover,
 QPushButton#libraryEditBtn:hover,
-QPushButton#libraryIdentifyBtn:hover {
+QPushButton#libraryIdentifyBtn:hover,
+QPushButton#libraryExportBtn:hover {
     background-color: #5a409a;
 }
 
@@ -425,6 +427,71 @@ QPushButton#libraryEditBtn:disabled,
 QPushButton#libraryIdentifyBtn:disabled {
     background-color: #252538;
     color: #55557a;
+}
+
+/* Botón Estadísticas — toggle secundario */
+QPushButton#libraryStatsBtn {
+    background-color: #252538;
+    color: #a0a0c0;
+    border: 1px solid #33334a;
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+QPushButton#libraryStatsBtn:hover {
+    background-color: #2a2a4a;
+    border-color: #7c5cbf;
+    color: #c0c0e0;
+}
+
+QPushButton#libraryStatsBtn:checked {
+    background-color: #3a2470;
+    border: 1px solid #7c5cbf;
+    color: #e2e2f0;
+}
+
+/* Panel de estadísticas */
+QWidget#statsPanel {
+    background-color: #12121e;
+}
+
+QWidget#statsScrollContent {
+    background-color: #12121e;
+}
+
+/* Tarjetas de resumen */
+QFrame#statsSummaryCard {
+    background-color: #1e1e2e;
+    border: 1px solid #33334a;
+    border-radius: 8px;
+}
+
+QLabel#statsCardValue {
+    font-size: 28px;
+    font-weight: bold;
+    color: #b090ff;
+}
+
+QLabel#statsCardLabel {
+    font-size: 12px;
+    color: #8888aa;
+}
+
+/* Etiqueta de sección */
+QLabel#statsSectionLabel {
+    color: #8888aa;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 0;
+}
+
+/* Vista de gráfico */
+QChartView#statsChartView {
+    background-color: #1e1e2e;
+    border: 1px solid #33334a;
+    border-radius: 6px;
 }
 
 QLineEdit#searchBox {

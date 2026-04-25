@@ -29,6 +29,7 @@ Estado de implementación:
     ✅ Paso 22 — Estandarización de todos los botones de acción, fix alineación botón play, v0.49
     ✅ Paso 23 — Estandarización de dropdowns, refactor performance reproductor (poll 200ms, VU stop, DB async), v0.50
     ✅ Paso 24 — Hilo RMS dedicado (_RMSAnalyzer), backpressure con log de underruns en _SDAudioBridge, v0.51
+    ✅ Paso 33 — Estadísticas de biblioteca (StatsService + StatsPanel + PyQt6-Charts), exportación XLSX/PDF/CSV, v0.65
 """
 import os
 import sys
@@ -68,7 +69,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.60.0")
+    app.setApplicationVersion("0.65.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
@@ -136,6 +137,8 @@ def main() -> None:
     from audiorep.services.ripper_service import RipperService
     from audiorep.services.tagger_service import TaggerService
     from audiorep.services.radio_service import RadioService
+    from audiorep.services.stats_service import StatsService
+    from audiorep.services.export_service import ExportService
 
     player_service = PlayerService(player=vlc_player, track_repo=track_repo)
     logger.info("PlayerService listo.")
@@ -190,6 +193,10 @@ def main() -> None:
     )
     logger.info("RadioService listo.")
 
+    stats_service  = StatsService()
+    export_service = ExportService()
+    logger.info("StatsService y ExportService listos.")
+
     # ── UI ────────────────────────────────────────────────────────────── #
     from audiorep.ui.main_window import MainWindow
 
@@ -205,6 +212,8 @@ def main() -> None:
         search_service=search_service,
         ripper_service=ripper_service,
         tagger_service=tagger_service,
+        stats_service=stats_service,
+        export_service=export_service,
         radio_service=radio_service,
         settings=settings,
         cd_lookup_providers=cd_lookup_providers,

@@ -6,7 +6,7 @@ AudioRep es un reproductor de música de escritorio para Windows, hecho en Pytho
 
 - **Reproducción de música local** — soporta MP3, FLAC, OGG, OPUS, AAC, M4A, WMA, WAV, APE y MPC. Controles de play/pausa/stop/anterior/siguiente con íconos blancos y barra de progreso a ancho completo. El control de volumen aparece junto a los controles principales. El ícono del parlante actúa como botón de silencio: al hacer clic se mutea o desmutea el audio, restaurando automáticamente el nivel anterior.
 
-- **Biblioteca musical** — importá carpetas para agregar canciones. Navegación por artista y álbum, búsqueda en tiempo real y edición de metadatos (tags). La tabla de pistas es ordenable: hacé clic en cualquier columna (Título, Artista, Álbum, Año, Género, Duración, Formato) para ordenar en forma ascendente o descendente. Los archivos se organizan automáticamente siguiendo la estructura `Artista/Álbum/NN - Título`.
+- **Biblioteca musical** — importá carpetas para agregar canciones. Navegación por artista y álbum, búsqueda en tiempo real y edición de metadatos (tags). La tabla de pistas es ordenable: hacé clic en cualquier columna (Título, Artista, Álbum, Año, Género, Duración, Formato) para ordenar en forma ascendente o descendente. Los archivos se organizan automáticamente siguiendo la estructura `Artista/Álbum/NN - Título`. El botón **Estadísticas** reemplaza la vista de pistas por un panel de gráficos interactivos: géneros, décadas, formatos, ratings y tops. El botón **Exportar** permite guardar toda la biblioteca en Excel (con hoja de estadísticas), PDF o CSV.
 
 - **Identificación automática de pistas** — usando huella de audio (AcoustID + MusicBrainz), AudioRep puede reconocer una canción y completar sus datos automáticamente.
 
@@ -41,6 +41,9 @@ AudioRep es un reproductor de música de escritorio para Windows, hecho en Pytho
 | `Pillow` | Procesamiento de imágenes de portada |
 | `requests` | Descarga de portadas desde Cover Art Archive y búsqueda de emisoras de radio |
 | `sounddevice` | Salida de audio PCM para el análisis real del vúmetro (intercepta el stream de VLC) |
+| `PyQt6-Charts` | Gráficos interactivos (torta, barras) en el panel de estadísticas de la biblioteca |
+| `openpyxl` | Generación de archivos Excel (.xlsx) con dos hojas al exportar la biblioteca |
+| `fpdf2` | Generación de archivos PDF al exportar la biblioteca |
 
 ### Herramientas de desarrollo
 
@@ -79,8 +82,8 @@ Toda la inyección de dependencias ocurre en `main.py`, que actúa como raíz de
 
 | Plataforma | Versión | Fecha | Archivo | Tamaño |
 |---|---|---|---|---|
-| Windows 10/11 | 0.60 | Abril 2026 | `AudioRep-0.60.0-windows.zip` | ~120 MB |
-| Linux Debian/Ubuntu | 0.60 | Abril 2026 | `audiorep_0.60.0_amd64.deb` | ~84 MB |
+| Windows 10/11 | 0.65 | Abril 2026 | `AudioRep-0.65.0-windows.zip` | ~120 MB |
+| Linux Debian/Ubuntu | 0.65 | Abril 2026 | `audiorep_0.65.0_amd64.deb` | ~84 MB |
 
 Los instaladores están disponibles en la sección [Releases](https://github.com/mugolini-14/AudioRep/releases) del repositorio.
 

@@ -2,19 +2,23 @@
 LibraryPanel — Panel de la biblioteca musical.
 
 Layout: árbol Artistas/Álbumes (izquierda) + tabla de pistas (derecha).
+En modo estadísticas, la vista se reemplaza por StatsPanel.
 
 objectNames alineados con dark.qss:
-    libraryToolbar, importButton, searchBox,
+    libraryPanel, libraryToolbar, importButton, searchBox,
+    libraryStatsBtn, libraryExportBtn,
     treeContainer, libraryTree,
     trackTableContainer, libraryContext, trackTable,
     importProgress
 
 Signals:
-    import_requested:          El usuario quiere importar un directorio.
-    play_requested(list, int): El usuario quiere reproducir (cola, índice).
-    search_changed(str):       El texto de búsqueda cambió.
+    import_requested:           El usuario quiere importar un directorio.
+    play_requested(list, int):  El usuario quiere reproducir (cola, índice).
+    search_changed(str):        El texto de búsqueda cambió.
     edit_tags_requested(Track):
     identify_requested(Track):
+    stats_requested:            El usuario quiere ver/calcular estadísticas.
+    export_requested:           El usuario quiere exportar la biblioteca.
 """
 from __future__ import annotations
 
@@ -28,6 +32,7 @@ from PyQt6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QSplitter,
+    QStackedWidget,
     QTableView,
     QTreeWidget,
     QTreeWidgetItem,
@@ -36,7 +41,9 @@ from PyQt6.QtWidgets import (
 )
 
 from audiorep.domain.track import Track
+from audiorep.services.stats_service import LibraryStats
 from audiorep.ui.qt_models.track_table_model import TrackTableModel
+from audiorep.ui.widgets.stats_panel import StatsPanel
 
 
 class LibraryPanel(QWidget):
@@ -47,11 +54,14 @@ class LibraryPanel(QWidget):
     search_changed       = pyqtSignal(str)
     edit_tags_requested  = pyqtSignal(object)   # Track
     identify_requested   = pyqtSignal(object)   # Track
+    stats_requested      = pyqtSignal()
+    export_requested     = pyqtSignal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("libraryPanel")
         self._all_tracks: list[Track] = []
+        self._in_stats_mode = False
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -76,10 +86,21 @@ class LibraryPanel(QWidget):
         self._search_edit.textChanged.connect(self._on_search_changed)
         toolbar_layout.addWidget(self._search_edit, stretch=1)
 
+        self._stats_btn = QPushButton("📊  Estadísticas")
+        self._stats_btn.setObjectName("libraryStatsBtn")
+        self._stats_btn.setCheckable(True)
+        self._stats_btn.clicked.connect(self._on_stats_toggled)
+        toolbar_layout.addWidget(self._stats_btn)
+
         import_btn = QPushButton("Importar carpeta")
         import_btn.setObjectName("importButton")
         import_btn.clicked.connect(self.import_requested)
         toolbar_layout.addWidget(import_btn)
+
+        export_btn = QPushButton("⬇  Exportar")
+        export_btn.setObjectName("libraryExportBtn")
+        export_btn.clicked.connect(self.export_requested)
+        toolbar_layout.addWidget(export_btn)
 
         layout.addWidget(toolbar)
 
@@ -92,7 +113,21 @@ class LibraryPanel(QWidget):
         self._progress.setFixedHeight(3)
         layout.addWidget(self._progress)
 
-        # ── Split: árbol izquierda + tabla derecha ────────────────── #
+        # ── Stack principal: biblioteca | estadísticas ────────────── #
+        self._stack = QStackedWidget()
+        layout.addWidget(self._stack, stretch=1)
+
+        # Página 0: Splitter biblioteca
+        self._library_page = self._build_library_page()
+        self._stack.addWidget(self._library_page)
+
+        # Página 1: Panel de estadísticas
+        self._stats_panel = StatsPanel()
+        self._stack.addWidget(self._stats_panel)
+
+        self._stack.setCurrentIndex(0)
+
+    def _build_library_page(self) -> QWidget:
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.setObjectName("librarySplitter")
         splitter.setHandleWidth(1)
@@ -160,7 +195,7 @@ class LibraryPanel(QWidget):
         splitter.setStretchFactor(1, 1)
         splitter.setSizes([200, 600])
 
-        layout.addWidget(splitter, stretch=1)
+        return splitter
 
     # ------------------------------------------------------------------
     # API pública
@@ -172,6 +207,9 @@ class LibraryPanel(QWidget):
         self._model.set_tracks(tracks)
         self._context_label.setText(f"Toda la biblioteca  ({len(tracks)} pistas)")
 
+    def get_all_tracks(self) -> list[Track]:
+        return self._all_tracks
+
     def set_scan_progress(self, processed: int, total: int) -> None:
         if total > 0:
             self._progress.setVisible(True)
@@ -179,6 +217,12 @@ class LibraryPanel(QWidget):
             self._progress.setValue(processed)
             if processed >= total:
                 self._progress.setVisible(False)
+
+    def show_stats_loading(self) -> None:
+        self._stats_panel.show_loading()
+
+    def set_stats(self, stats: LibraryStats) -> None:
+        self._stats_panel.load(stats)
 
     # ------------------------------------------------------------------
     # Árbol
@@ -192,7 +236,6 @@ class LibraryPanel(QWidget):
         all_item.setData(0, Qt.ItemDataRole.UserRole, None)
         self._tree.addTopLevelItem(all_item)
 
-        # Construir estructura artista → álbum
         artists: dict[str, dict[str, list[Track]]] = {}
         for t in tracks:
             artist = t.artist_name or "Artista desconocido"
@@ -215,19 +258,27 @@ class LibraryPanel(QWidget):
     # Handlers internos
     # ------------------------------------------------------------------
 
+    def _on_stats_toggled(self, checked: bool) -> None:
+        self._in_stats_mode = checked
+        if checked:
+            self._stack.setCurrentIndex(1)
+            self._stats_panel.show_loading()
+            self.stats_requested.emit()
+        else:
+            self._stack.setCurrentIndex(0)
+
     def _on_tree_selection(self, current: QTreeWidgetItem | None, _) -> None:
         if current is None:
             return
         data = current.data(0, Qt.ItemDataRole.UserRole)
         if data is None:
-            # "Toda la biblioteca"
             filtered = self._all_tracks
             self._context_label.setText(f"Toda la biblioteca  ({len(filtered)} pistas)")
         elif data[0] == "artist":
             artist_name = data[1]
             filtered = [t for t in self._all_tracks if (t.artist_name or "Artista desconocido") == artist_name]
             self._context_label.setText(f"{artist_name}  ({len(filtered)} pistas)")
-        else:  # album
+        else:
             _, artist_name, album_name = data
             filtered = [
                 t for t in self._all_tracks
@@ -249,7 +300,6 @@ class LibraryPanel(QWidget):
             self._model.set_tracks(filtered)
             self._context_label.setText(f"Búsqueda: \"{query}\"  ({len(filtered)} pistas)")
         else:
-            # Restablecer la selección del árbol actual
             self._on_tree_selection(self._tree.currentItem(), None)
 
     def _on_double_click(self, index) -> None:

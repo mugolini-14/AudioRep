@@ -2,6 +2,20 @@
 
 ---
 
+# 0.65 — Estadísticas de biblioteca y exportación
+
+**Fecha:** 25 de abril de 2026
+
+### Agregado
+
+- **Estadísticas de biblioteca** — nuevo botón "Estadísticas" en la barra superior de la pestaña Biblioteca. Al presionarlo, la vista de la biblioteca se reemplaza por un panel de gráficos interactivos que incluye: tarjetas de resumen (total de pistas, artistas, álbumes y horas de música), distribución por géneros (gráfico de torta), por décadas (barras verticales), por formato de archivo (gráfico de torta), distribución de ratings (barras verticales), top 10 artistas con más pistas y top 10 pistas más reproducidas (barras horizontales). Presionar el botón nuevamente vuelve a la vista de biblioteca.
+- **Exportación de biblioteca** — nuevo botón "Exportar" en la barra superior de la pestaña Biblioteca. Permite guardar el contenido de la biblioteca en tres formatos:
+  - **Excel (.xlsx):** dos hojas — "Biblioteca" con todas las pistas y "Estadísticas" con todos los datos numéricos (géneros, décadas, formatos, ratings, tops).
+  - **PDF (.pdf):** dos secciones con el mismo contenido, optimizadas para impresión.
+  - **CSV (.csv):** solo la lista de pistas, compatible con Excel, LibreOffice y Google Sheets.
+
+---
+
 # 0.60 — Sello discográfico, correcciones de NowPlaying y panel CD
 
 **Fecha:** 22 de abril de 2026

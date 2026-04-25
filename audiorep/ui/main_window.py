@@ -45,12 +45,14 @@ from PyQt6.QtWidgets import (
 from audiorep.core.events import app_events
 from audiorep.core.settings import AppSettings
 from audiorep.services.cd_service import CDService
+from audiorep.services.export_service import ExportService
 from audiorep.services.library_service import LibraryService
 from audiorep.services.player_service import PlayerService
 from audiorep.services.playlist_service import PlaylistService
 from audiorep.services.radio_service import RadioService
 from audiorep.services.ripper_service import RipperService
 from audiorep.services.search_service import SearchService
+from audiorep.services.stats_service import StatsService
 from audiorep.services.tagger_service import TaggerService
 from audiorep.ui.controllers.cd_controller import CDController
 from audiorep.ui.controllers.library_controller import LibraryController
@@ -97,6 +99,8 @@ class MainWindow(QMainWindow):
         search_service:     SearchService,
         ripper_service:     RipperService,
         tagger_service:     TaggerService,
+        stats_service:      StatsService,
+        export_service:     ExportService,
         radio_service:      RadioService | None = None,
         settings:           AppSettings | None = None,
         cd_lookup_providers: list | None = None,
@@ -110,6 +114,8 @@ class MainWindow(QMainWindow):
         self._search_service      = search_service
         self._ripper_service      = ripper_service
         self._tagger_service      = tagger_service
+        self._stats_service       = stats_service
+        self._export_service      = export_service
         self._radio_service       = radio_service
         self._settings            = settings
         self._cd_lookup_providers = cd_lookup_providers or []
@@ -128,7 +134,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.setWindowTitle("AudioRep 0.60")
+        self.setWindowTitle("AudioRep 0.65")
         self.setMinimumSize(860, 520)
         self.resize(1200, 700)
 
@@ -288,6 +294,8 @@ class MainWindow(QMainWindow):
             library_service=self._library_service,
             player_service=self._player_service,
             library_panel=self._library_panel,
+            stats_service=self._stats_service,
+            export_service=self._export_service,
         )
         self._cd_controller = CDController(
             cd_service=self._cd_service,

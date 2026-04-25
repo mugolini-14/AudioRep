@@ -47,7 +47,9 @@ Los cambios en el spec no afectan el código fuente, pero sí requieren un rebui
 
 ## Pantalla de estadísticas de la biblioteca
 
-**Descripción:**
+✅ **Implementado en v0.65** — Panel de estadísticas con gráficos interactivos (PyQt6-Charts): tortas de géneros y formatos, barras de décadas y ratings, top 10 artistas y pistas. Botón "Estadísticas" en la toolbar de la biblioteca alterna entre la vista de pistas y el panel de gráficos.
+
+**Descripción original:**
 Una pantalla accesible desde un botón en la Biblioteca que muestra estadísticas visuales del contenido musical del usuario: totales, distribuciones por género, por década, por formato, artistas con más pistas, canciones más reproducidas, y más. Los datos se presentan con gráficos de barras y/o torta según el tipo de información.
 
 ---
@@ -894,7 +896,9 @@ output_audio = board(input_audio, sample_rate=44100)
 
 ## Exportación de la biblioteca de pistas
 
-**Descripción:**
+✅ **Implementado en v0.65** — Botón "Exportar" en la toolbar de la biblioteca. Soporta XLSX (dos hojas: Biblioteca + Estadísticas), PDF (dos secciones) y CSV (solo pistas).
+
+**Descripción original:**
 Permitir al usuario exportar el contenido de su biblioteca de pistas a un archivo de hoja de cálculo o PDF. El archivo resultante incluiría todas las columnas visibles en la tabla: #, Título, Artista, Álbum, Año, Género, Duración y Formato. El export podría aplicarse a toda la biblioteca o solo a la selección / filtro activo.
 
 **Por qué no se implementó antes:**
