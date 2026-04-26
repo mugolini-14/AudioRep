@@ -2,6 +2,17 @@
 
 ---
 
+# 0.71 — Rediseño de layout de gráficos estadísticos
+
+**Fecha:** 26 de abril de 2026
+
+### Modificado
+
+- **Gráfico de formatos de pistas** — convertido de barras a torta (pie chart). La distribución por formato ahora se entiende de un vistazo, mostrando proporciones relativas con etiquetas de porcentaje.
+- **Layout de gráficos en el panel de estadísticas** — los gráficos regulares ahora se muestran de a dos por fila (mitad del ancho cada uno), reduciendo el scroll necesario. Los gráficos "Top 10" siguen usando el ancho completo de la fila. Cambios concretos: "Formatos de pistas" (torta) y "BitRate de pistas" (barras) en la misma fila; "Pistas por álbum" y "Duración de álbumes" en la misma fila.
+
+---
+
 # 0.70 — Estadísticas de nacionalidades y exportaciones mejoradas
 
 **Fecha:** 26 de abril de 2026

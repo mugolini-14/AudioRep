@@ -429,6 +429,45 @@ Este es el escenario que motivó esta skill. Procedimiento estricto:
 
 ---
 
+## Estándar de layout de gráficos (StatsPanel)
+
+Aplica a todos los tabs del `StatsPanel` (`audiorep/ui/widgets/stats_panel.py`).
+
+### Reglas
+
+| Tipo de gráfico | Ancho en fila | Observaciones |
+|---|---|---|
+| Gráfico regular (bar, pie) con par natural | Mitad de fila (`_chart_row()`) | Hasta 2 por fila |
+| Gráfico regular sin par natural | Fila completa | No forzar medio ancho si no hay candidato |
+| Gráfico "top" horizontal (`make_hbar_chart`) | Fila completa | Siempre solitario, sin excepción |
+
+### Cómo emparejar
+
+```python
+# Construir ambas vistas primero, luego decidir el layout:
+vista_a = make_bar_chart(...) if condicion_a else None
+vista_b = make_pie_chart(...)  if condicion_b else None
+
+if vista_a and vista_b:
+    layout.addLayout(_chart_row(vista_a, vista_b))
+elif vista_a:
+    layout.addWidget(vista_a)
+elif vista_b:
+    layout.addWidget(vista_b)
+```
+
+### Pares establecidos (v0.71+)
+
+| Tab | Fila | Gráfico izquierdo | Gráfico derecho |
+|---|---|---|---|
+| Pistas | 1 | Duración de pistas (bar) | — |
+| Pistas | 2 | Formatos de pistas (pie) | BitRate de pistas (bar) |
+| Álbumes | 1 | Pistas por álbum (bar) | Duración de álbumes (bar) |
+
+Los "top" (Top 10 pistas, Top 10 artistas, Top 10 géneros, etc.) siempre ocupan fila completa.
+
+---
+
 ## Checklist antes de entregar un widget nuevo o modificado
 
 - [ ] Todos los widgets visibles tienen `setObjectName()`

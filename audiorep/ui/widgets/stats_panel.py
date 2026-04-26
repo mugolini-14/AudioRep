@@ -324,23 +324,30 @@ def _build_tab_tracks(stats: LibraryStats, charts: bool) -> QWidget:
         layout.addStretch(1)
         return scroll
 
-    # Duración de pistas
+    # Duración de pistas — fila completa (sin par natural)
     if any(stats.track_duration_dist.values()):
         cats = list(stats.track_duration_dist.keys())
         vals = list(stats.track_duration_dist.values())
         layout.addWidget(make_bar_chart("Duración de pistas", cats, vals))
 
-    # Formatos de pistas
-    if stats.track_format_dist:
-        cats = list(stats.track_format_dist.keys())
-        vals = list(stats.track_format_dist.values())
-        layout.addWidget(make_bar_chart("Formatos de pistas", cats, vals))
+    # Formatos (torta) + BitRate (barras) — misma fila, mitad de ancho cada uno
+    formatos_view = None
+    bitrate_view  = None
 
-    # BitRate de pistas
+    if stats.track_format_dist:
+        formatos_view = make_pie_chart("Formatos de pistas", stats.track_format_dist)
+
     if any(stats.track_bitrate_dist.values()):
         cats = list(stats.track_bitrate_dist.keys())
         vals = list(stats.track_bitrate_dist.values())
-        layout.addWidget(make_bar_chart("BitRate de pistas", cats, vals))
+        bitrate_view = make_bar_chart("BitRate de pistas", cats, vals)
+
+    if formatos_view and bitrate_view:
+        layout.addLayout(_chart_row(formatos_view, bitrate_view))
+    elif formatos_view:
+        layout.addWidget(formatos_view)
+    elif bitrate_view:
+        layout.addWidget(bitrate_view)
 
     # Top 10 pistas más reproducidas
     max_plays = max((t[2] for t in stats.top_tracks), default=0)
@@ -363,17 +370,26 @@ def _build_tab_albums(stats: LibraryStats, charts: bool) -> QWidget:
         layout.addStretch(1)
         return scroll
 
-    # Cantidad de pistas por álbum
+    # Pistas por álbum + Duración de álbumes — misma fila, mitad de ancho cada uno
+    pistas_view    = None
+    dur_album_view = None
+
     if any(stats.album_track_count_dist.values()):
         cats = list(stats.album_track_count_dist.keys())
         vals = list(stats.album_track_count_dist.values())
-        layout.addWidget(make_bar_chart("Pistas por álbum", cats, vals))
+        pistas_view = make_bar_chart("Pistas por álbum", cats, vals)
 
-    # Duración de álbumes
     if any(stats.album_duration_dist.values()):
         cats = list(stats.album_duration_dist.keys())
         vals = list(stats.album_duration_dist.values())
-        layout.addWidget(make_bar_chart("Duración de álbumes", cats, vals))
+        dur_album_view = make_bar_chart("Duración de álbumes", cats, vals)
+
+    if pistas_view and dur_album_view:
+        layout.addLayout(_chart_row(pistas_view, dur_album_view))
+    elif pistas_view:
+        layout.addWidget(pistas_view)
+    elif dur_album_view:
+        layout.addWidget(dur_album_view)
 
     # Décadas de álbumes
     if stats.album_decade_counts:

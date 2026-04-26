@@ -30,6 +30,7 @@ Estado de implementación:
     ✅ Paso 23 — Estandarización de dropdowns, refactor performance reproductor (poll 200ms, VU stop, DB async), v0.50
     ✅ Paso 24 — Hilo RMS dedicado (_RMSAnalyzer), backpressure con log de underruns en _SDAudioBridge, v0.51
     ✅ Paso 33 — Estadísticas de biblioteca (StatsService + StatsPanel + PyQt6-Charts), exportación XLSX/PDF/CSV, v0.65
+    ✅ Paso 34 — Gráfico de formatos convertido a torta; layout 2-por-fila en tabs Pistas y Álbumes, v0.71
 """
 import os
 import sys
@@ -94,7 +95,7 @@ def _maybe_auto_enrich(settings: "AppSettings", enrichment_service: object) -> N
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.70.0")
+    app.setApplicationVersion("0.71.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
