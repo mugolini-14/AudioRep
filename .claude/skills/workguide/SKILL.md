@@ -71,7 +71,7 @@ Al terminar la implementación:
 
 ## PASO 4 — Bump de versión
 
-Actualizar el número de versión en **tres lugares** (siempre los tres, nunca uno solo):
+Actualizar el número de versión en **cuatro lugares** (siempre los cuatro, nunca uno solo):
 
 1. `pyproject.toml` → `version = "X.Y.Z"`
 2. `main.py` → `app.setApplicationVersion("X.Y.Z")`

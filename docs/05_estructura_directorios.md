@@ -52,7 +52,8 @@ audiorep/                                ← raíz del proyecto
 │   │   │       ├── album_repository.py  ← Implementa IAlbumRepository
 │   │   │       ├── artist_repository.py ← Implementa IArtistRepository
 │   │   │       ├── playlist_repository.py         ← Implementa IPlaylistRepository
-│   │   │       └── radio_station_repository.py    ← Implementa IRadioStationRepository
+│   │   │       ├── radio_station_repository.py    ← Implementa IRadioStationRepository
+│   │       └── label_repository.py            ← ILabelRepository: upsert_country, get_country_map
 │   │   │
 │   │   ├── audio/                       ← Reproducción y hardware de audio
 │   │   │   ├── __init__.py
@@ -72,7 +73,8 @@ audiorep/                                ← raíz del proyecto
 │   │       ├── gnudb_client.py          ← Implementa IMetadataProvider (CD alternativo)
 │   │       ├── coverart_client.py       ← Descarga portadas de Cover Art Archive
 │   │       ├── acoustid_client.py       ← Implementa IFingerprintProvider
-│   │       └── radio_browser_client.py  ← Implementa IRadioSearchProvider
+│   │       ├── radio_browser_client.py  ← Implementa IRadioSearchProvider
+│   │       └── lastfm_client.py         ← Obtiene géneros vía Last.fm (degradación elegante si pylast no instalado)
 │   │
 │   ├── services/                        ← [CAPA 4] Casos de uso / lógica de negocio
 │   │   ├── __init__.py
@@ -83,7 +85,10 @@ audiorep/                                ← raíz del proyecto
 │   │   ├── tagger_service.py            ← Leer/escribir tags, buscar metadatos
 │   │   ├── search_service.py            ← Búsqueda full-text en la biblioteca
 │   │   ├── playlist_service.py          ← CRUD de playlists, smart playlists
-│   │   └── radio_service.py             ← Reproducción y gestión de emisoras de radio
+│   │   ├── radio_service.py             ← Reproducción y gestión de emisoras de radio
+│   │   ├── stats_service.py             ← Calcula LibraryStats (worker QThread); usado por StatsPanel
+│   │   ├── export_service.py            ← Exporta biblioteca a XLSX/PDF/CSV
+│   │   └── enrichment_service.py        ← Enriquecimiento automático con MusicBrainz + Last.fm (QThread worker)
 │   │
 │   └── ui/                              ← [CAPA 5] Interfaz gráfica PyQt6
 │       ├── __init__.py
@@ -107,11 +112,12 @@ audiorep/                                ← raíz del proyecto
 │       │   ├── cd_metadata_panel.py     ← Panel lateral de metadatos manuales del CD
 │       │   ├── playlist_panel.py        ← Gestión de playlists + grilla estándar
 │       │   ├── radio_panel.py           ← Pestañas Buscar / Guardadas / Favoritas
+│       │   ├── stats_panel.py           ← Panel de estadísticas con 6 tabs y gráficos PyQt6-Charts
 │       │   └── vu_meter.py              ← Vúmetro animado con barras de colores (panel derecho)
 │       │
 │       ├── dialogs/                     ← Ventanas modales
 │       │   ├── __init__.py
-│       │   ├── settings_dialog.py       ← Configuración (AcoustID key, formato ripeo, tema)
+│       │   ├── settings_dialog.py       ← Configuración: AcoustID, ripeo, Last.fm, enriquecimiento automático
 │       │   ├── tag_editor_dialog.py     ← Edición manual de tags
 │       │   └── ripper_dialog.py         ← Progreso del ripeo
 │       │

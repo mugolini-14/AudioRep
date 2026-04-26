@@ -60,6 +60,7 @@ Agrupa pistas bajo un lanzamiento.
 | `cover_path` | `str \| None` | Ruta local a la portada |
 | `total_tracks` | `int` | Total de pistas |
 | `total_discs` | `int` | Total de discos |
+| `release_type` | `str` | Tipo de lanzamiento (Album, Single, EP, etc.) — se completa con MusicBrainz |
 
 ---
 
@@ -72,6 +73,22 @@ Agrupa pistas bajo un lanzamiento.
 | `sort_name` | `str` | Nombre para ordenar (ej. "Beatles, The") |
 | `musicbrainz_id` | `str \| None` | MBID del artista |
 | `genres` | `list[str]` | Géneros asociados |
+| `country` | `str` | País de origen — se completa con MusicBrainz |
+
+---
+
+### `Label` — Sello Discográfico
+
+Entidad persistida (tabla `labels` en SQLite). Representa un sello discográfico con su país de origen.
+
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `id` | `int \| None` | ID interno |
+| `name` | `str` | Nombre del sello |
+| `country` | `str` | País de origen — se completa con MusicBrainz |
+
+Repositorio: `LabelRepository` (`infrastructure/database/repositories/label_repository.py`).
+Métodos clave: `upsert_country(name, country)`, `get_country_map() → dict[str, str]`.
 
 ---
 
@@ -108,6 +125,9 @@ Representa un CD en la unidad lectora, antes o después de ser identificado.
 | `musicbrainz_id` | `str \| None` | MBID del release identificado |
 | `album_title` | `str` | Título (vacío hasta identificación) |
 | `identified` | `bool` | True si fue reconocido online |
+| `release_type` | `str` | Tipo de lanzamiento (Album, Single, EP, etc.) — poblado por MusicBrainz |
+| `artist_country` | `str` | País de origen del artista — poblado por MusicBrainz |
+| `label_country` | `str` | País de origen del sello — poblado por MusicBrainz |
 
 **`CDTrack`:**
 | Atributo | Tipo | Descripción |

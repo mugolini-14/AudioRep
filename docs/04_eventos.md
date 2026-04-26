@@ -69,6 +69,20 @@ app_events.track_changed.connect(self._on_track_changed)
 | `radio_playback_started` | — | Comienza la reproducción de una emisora |
 | `radio_playback_stopped` | — | Se detiene la reproducción de radio |
 
+### Enriquecimiento de Metadatos (v0.69+)
+
+| Señal | Argumentos | Cuándo se emite |
+|---|---|---|
+| `enrichment_started` | — | Comienza el proceso de enriquecimiento automático |
+| `enrichment_progress` | `(int, int)` | Progreso: (pistas procesadas, total) |
+| `enrichment_finished` | `int` | Enriquecimiento completado (número de pistas actualizadas) |
+| `enrichment_cancelled` | — | El usuario canceló el proceso |
+| `enrichment_requested` | — | Emitida por `SettingsDialog` cuando el usuario presiona "Actualizar metadatos ahora" |
+
+`enrichment_requested` es la única señal que la UI emite para iniciar el proceso manualmente. `LibraryController` la escucha y llama `enrichment_service.start()`.
+
+---
+
 ### UI General
 
 | Señal | Argumentos | Cuándo se emite |

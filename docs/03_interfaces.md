@@ -130,6 +130,21 @@ class ICDRipper(Protocol):
 
 ---
 
+### `ILabelRepository` — Repositorio de Sellos Discográficos
+
+Implementado por: `infrastructure/database/repositories/label_repository.py`
+
+```python
+class ILabelRepository(Protocol):
+    def upsert_country(self, name: str, country: str) -> None
+    # Inserta el sello si no existe, o actualiza su país si ya existe.
+
+    def get_country_map(self) -> dict[str, str]
+    # Retorna un dict {nombre_sello: país} para todos los sellos con país conocido.
+```
+
+---
+
 ### `IRadioStationRepository` — Repositorio de Emisoras
 
 Implementado por: `infrastructure/database/repositories/radio_station_repository.py`

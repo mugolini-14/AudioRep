@@ -231,6 +231,48 @@ Fila 2: [════════════════ progressSlider (ancho 
 | `libraryContext` | `QLabel` | "Toda la biblioteca (N pistas)". `#7070a0`, 11px, fondo `#1a1a2e` |
 | `trackTable` | `QTableView` | Tabla de pistas. Sin gridlines, alternating rows |
 
+### StatsPanel (`audiorep/ui/widgets/stats_panel.py`)
+
+| objectName | Widget | Descripción |
+|---|---|---|
+| `statsPanel` | `QWidget` (raíz) | Panel de estadísticas de la biblioteca |
+| `statsScrollContent` | `QWidget` | Contenedor interno de cada tab con `QScrollArea` |
+| `statsSummaryCard` | `QFrame` | Tarjeta de resumen en la tab Generales (8 tarjetas en 2 filas de 4) |
+| `statsCardValue` | `QLabel` | Número grande de la tarjeta (ej. "1.234") |
+| `statsCardLabel` | `QLabel` | Etiqueta de la tarjeta (ej. "pistas") |
+| `statsSectionLabel` | `QLabel` | Título de sección dentro de un tab (también usado para notas de "sin datos") |
+| `statsChartView` | `QChartView` | Vista de cualquier gráfico (bar, pie, hbar) |
+| `statsTabs` | `QTabWidget` | Tabs: Generales, Pistas, Álbumes, Artistas, Géneros, Sellos |
+
+**Funciones de fábrica disponibles (módulo-nivel, no métodos):**
+- `make_bar_chart(title, categories, values)` → `QChartView` (barras verticales, acento violeta)
+- `make_pie_chart(title, data: dict[str, int])` → `QChartView` (donut con leyenda inferior)
+- `make_hbar_chart(title, labels, values, min_height, left_margin)` → `QChartView` (barras horizontales para tops)
+- `_chart_row(*views)` → `QHBoxLayout` (coloca 2 vistas en la misma fila, mitad de ancho cada una)
+
+Ver sección **Estándar de layout de gráficos (StatsPanel)** para las reglas de cuándo usar `_chart_row`.
+
+---
+
+### SettingsDialog (`audiorep/ui/dialogs/settings_dialog.py`)
+
+El diálogo de configuración tiene las siguientes secciones (v0.69+):
+
+| Campo | Widget | Descripción |
+|---|---|---|
+| API key AcoustID | `QLineEdit` | Clave para identificación por huella de audio |
+| Formato de ripeo | `QComboBox` | FLAC / MP3 / OGG / WAV |
+| Directorio de ripeo | `QLineEdit` + `QPushButton#SettingsDirBtn` | Carpeta de destino del ripeo |
+| API key Last.fm | `QLineEdit` | Clave para obtener géneros de Last.fm (opcional) |
+| Enriquecimiento automático | `QCheckBox` | Activa/desactiva actualización automática de metadatos |
+| Intervalo (días) | `QSpinBox` | Cada cuántos días ejecutar el enriquecimiento (sufijo " días") |
+| Última ejecución | `QLabel` | Fecha de la última ejecución del enriquecimiento |
+| "Actualizar ahora" | `QPushButton` | Emite `app_events.enrichment_requested` al hacer clic |
+
+El botón "Actualizar ahora" emite la señal — nunca llama directamente al service. `LibraryController` escucha esa señal y llama `enrichment_service.start()`.
+
+---
+
 ### RadioPanel (`audiorep/ui/widgets/radio_panel.py`)
 
 | objectName | Widget | Descripción |

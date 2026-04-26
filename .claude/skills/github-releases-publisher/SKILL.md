@@ -82,16 +82,41 @@ Requiere VLC instalado en el sistema.
 
 ---
 
-## Comando de publicación
+## Procedimiento de publicación (tres pasos obligatorios)
+
+> **Nota:** `gh release create` con archivos adjuntos falla silenciosamente cuando se ejecuta en modo background o con archivos grandes. El workflow correcto es siempre en tres pasos separados.
+
+### Paso 1 — Crear y pushear el tag
 
 ```bash
-gh release create vX.Y.Z \
-    "installers/windows/AudioRep-X.Y.Z-windows.zip" \
-    "installers/linux/audiorep_X.Y.Z_amd64.deb" \
-    --title "AudioRep X.Y" \
-    --notes "..."
+cd "g:/Repositorios_Propios/AudioRep"
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
+
+### Paso 2 — Crear el release sin archivos
+
+```bash
+gh release create vX.Y.Z --title "AudioRep X.Y" --notes "$(cat build/release_notes_XYZ.md)"
+```
+
+### Paso 3 — Subir los instaladores por separado
+
+```bash
+gh release upload vX.Y.Z \
+    "installers/windows/AudioRep-X.Y.Z-windows.zip" \
+    "installers/linux/audiorep_X.Y.Z_amd64.deb"
+```
+
+### Verificar que los assets fueron adjuntados
+
+```bash
+gh release view vX.Y.Z --json assets --jq '.assets[] | "\(.name) — \(.size / 1048576 | floor) MB"'
+```
+
+### Reglas
 
 - El release se publica **después de que el usuario haga push** — nunca antes.
 - Adjuntar siempre ambos instaladores (Windows ZIP y Linux .deb).
 - Si falta algún instalador, compilarlo primero siguiendo `.claude/skills/compiler-instructions/SKILL.md`.
+- Las release notes se guardan en `build/release_notes_XYZ.md` (excluido por `.gitignore` porque `build/` está ignorado — esto es correcto).

@@ -173,6 +173,11 @@ class MiController:
 | 30 | Estándar de diálogos modales: QLineEdit global, QDialogButtonBox, "Sí"/"No" en confirmaciones | ✅ Completo — v0.58 |
 | 31 | Título de ventana estático; Play tras Stop reproduce última pista (`replay_current()`) | ✅ Completo — v0.59 |
 | 32 | Fix portada CD tras aplicación manual; sello discográfico en NowPlaying y CDMetadataPanel; rediseño Detalle con filas etiqueta+valor; orden estándar NowPlaying (portada→título→artista→disco→sello→año→rating) | ✅ Completo — v0.60 |
+| 33 | `StatsService` + `StatsPanel` (6 tabs, gráficos PyQt6-Charts) + `ExportService` (XLSX/PDF/CSV); botones en LibraryPanel | ✅ Completo — v0.65–v0.66 |
+| 34 | `Label` entity + `LabelRepository`; `Artist.country` + `Album.release_type`; gráficos de tipo álbum, país artistas, país sellos en StatsPanel | ✅ Completo — v0.67 |
+| 35 | `EnrichmentService` + `LastFmClient`: enriquece metadatos con MusicBrainz (género, sello, país, release_type) y Last.fm; configuración en SettingsDialog; auto-enriquecimiento al importar y al arrancar | ✅ Completo — v0.69 |
+| 36 | XLSX/PDF con tema profesional legible (fondo blanco, filas alternadas claras); nueva tarjeta "nacionalidades" en StatsPanel Generales; `total_countries` en stats | ✅ Completo — v0.70 |
+| 37 | Gráfico de formatos convertido a torta (pie chart); layout 2-por-fila en tabs Pistas y Álbumes del StatsPanel | ✅ Completo — v0.71 |
 
 ---
 
