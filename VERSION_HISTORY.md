@@ -2,6 +2,23 @@
 
 ---
 
+# 0.68 — Correcciones en estadísticas y exportaciones
+
+**Fecha:** 26 de abril de 2026
+
+### Corregido
+
+- **Etiquetas de géneros y artistas no se mostraban en gráficos horizontales** — el fondo del área de gráficos solapaba el espacio reservado para las etiquetas del eje de categorías. Corregido unificando el fondo del chart y aumentando el contraste de los textos de los ejes.
+- **Crash al exportar a PDF** — el símbolo de estrella (★) en la columna de ratings no es compatible con la fuente Helvetica de fpdf2. Reemplazado por texto plano (`1/5`, `2/5`, etc.) en la exportación PDF.
+
+### Agregado
+
+- **Valores numéricos sobre cada barra** — todos los gráficos de barras (verticales y horizontales) muestran el número exacto al final de cada barra, sin necesidad de leer el eje.
+- **Nuevas secciones en la exportación XLSX** — la hoja "Estadísticas" del Excel ahora incluye tipo de álbum, país de origen de artistas y país de origen de sellos cuando hay datos disponibles.
+- **Nuevas secciones en la exportación PDF** — la sección de estadísticas del PDF incluye las mismas tres secciones nuevas.
+
+---
+
 # 0.67 — Estadísticas ampliadas: tipo de álbum, países de artistas y sellos
 
 **Fecha:** 26 de abril de 2026

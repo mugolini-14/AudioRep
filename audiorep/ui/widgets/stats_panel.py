@@ -72,9 +72,7 @@ _FONT_TITLE = QFont("Segoe UI", 10, QFont.Weight.Bold)
 def _base_chart(title: str = "") -> QChart:
     chart = QChart()
     chart.setTitle(title)
-    chart.setBackgroundBrush(_BG_SURFACE)
-    chart.setPlotAreaBackgroundBrush(_BG_DEEP)
-    chart.setPlotAreaBackgroundVisible(True)
+    chart.setBackgroundBrush(_BG_DEEP)
     chart.setTitleFont(_FONT_TITLE)
     chart.setTitleBrush(_TEXT_MAIN)
     chart.setMargins(chart.margins().__class__(8, 8, 8, 8))
@@ -95,7 +93,7 @@ def _chart_view(chart: QChart, min_height: int = 260) -> QChartView:
 
 
 def _styled_axis_x(axis: QBarCategoryAxis) -> None:
-    axis.setLabelsColor(_TEXT_DIM)
+    axis.setLabelsColor(_TEXT_MID)
     axis.setLabelsFont(_FONT_LABEL)
     pen = QPen(_BORDER)
     axis.setLinePen(pen)
@@ -104,7 +102,7 @@ def _styled_axis_x(axis: QBarCategoryAxis) -> None:
 
 
 def _styled_axis_y(axis: QValueAxis) -> None:
-    axis.setLabelsColor(_TEXT_DIM)
+    axis.setLabelsColor(_TEXT_MID)
     axis.setLabelsFont(_FONT_LABEL)
     axis.setLinePen(QPen(_BORDER))
     axis.setGridLinePen(QPen(QColor("#2a2a3e")))
@@ -141,11 +139,15 @@ def make_bar_chart(title: str, categories: list[str], values: list[int]) -> QCha
     bar_set = QBarSet("")
     bar_set.setColor(_ACCENT)
     bar_set.setBorderColor(_ACCENT_DIM)
+    bar_set.setLabelColor(_TEXT_MAIN)
     for v in values:
         bar_set.append(v)
 
     series = QBarSeries()
     series.append(bar_set)
+    series.setLabelsVisible(True)
+    series.setLabelsPosition(QBarSeries.LabelsPosition.LabelsOutsideEnd)
+    series.setLabelsFormat("@value")
 
     chart = _base_chart(title)
     chart.addSeries(series)
@@ -157,7 +159,7 @@ def make_bar_chart(title: str, categories: list[str], values: list[int]) -> QCha
     axis_y = QValueAxis()
     _styled_axis_y(axis_y)
     if values:
-        axis_y.setRange(0, max(values) * 1.15 or 1)
+        axis_y.setRange(0, max(values) * 1.25 or 1)
 
     chart.addAxis(axis_x, Qt.AlignmentFlag.AlignBottom)
     chart.addAxis(axis_y, Qt.AlignmentFlag.AlignLeft)
@@ -177,25 +179,39 @@ def make_hbar_chart(
     bar_set = QBarSet("")
     bar_set.setColor(_ACCENT)
     bar_set.setBorderColor(_ACCENT_DIM)
+    bar_set.setLabelColor(_TEXT_MAIN)
     for v in values:
         bar_set.append(v)
 
     series = QHorizontalBarSeries()
     series.append(bar_set)
+    series.setLabelsVisible(True)
+    series.setLabelsPosition(QHorizontalBarSeries.LabelsPosition.LabelsOutsideEnd)
+    series.setLabelsFormat("@value")
 
     chart = _base_chart(title)
     # Margen izquierdo amplio para que se lean los nombres completos
-    chart.setMargins(chart.margins().__class__(left_margin, 8, 8, 8))
+    chart.setMargins(chart.margins().__class__(left_margin, 8, 24, 8))
     chart.addSeries(series)
 
+    # Truncar labels en Python antes de pasarlos al eje: si un label supera el
+    # ancho del margen, Qt Charts trunca TODOS con "..." aunque el resto quepan.
+    # Estimación: ~7px por carácter con Segoe UI 9pt; 20px de padding interno.
+    max_chars = max(8, (left_margin - 20) // 7)
+    safe_labels = [
+        (lbl[:max_chars] + "…") if len(lbl) > max_chars else lbl
+        for lbl in labels
+    ]
+
     axis_y = QBarCategoryAxis()
-    axis_y.append(labels)
+    axis_y.append(safe_labels)
+    axis_y.setTruncateLabels(False)
     _styled_axis_x(axis_y)
 
     axis_x = QValueAxis()
     _styled_axis_y(axis_x)
     if values:
-        axis_x.setRange(0, max(values) * 1.15 or 1)
+        axis_x.setRange(0, max(values) * 1.25 or 1)
 
     chart.addAxis(axis_y, Qt.AlignmentFlag.AlignLeft)
     chart.addAxis(axis_x, Qt.AlignmentFlag.AlignBottom)

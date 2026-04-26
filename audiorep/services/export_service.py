@@ -35,9 +35,17 @@ def _ms_to_str(ms: int) -> str:
 
 
 def _stars(rating: int) -> str:
+    """Versión Unicode para XLSX (soporta ★☆)."""
     if rating <= 0:
         return "Sin rating"
     return "★" * rating + "☆" * (5 - rating)
+
+
+def _stars_text(rating: int) -> str:
+    """Versión ASCII para PDF (Helvetica no soporta ★☆)."""
+    if rating <= 0:
+        return "Sin rating"
+    return f"{rating}/5"
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +190,30 @@ class ExportService:
         table_header("Título", "Artista", "Reproducciones")
         for title, artist, plays in stats.top_tracks:
             table_row(title, artist, plays)
+        row += 1
+
+        # Tipo de álbum
+        if stats.album_type_counts:
+            section("Tipo de álbum")
+            table_header("Tipo", "Álbumes")
+            for t, c in sorted(stats.album_type_counts.items(), key=lambda x: x[1], reverse=True):
+                table_row(t, c)
+            row += 1
+
+        # País de origen de artistas
+        if stats.artist_country_counts:
+            section("País de origen de artistas")
+            table_header("País", "Artistas")
+            for country, count in sorted(stats.artist_country_counts.items(), key=lambda x: x[1], reverse=True):
+                table_row(country, count)
+            row += 1
+
+        # País de origen de sellos
+        if stats.label_country_counts:
+            section("País de origen de sellos")
+            table_header("País", "Sellos")
+            for country, count in sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True):
+                table_row(country, count)
 
         wb.save(filepath)
 
@@ -306,7 +338,7 @@ class ExportService:
 
         # Ratings
         _pdf_section("Ratings")
-        rating_rows = [(_stars(i), stats.rating_counts.get(i, 0)) for i in range(6)]
+        rating_rows = [(_stars_text(i), stats.rating_counts.get(i, 0)) for i in range(6)]
         _pdf_table(["Rating", "Pistas"], rating_rows, [50, 30])
 
         # Top artistas
@@ -320,6 +352,24 @@ class ExportService:
             stats.top_tracks,
             [70, 50, 25],
         )
+
+        # Tipo de album
+        if stats.album_type_counts:
+            _pdf_section("Tipo de album")
+            rows_type = sorted(stats.album_type_counts.items(), key=lambda x: x[1], reverse=True)
+            _pdf_table(["Tipo", "Albumes"], rows_type, [60, 30])
+
+        # Pais de origen de artistas
+        if stats.artist_country_counts:
+            _pdf_section("Pais de origen de artistas")
+            rows_ac = sorted(stats.artist_country_counts.items(), key=lambda x: x[1], reverse=True)
+            _pdf_table(["Pais", "Artistas"], rows_ac, [80, 30])
+
+        # Pais de origen de sellos
+        if stats.label_country_counts:
+            _pdf_section("Pais de origen de sellos")
+            rows_lc = sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True)
+            _pdf_table(["Pais", "Sellos"], rows_lc, [80, 30])
 
         pdf.output(filepath)
 
