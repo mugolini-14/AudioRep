@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
 from audiorep.core.events import app_events
 from audiorep.domain.track import Track
+from audiorep.services.enrichment_service import EnrichmentService
 from audiorep.services.export_service import ExportService
 from audiorep.services.library_service import LibraryService
 from audiorep.services.player_service import PlayerService
@@ -38,17 +39,19 @@ class LibraryController:
 
     def __init__(
         self,
-        library_service: LibraryService,
-        player_service:  PlayerService,
-        library_panel:   LibraryPanel,
-        stats_service:   StatsService,
-        export_service:  ExportService,
+        library_service:    LibraryService,
+        player_service:     PlayerService,
+        library_panel:      LibraryPanel,
+        stats_service:      StatsService,
+        export_service:     ExportService,
+        enrichment_service: EnrichmentService | None = None,
     ) -> None:
-        self._library        = library_service
-        self._player         = player_service
-        self._panel          = library_panel
-        self._stats_service  = stats_service
-        self._export_service = export_service
+        self._library            = library_service
+        self._player             = player_service
+        self._panel              = library_panel
+        self._stats_service      = stats_service
+        self._export_service     = export_service
+        self._enrichment_service = enrichment_service
         self._last_stats:  LibraryStats | None = None
 
         self._connect_panel()
@@ -80,13 +83,17 @@ class LibraryController:
         app_events.scan_started.connect(
             lambda path: app_events.status_message.emit(f"Escaneando: {path} …")
         )
-        app_events.scan_finished.connect(
-            lambda n: app_events.status_message.emit(f"Importación completada: {n} pistas.")
-        )
+        app_events.scan_finished.connect(self._on_scan_finished)
         app_events.scan_progress.connect(
             lambda p, t: self._panel.set_scan_progress(p, t)
         )
         app_events.cd_identified.connect(self._on_cd_identified)
+        app_events.enrichment_requested.connect(self._start_enrichment)
+        app_events.enrichment_progress.connect(self._on_enrichment_progress)
+        app_events.enrichment_finished.connect(self._on_enrichment_finished)
+        app_events.enrichment_cancelled.connect(
+            lambda: app_events.status_message.emit("Actualización de metadatos cancelada.")
+        )
 
     # ------------------------------------------------------------------
     # Handlers
@@ -160,6 +167,28 @@ class LibraryController:
                 "Error de exportación",
                 f"No se pudo exportar la biblioteca:\n{exc}",
             )
+
+    def _on_scan_finished(self, n: int) -> None:
+        app_events.status_message.emit(f"Importación completada: {n} pistas.")
+        self._start_enrichment()
+
+    def _start_enrichment(self) -> None:
+        if self._enrichment_service:
+            self._enrichment_service.start()
+            app_events.status_message.emit("Actualizando metadatos en segundo plano…")
+
+    def _on_enrichment_progress(self, current: int, total: int) -> None:
+        app_events.status_message.emit(
+            f"Actualizando metadatos: {current}/{total} pistas…"
+        )
+
+    def _on_enrichment_finished(self, updated: int) -> None:
+        msg = (
+            f"Metadatos actualizados: {updated} pistas modificadas."
+            if updated > 0
+            else "Actualización de metadatos completada. Sin cambios."
+        )
+        app_events.status_message.emit(msg)
 
     def _on_cd_identified(self, disc: object) -> None:
         """Enriquece la biblioteca con los metadatos del disco identificado."""

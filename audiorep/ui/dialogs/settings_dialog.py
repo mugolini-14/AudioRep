@@ -14,15 +14,18 @@ from pathlib import Path
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
     QFormLayout,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
+    QSpinBox,
     QVBoxLayout,
     QWidget,
 )
@@ -97,6 +100,53 @@ class SettingsDialog(QDialog):
 
         layout.addLayout(form)
 
+        # ── Separador ─────────────────────────────────────────────── #
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setStyleSheet("color: #33334a;")
+        layout.addWidget(sep)
+
+        # ── Sección: Actualización automática de metadatos ─────────── #
+        enrich_form = QFormLayout()
+        enrich_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
+
+        self._enrich_check = QCheckBox("Activar actualización automática de metadatos")
+        self._enrich_check.setChecked(settings.enrichment_enabled)
+        layout.addWidget(self._enrich_check)
+
+        interval_row = QWidget()
+        interval_layout = QHBoxLayout(interval_row)
+        interval_layout.setContentsMargins(0, 0, 0, 0)
+        self._interval_spin = QSpinBox()
+        self._interval_spin.setRange(1, 365)
+        self._interval_spin.setValue(settings.enrichment_interval_days)
+        self._interval_spin.setSuffix(" días")
+        interval_layout.addWidget(self._interval_spin)
+        interval_layout.addStretch()
+        enrich_form.addRow("Intervalo:", interval_row)
+
+        last_run = settings.enrichment_last_run or "Nunca"
+        self._last_run_label = QLabel(f"Última actualización: {last_run}")
+        self._last_run_label.setStyleSheet("color: #8888aa; font-size: 11px;")
+        enrich_form.addRow("", self._last_run_label)
+
+        # Last.fm API Key (opcional)
+        self._lastfm_edit = QLineEdit(settings.lastfm_api_key or "")
+        self._lastfm_edit.setPlaceholderText("Opcional — para mejor cobertura de géneros")
+        self._lastfm_edit.setObjectName("SettingsLastFm")
+        enrich_form.addRow("Last.fm API Key:", self._lastfm_edit)
+
+        layout.addLayout(enrich_form)
+
+        # Botón "Actualizar ahora"
+        enrich_btn_row = QHBoxLayout()
+        self._enrich_now_btn = QPushButton("Actualizar metadatos ahora")
+        self._enrich_now_btn.setObjectName("importButton")
+        self._enrich_now_btn.clicked.connect(self._on_enrich_now)
+        enrich_btn_row.addWidget(self._enrich_now_btn)
+        enrich_btn_row.addStretch()
+        layout.addLayout(enrich_btn_row)
+
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
@@ -117,11 +167,24 @@ class SettingsDialog(QDialog):
         if folder:
             self._dir_edit.setText(folder)
 
+    def _on_enrich_now(self) -> None:
+        """Guarda la configuración y solicita el enriquecimiento inmediato."""
+        self._save_settings()
+        from audiorep.core.events import app_events
+        app_events.enrichment_requested.emit()
+        self.accept()
+
     def _on_accept(self) -> None:
-        self._settings.acoustid_api_key  = self._acoustid_edit.text().strip()
-        self._settings.ripper_format     = self._format_combo.currentText()
-        self._settings.ripper_output_dir = self._dir_edit.text().strip()
-        self._settings.sync()
+        self._save_settings()
         self.settings_saved.emit()
         self.accept()
         logger.info("Configuración guardada.")
+
+    def _save_settings(self) -> None:
+        self._settings.acoustid_api_key        = self._acoustid_edit.text().strip()
+        self._settings.ripper_format           = self._format_combo.currentText()
+        self._settings.ripper_output_dir       = self._dir_edit.text().strip()
+        self._settings.enrichment_enabled      = self._enrich_check.isChecked()
+        self._settings.enrichment_interval_days = self._interval_spin.value()
+        self._settings.lastfm_api_key          = self._lastfm_edit.text().strip()
+        self._settings.sync()

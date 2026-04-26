@@ -82,8 +82,8 @@ Toda la inyección de dependencias ocurre en `main.py`, que actúa como raíz de
 
 | Plataforma | Versión | Fecha | Archivo | Tamaño |
 |---|---|---|---|---|
-| Windows 10/11 | 0.68 | Abril 2026 | `AudioRep-0.68.0-windows.zip` | ~120 MB |
-| Linux Debian/Ubuntu | 0.68 | Abril 2026 | `audiorep_0.68.0_amd64.deb` | ~84 MB |
+| Windows 10/11 | 0.69 | Abril 2026 | `AudioRep-0.69.0-windows.zip` | ~120 MB |
+| Linux Debian/Ubuntu | 0.69 | Abril 2026 | `audiorep_0.69.0_amd64.deb` | ~84 MB |
 
 Los instaladores están disponibles en la sección [Releases](https://github.com/mugolini-14/AudioRep/releases) del repositorio.
 

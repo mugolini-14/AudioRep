@@ -1090,3 +1090,75 @@ QListWidget#cdMetaResultsList::item:hover:!selected,
 QListWidget#cdMetaTrackList::item:hover:!selected {
     background-color: #1e1e30;
 }
+
+/* ── QCheckBox ─────────────────────────────────────────────────────── */
+
+QCheckBox {
+    color: #c0c0e0;
+    font-size: 12px;
+    spacing: 6px;
+}
+
+QCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #33334a;
+    border-radius: 3px;
+    background-color: #2a2a3e;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #7c5cbf;
+    border-color: #7c5cbf;
+}
+
+QCheckBox::indicator:hover {
+    border-color: #7c5cbf;
+}
+
+QCheckBox::indicator:checked:hover {
+    background-color: #8d6dd0;
+    border-color: #8d6dd0;
+}
+
+/* ── QSpinBox ──────────────────────────────────────────────────────── */
+
+QSpinBox {
+    background-color: #2a2a3e;
+    color: #c0c0e0;
+    border: 1px solid #33334a;
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 12px;
+    min-width: 60px;
+}
+
+QSpinBox:focus {
+    border-color: #7c5cbf;
+}
+
+QSpinBox::up-button, QSpinBox::down-button {
+    background-color: #33334a;
+    border: none;
+    width: 18px;
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: #7c5cbf;
+}
+
+QSpinBox::up-arrow {
+    width: 6px;
+    height: 6px;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-bottom: 4px solid #c0c0e0;
+}
+
+QSpinBox::down-arrow {
+    width: 6px;
+    height: 6px;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-top: 4px solid #c0c0e0;
+}

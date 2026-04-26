@@ -52,6 +52,7 @@ from audiorep.services.playlist_service import PlaylistService
 from audiorep.services.radio_service import RadioService
 from audiorep.services.ripper_service import RipperService
 from audiorep.services.search_service import SearchService
+from audiorep.services.enrichment_service import EnrichmentService
 from audiorep.services.stats_service import StatsService
 from audiorep.services.tagger_service import TaggerService
 from audiorep.ui.controllers.cd_controller import CDController
@@ -101,10 +102,11 @@ class MainWindow(QMainWindow):
         tagger_service:     TaggerService,
         stats_service:      StatsService,
         export_service:     ExportService,
-        radio_service:      RadioService | None = None,
-        settings:           AppSettings | None = None,
+        radio_service:       RadioService | None = None,
+        settings:            AppSettings | None = None,
         cd_lookup_providers: list | None = None,
-        parent:             QWidget | None = None,
+        enrichment_service:  EnrichmentService | None = None,
+        parent:              QWidget | None = None,
     ) -> None:
         super().__init__(parent)
         self._player_service      = player_service
@@ -119,6 +121,7 @@ class MainWindow(QMainWindow):
         self._radio_service       = radio_service
         self._settings            = settings
         self._cd_lookup_providers = cd_lookup_providers or []
+        self._enrichment_service  = enrichment_service
 
         self._setup_window()
         self._build_ui()
@@ -134,7 +137,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.setWindowTitle("AudioRep 0.68")
+        self.setWindowTitle("AudioRep 0.69")
         self.setMinimumSize(860, 520)
         self.resize(1200, 700)
 
@@ -296,6 +299,7 @@ class MainWindow(QMainWindow):
             library_panel=self._library_panel,
             stats_service=self._stats_service,
             export_service=self._export_service,
+            enrichment_service=self._enrichment_service,
         )
         self._cd_controller = CDController(
             cd_service=self._cd_service,

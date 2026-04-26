@@ -176,6 +176,125 @@ class MusicBrainzClient:
         return f"https://coverartarchive.org/release/{release_id}/front"
 
     # ------------------------------------------------------------------
+    # Enriquecimiento de pistas de biblioteca
+    # ------------------------------------------------------------------
+
+    def enrich_track(
+        self,
+        artist: str,
+        title: str,
+        album: str = "",
+        mbid: str | None = None,
+    ) -> dict | None:
+        """
+        Busca metadatos completos de una pista en MusicBrainz.
+
+        Si se provee `mbid`, hace lookup directo. En caso contrario
+        realiza una búsqueda por texto y luego lookup del primer resultado.
+
+        Retorna dict con: mbid, genre, year, artist_country,
+                          label, label_country, release_type.
+        Retorna None si no se encuentra información.
+        """
+        try:
+            recording: dict = {}
+
+            if mbid:
+                result = musicbrainzngs.get_recording_by_id(
+                    mbid,
+                    includes=["tags", "artist-credits", "releases", "release-groups"],
+                )
+                recording = result.get("recording", {})
+            else:
+                if not artist and not title:
+                    return None
+                search_result = musicbrainzngs.search_recordings(
+                    artist=artist,
+                    recording=title,
+                    release=album,
+                    limit=3,
+                )
+                candidates = search_result.get("recording-list", [])
+                if not candidates:
+                    return None
+                best_mbid = candidates[0].get("id", "")
+                if not best_mbid:
+                    return None
+                full_result = musicbrainzngs.get_recording_by_id(
+                    best_mbid,
+                    includes=["tags", "artist-credits", "releases", "release-groups"],
+                )
+                recording = full_result.get("recording", {})
+
+            if not recording:
+                return None
+
+            found_mbid = recording.get("id", "")
+
+            # Género: primer tag con el mayor count
+            tags = recording.get("tag-list", [])
+            genre = ""
+            if tags:
+                try:
+                    sorted_tags = sorted(
+                        tags, key=lambda t: int(t.get("count", 0)), reverse=True
+                    )
+                    genre = sorted_tags[0].get("name", "").strip().title() if sorted_tags else ""
+                except Exception:
+                    pass
+
+            # País del artista
+            artist_country = ""
+            credits = recording.get("artist-credit", [])
+            if credits and isinstance(credits[0], dict):
+                artist_obj = credits[0].get("artist", {})
+                artist_country = (
+                    artist_obj.get("area", {}).get("name", "")
+                    or artist_obj.get("country", "")
+                )
+
+            # Año, sello y tipo desde el primer release
+            year = ""
+            label = ""
+            label_country = ""
+            release_type = ""
+            releases = recording.get("release-list", [])
+            if releases:
+                rel = releases[0]
+                date_str = rel.get("date", "") or ""
+                year = date_str[:4] if date_str else ""
+
+                for info in rel.get("label-info-list", []):
+                    lbl = info.get("label") or {}
+                    if lbl.get("name"):
+                        label = lbl["name"]
+                        label_country = (
+                            lbl.get("area", {}).get("name", "")
+                            or lbl.get("country", "")
+                        )
+                        break
+
+                rg = rel.get("release-group") or {}
+                release_type = rg.get("primary-type", "")
+
+            return {
+                "mbid":           found_mbid,
+                "genre":          genre,
+                "year":           year,
+                "artist_country": artist_country,
+                "label":          label,
+                "label_country":  label_country,
+                "release_type":   release_type,
+            }
+
+        except musicbrainzngs.ResponseError as exc:
+            logger.info("MusicBrainzClient.enrich_track: no encontrado (%s)", exc)
+            return None
+        except Exception as exc:
+            logger.warning("MusicBrainzClient.enrich_track: %s", exc)
+            return None
+
+    # ------------------------------------------------------------------
     # ICDLookupProvider
     # ------------------------------------------------------------------
 

@@ -2,6 +2,22 @@
 
 ---
 
+# 0.69 — Enriquecimiento automático de metadatos de la biblioteca
+
+**Fecha:** 26 de abril de 2026
+
+### Agregado
+
+- **Enriquecimiento automático de metadatos** — nuevo servicio que recorre toda la biblioteca y completa los campos faltantes (género, sello, tipo de álbum, país de artista y sello) consultando MusicBrainz en segundo plano. El proceso respeta el límite de 1 solicitud por segundo de MusicBrainz y puede cancelarse en cualquier momento.
+- **Actualización automática al importar** — al importar una carpeta con "Importar Carpeta", el enriquecimiento se inicia automáticamente al terminar el escaneo, sin intervención del usuario.
+- **Actualización automática al arrancar** — si la opción está habilitada en Configuración y pasó el intervalo configurado, el enriquecimiento corre al iniciar la aplicación.
+- **Configuración de programación** — nueva sección en el diálogo de Configuración con opciones para activar/desactivar la actualización automática, definir el intervalo en días y ver la fecha de la última ejecución.
+- **Soporte para Last.fm** — campo opcional de API Key de Last.fm en Configuración. Si está configurado, se usa como fuente secundaria de géneros cuando MusicBrainz no tiene datos. Requiere la librería `pylast`.
+- **Botón "Actualizar metadatos ahora"** — en el diálogo de Configuración, permite lanzar el enriquecimiento manualmente en cualquier momento.
+- **Tags escritos en los archivos** — el enriquecimiento actualiza tanto la base de datos como los tags de los archivos de audio (género, MBID, año).
+
+---
+
 # 0.68 — Correcciones en estadísticas y exportaciones
 
 **Fecha:** 26 de abril de 2026

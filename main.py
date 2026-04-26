@@ -34,6 +34,7 @@ Estado de implementación:
 import os
 import sys
 import logging
+from datetime import date, timedelta
 from pathlib import Path
 
 from PyQt6.QtWidgets import QApplication
@@ -66,10 +67,34 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def _maybe_auto_enrich(settings: "AppSettings", enrichment_service: object) -> None:
+    """Inicia el enriquecimiento automático si está habilitado y el intervalo se cumplió."""
+    if not settings.enrichment_enabled:
+        return
+    last_run_str = settings.enrichment_last_run
+    if last_run_str:
+        try:
+            last_run = date.fromisoformat(last_run_str)
+            days_since = (date.today() - last_run).days
+            if days_since < settings.enrichment_interval_days:
+                logger.debug(
+                    "Auto-enriquecimiento: %d días desde la última ejecución, "
+                    "intervalo=%d días. Omitido.",
+                    days_since, settings.enrichment_interval_days,
+                )
+                return
+        except ValueError:
+            pass  # fecha inválida → ejecutar igual
+    logger.info("Auto-enriquecimiento al startup: iniciando.")
+    enrichment_service.start()  # type: ignore[attr-defined]
+    settings.enrichment_last_run = date.today().isoformat()
+    settings.sync()
+
+
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.68.0")
+    app.setApplicationVersion("0.69.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
@@ -200,6 +225,22 @@ def main() -> None:
     export_service = ExportService()
     logger.info("StatsService y ExportService listos.")
 
+    from audiorep.infrastructure.api.lastfm_client import LastFmClient
+    from audiorep.services.enrichment_service import EnrichmentService
+
+    lastfm_client = LastFmClient(api_key=settings.lastfm_api_key) if settings.lastfm_api_key else None
+
+    enrichment_service = EnrichmentService(
+        track_repo=track_repo,
+        album_repo=album_repo,
+        artist_repo=artist_repo,
+        label_repo=label_repo,
+        tagger=tagger,
+        mb_client=mb_client,
+        lastfm_client=lastfm_client,
+    )
+    logger.info("EnrichmentService listo.")
+
     # ── UI ────────────────────────────────────────────────────────────── #
     from audiorep.ui.main_window import MainWindow
 
@@ -220,8 +261,12 @@ def main() -> None:
         radio_service=radio_service,
         settings=settings,
         cd_lookup_providers=cd_lookup_providers,
+        enrichment_service=enrichment_service,
     )
     window.show()
+
+    # Auto-enriquecimiento al startup si el intervalo se cumplió
+    _maybe_auto_enrich(settings, enrichment_service)
 
     exit_code = app.exec()
     db.close()

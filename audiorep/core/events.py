@@ -69,6 +69,15 @@ class _AppEvents(QObject):
     radio_playback_stopped = pyqtSignal()
 
     # ------------------------------------------------------------------
+    # Enriquecimiento de metadatos
+    # ------------------------------------------------------------------
+    enrichment_started   = pyqtSignal()
+    enrichment_progress  = pyqtSignal(int, int)   # (pista_actual, total)
+    enrichment_finished  = pyqtSignal(int)         # tracks_actualizados
+    enrichment_cancelled = pyqtSignal()
+    enrichment_requested = pyqtSignal()            # disparado desde Settings
+
+    # ------------------------------------------------------------------
     # UI general
     # ------------------------------------------------------------------
     status_message     = pyqtSignal(str)

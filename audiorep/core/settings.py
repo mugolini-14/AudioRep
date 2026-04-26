@@ -67,6 +67,42 @@ class AppSettings:
     def volume(self, value: int) -> None:
         self._qs.setValue("player/volume", value)
 
+    # ── Enriquecimiento de metadatos ──────────────────────────────────
+
+    @property
+    def enrichment_enabled(self) -> bool:
+        return self._qs.value("enrichment/enabled", False, type=bool)  # type: ignore[call-overload]
+
+    @enrichment_enabled.setter
+    def enrichment_enabled(self, value: bool) -> None:
+        self._qs.setValue("enrichment/enabled", value)
+
+    @property
+    def enrichment_interval_days(self) -> int:
+        return int(self._qs.value("enrichment/interval_days", 7))
+
+    @enrichment_interval_days.setter
+    def enrichment_interval_days(self, value: int) -> None:
+        self._qs.setValue("enrichment/interval_days", value)
+
+    @property
+    def enrichment_last_run(self) -> str:
+        return str(self._qs.value("enrichment/last_run", ""))
+
+    @enrichment_last_run.setter
+    def enrichment_last_run(self, value: str) -> None:
+        self._qs.setValue("enrichment/last_run", value)
+
+    # ── Last.fm ───────────────────────────────────────────────────────
+
+    @property
+    def lastfm_api_key(self) -> str:
+        return str(self._qs.value("lastfm/api_key", ""))
+
+    @lastfm_api_key.setter
+    def lastfm_api_key(self, value: str) -> None:
+        self._qs.setValue("lastfm/api_key", value)
+
     # ── Métodos de ciclo de vida ──────────────────────────────────────
 
     def sync(self) -> None:
