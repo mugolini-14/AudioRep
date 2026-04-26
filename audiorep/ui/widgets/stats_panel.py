@@ -284,13 +284,14 @@ def _build_tab_general(stats: LibraryStats) -> QWidget:
 
     hours = stats.total_duration_ms / 3_600_000
     cards = [
-        (str(stats.total_tracks),   "pistas"),
-        (str(stats.total_artists),  "artistas"),
-        (str(stats.total_albums),   "álbumes"),
-        (f"{hours:.1f}",            "horas"),
-        (str(stats.total_genres),   "géneros"),
-        (str(stats.total_formats),  "formatos"),
-        (str(stats.total_labels),   "sellos"),
+        (str(stats.total_tracks),    "pistas"),
+        (str(stats.total_artists),   "artistas"),
+        (str(stats.total_albums),    "álbumes"),
+        (f"{hours:.1f}",             "horas"),
+        (str(stats.total_genres),    "géneros"),
+        (str(stats.total_formats),   "formatos"),
+        (str(stats.total_labels),    "sellos"),
+        (str(stats.total_countries), "nacionalidades"),
     ]
 
     # Primera fila: 4 tarjetas principales
@@ -302,14 +303,13 @@ def _build_tab_general(stats: LibraryStats) -> QWidget:
         h1.addWidget(_make_card(value, label), stretch=1)
     layout.addWidget(row1)
 
-    # Segunda fila: 3 tarjetas adicionales
+    # Segunda fila: 4 tarjetas adicionales
     row2 = QWidget()
     h2 = QHBoxLayout(row2)
     h2.setContentsMargins(0, 0, 0, 0)
     h2.setSpacing(12)
     for value, label in cards[4:]:
         h2.addWidget(_make_card(value, label), stretch=1)
-    h2.addStretch(1)  # ocupa el espacio del 4to lugar vacío
     layout.addWidget(row2)
 
     layout.addStretch(1)

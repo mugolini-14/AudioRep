@@ -103,6 +103,7 @@ class LibraryStats:
     total_genres:      int                        = 0
     total_formats:     int                        = 0
     total_labels:      int                        = 0
+    total_countries:   int                        = 0
 
     # ── Pistas ─────────────────────────────────────────────────────────── #
     track_duration_dist: dict[str, int]           = field(default_factory=dict)
@@ -264,6 +265,7 @@ def compute_stats(
         c = (ar.country or "").strip()
         if c:
             artist_country_raw[c] += 1
+    total_countries = len(artist_country_raw)
     artist_country_counts = dict(
         sorted(artist_country_raw.items(), key=lambda x: x[1], reverse=True)[:15]
     )
@@ -296,6 +298,7 @@ def compute_stats(
         total_genres=len(genres),
         total_formats=len(formats),
         total_labels=len(label_set),
+        total_countries=total_countries,
         # Pistas
         track_duration_dist=track_dur_dist,
         track_format_dist=dict(formats),

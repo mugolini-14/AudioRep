@@ -75,13 +75,16 @@ class ExportService:
         ws1 = wb.active
         ws1.title = "Biblioteca"
 
-        hdr_font = Font(bold=True, color="E2E2F0")
-        hdr_fill = PatternFill("solid", fgColor="1E1E2E")
-        alt_fill = PatternFill("solid", fgColor="16162A")
-        center   = Alignment(horizontal="center")
+        # Tema profesional legible: cabecera gris oscuro, filas claras
+        hdr_font  = Font(bold=True, color="FFFFFF", size=9)
+        hdr_fill  = PatternFill("solid", fgColor="2D2D2D")
+        alt_fill  = PatternFill("solid", fgColor="F2F2F2")
+        data_font = Font(color="1A1A1A", size=9)
+        center    = Alignment(horizontal="center")
+        left      = Alignment(horizontal="left")
 
         headers    = ["#", "Título", "Artista", "Álbum", "Año", "Género", "Duración", "Formato"]
-        col_widths = [5,    40,       25,         30,     6,     20,       10,          8]
+        col_widths = [5,    40,       25,         30,      6,     20,       10,          8]
 
         for col, (h, w) in enumerate(zip(headers, col_widths), 1):
             cell = ws1.cell(row=1, column=col, value=h)
@@ -89,9 +92,10 @@ class ExportService:
             cell.fill      = hdr_fill
             cell.alignment = center
             ws1.column_dimensions[cell.column_letter].width = w
+        ws1.row_dimensions[1].height = 16
 
         for row_idx, t in enumerate(tracks, 2):
-            fill = alt_fill if row_idx % 2 == 0 else None
+            is_alt = row_idx % 2 == 0
             vals = [
                 row_idx - 1,
                 t.title       or "",
@@ -104,8 +108,10 @@ class ExportService:
             ]
             for col, val in enumerate(vals, 1):
                 cell = ws1.cell(row=row_idx, column=col, value=val)
-                if fill:
-                    cell.fill = fill
+                cell.font      = data_font
+                cell.alignment = center if col in (1, 5, 7, 8) else left
+                if is_alt:
+                    cell.fill = alt_fill
 
         ws1.freeze_panes = "A2"
 
@@ -115,9 +121,11 @@ class ExportService:
         ws2.column_dimensions["B"].width = 20
         ws2.column_dimensions["C"].width = 20
 
-        section_font = Font(bold=True, size=12, color="B090FF")
-        label_font   = Font(bold=True, color="8888AA")
-        value_font   = Font(color="E2E2F0")
+        section_font = Font(bold=True, size=12, color="1A1A1A")
+        label_font   = Font(bold=True, color="FFFFFF", size=9)
+        value_font   = Font(color="1A1A1A", size=9)
+        hdr2_fill    = PatternFill("solid", fgColor="2D2D2D")
+        alt2_fill    = PatternFill("solid", fgColor="F2F2F2")
 
         row = 1
 
@@ -131,13 +139,17 @@ class ExportService:
             for col_idx, col in enumerate(cols, 1):
                 cell = ws2.cell(row=row, column=col_idx, value=col)
                 cell.font = label_font
-                cell.fill = PatternFill("solid", fgColor="1E1E2E")
+                cell.fill = hdr2_fill
             row += 1
 
         def table_row(*vals: object) -> None:
             nonlocal row
+            is_alt = row % 2 == 0
             for col_idx, val in enumerate(vals, 1):
-                ws2.cell(row=row, column=col_idx, value=val).font = value_font
+                cell = ws2.cell(row=row, column=col_idx, value=val)
+                cell.font = value_font
+                if is_alt:
+                    cell.fill = alt2_fill
             row += 1
 
         # Resumen
@@ -148,6 +160,7 @@ class ExportService:
         table_row("Total artistas", stats.total_artists)
         table_row("Total álbumes", stats.total_albums)
         table_row("Horas de música", f"{hours:.1f} h")
+        table_row("Nacionalidades de artistas", stats.total_countries)
         row += 1
 
         # Géneros
@@ -171,25 +184,11 @@ class ExportService:
             table_row(f, c)
         row += 1
 
-        # Ratings
-        section("Distribución de ratings")
-        table_header("Rating", "Pistas")
-        for i in range(6):
-            table_row(_stars(i), stats.rating_counts.get(i, 0))
-        row += 1
-
         # Top artistas
         section("Top 10 artistas por cantidad de pistas")
         table_header("Artista", "Pistas")
         for artist, count in stats.top_artists:
             table_row(artist, count)
-        row += 1
-
-        # Top pistas
-        section("Top 10 pistas más reproducidas")
-        table_header("Título", "Artista", "Reproducciones")
-        for title, artist, plays in stats.top_tracks:
-            table_row(title, artist, plays)
         row += 1
 
         # Tipo de álbum
@@ -237,18 +236,19 @@ class ExportService:
         # ── Sección 1: Biblioteca ──────────────────────────────────── #
         pdf.add_page()
         pdf.set_font("Helvetica", "B", 14)
-        pdf.set_text_color(226, 226, 240)
+        pdf.set_text_color(0, 0, 0)
         pdf.cell(0, 10, "AudioRep - Biblioteca de pistas", ln=True)
         pdf.set_font("Helvetica", size=7)
-        pdf.set_text_color(136, 136, 170)
+        pdf.set_text_color(80, 80, 80)
         pdf.cell(0, 5, f"{stats.total_tracks} pistas  |  {stats.total_artists} artistas  |  {stats.total_albums} albums  |  {stats.total_duration_ms / 3_600_000:.1f} horas", ln=True)
         pdf.ln(3)
 
         col_w = [8, 52, 32, 36, 10, 20, 14, 12]
         headers = ["#", "Titulo", "Artista", "Album", "Ano", "Genero", "Dur.", "Fmt"]
 
-        pdf.set_fill_color(30, 30, 46)
-        pdf.set_text_color(226, 226, 240)
+        # Cabecera: gris claro con texto negro
+        pdf.set_fill_color(210, 210, 210)
+        pdf.set_text_color(0, 0, 0)
         pdf.set_font("Helvetica", "B", 7)
         for w, h in zip(col_w, headers):
             pdf.cell(w, 5, h, border=1, fill=True)
@@ -257,10 +257,10 @@ class ExportService:
         for i, t in enumerate(tracks, 1):
             is_alt = i % 2 == 0
             if is_alt:
-                pdf.set_fill_color(22, 22, 42)
+                pdf.set_fill_color(242, 242, 242)
             else:
-                pdf.set_fill_color(18, 18, 30)
-            pdf.set_text_color(192, 192, 224)
+                pdf.set_fill_color(255, 255, 255)
+            pdf.set_text_color(30, 30, 30)
             pdf.set_font("Helvetica", size=7)
 
             row_vals = [
@@ -280,18 +280,18 @@ class ExportService:
         # ── Sección 2: Estadísticas ────────────────────────────────── #
         pdf.add_page()
         pdf.set_font("Helvetica", "B", 14)
-        pdf.set_text_color(226, 226, 240)
+        pdf.set_text_color(0, 0, 0)
         pdf.cell(0, 10, "AudioRep - Estadisticas de la biblioteca", ln=True)
         pdf.ln(2)
 
         def _pdf_section(title: str) -> None:
             pdf.set_font("Helvetica", "B", 10)
-            pdf.set_text_color(176, 144, 255)
+            pdf.set_text_color(40, 40, 40)
             pdf.cell(0, 7, title, ln=True)
 
         def _pdf_table(headers_row: list[str], rows: list[tuple], col_widths: list[int]) -> None:
-            pdf.set_fill_color(30, 30, 46)
-            pdf.set_text_color(226, 226, 240)
+            pdf.set_fill_color(210, 210, 210)
+            pdf.set_text_color(0, 0, 0)
             pdf.set_font("Helvetica", "B", 8)
             for h, w in zip(headers_row, col_widths):
                 pdf.cell(w, 5, h, border=1, fill=True)
@@ -299,8 +299,11 @@ class ExportService:
 
             for i, row_data in enumerate(rows):
                 is_alt = i % 2 == 0
-                pdf.set_fill_color(22, 22, 42) if is_alt else pdf.set_fill_color(18, 18, 30)
-                pdf.set_text_color(192, 192, 224)
+                if is_alt:
+                    pdf.set_fill_color(242, 242, 242)
+                else:
+                    pdf.set_fill_color(255, 255, 255)
+                pdf.set_text_color(30, 30, 30)
                 pdf.set_font("Helvetica", size=8)
                 for val, w in zip(row_data, col_widths):
                     pdf.cell(w, 4, str(val)[:24], border="B", fill=True)
@@ -313,10 +316,11 @@ class ExportService:
         _pdf_table(
             ["Indicador", "Valor"],
             [
-                ("Total pistas", stats.total_tracks),
-                ("Total artistas", stats.total_artists),
-                ("Total albums", stats.total_albums),
-                ("Horas de musica", f"{hours:.1f} h"),
+                ("Total pistas",                stats.total_tracks),
+                ("Total artistas",              stats.total_artists),
+                ("Total albums",                stats.total_albums),
+                ("Horas de musica",             f"{hours:.1f} h"),
+                ("Nacionalidades de artistas",  stats.total_countries),
             ],
             [80, 50],
         )
@@ -336,22 +340,9 @@ class ExportService:
         fmt_rows = sorted(stats.format_counts.items(), key=lambda x: x[1], reverse=True)
         _pdf_table(["Formato", "Pistas"], [(f, c) for f, c in fmt_rows], [40, 30])
 
-        # Ratings
-        _pdf_section("Ratings")
-        rating_rows = [(_stars_text(i), stats.rating_counts.get(i, 0)) for i in range(6)]
-        _pdf_table(["Rating", "Pistas"], rating_rows, [50, 30])
-
         # Top artistas
         _pdf_section("Top 10 artistas por pistas")
         _pdf_table(["Artista", "Pistas"], stats.top_artists, [90, 30])
-
-        # Top pistas
-        _pdf_section("Top 10 pistas mas reproducidas")
-        _pdf_table(
-            ["Titulo", "Artista", "Reproducc."],
-            stats.top_tracks,
-            [70, 50, 25],
-        )
 
         # Tipo de album
         if stats.album_type_counts:

@@ -2,6 +2,22 @@
 
 ---
 
+# 0.70 — Estadísticas de nacionalidades y exportaciones mejoradas
+
+**Fecha:** 26 de abril de 2026
+
+### Agregado
+
+- **Total de nacionalidades en estadísticas generales** — nueva tarjeta en la sección Generales del panel de estadísticas que muestra la cantidad de países de origen únicos representados en la biblioteca.
+
+### Modificado
+
+- **Exportación Excel (XLSX) — tabla de biblioteca** — rediseñada con un tema profesional legible: cabecera gris oscuro con texto blanco, filas alternas en blanco y gris claro (#F2F2F2), texto en negro. La versión anterior usaba fondos casi negros que resultaban ilegibles en Excel.
+- **Exportación Excel — hoja de estadísticas** — mismo rediseño visual. Se eliminaron "Top 10 pistas más reproducidas" y "Distribución de ratings". Se agregó "Nacionalidades de artistas" en el resumen general.
+- **Exportación PDF — diseño para impresión** — colores completamente rediseñados para impresión: fondo blanco, filas alternas en gris muy claro, cabeceras en gris claro, todo el texto en negro. Los títulos de sección cambian de violeta a gris oscuro. Se eliminaron las mismas secciones que en el Excel y se agregó la nueva estadística.
+
+---
+
 # 0.69 — Enriquecimiento automático de metadatos de la biblioteca
 
 **Fecha:** 26 de abril de 2026

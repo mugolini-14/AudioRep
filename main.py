@@ -94,7 +94,7 @@ def _maybe_auto_enrich(settings: "AppSettings", enrichment_service: object) -> N
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.69.0")
+    app.setApplicationVersion("0.70.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
