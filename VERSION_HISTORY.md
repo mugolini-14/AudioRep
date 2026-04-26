@@ -2,6 +2,24 @@
 
 ---
 
+# 0.66 — Estadísticas ampliadas por secciones
+
+**Fecha:** 26 de abril de 2026
+
+### Agregado
+- Panel de estadísticas rediseñado con 6 secciones (tabs): Generales, Pistas, Álbumes, Artistas, Géneros y Sellos Discográficos.
+- Sección Generales: tres tarjetas nuevas con el total de géneros únicos, formatos únicos y sellos discográficos únicos en la biblioteca.
+- Sección Pistas: gráficos de barras con distribución de duración (6 rangos: 0–2 min, 2–3 min, 3–4 min, 4–5 min, 5–10 min, +10 min), distribución de formatos y distribución de bitrate (0–96 kbps, 96–128 kbps, 128–256 kbps, 256–320 kbps, ≥320 kbps).
+- Sección Álbumes: gráficos de barras con distribución de pistas por álbum (4 rangos), distribución de duración de álbumes (5 rangos) y décadas de los álbumes.
+- Sección Artistas: gráfico de barras horizontal con top 10 artistas por cantidad de pistas. Se corrigió la visualización del nombre completo del artista en el eje.
+- Sección Géneros: mantiene la torta de distribución y agrega un gráfico de barras horizontal con el top 10 de géneros.
+- Sección Sellos: gráfico de barras horizontal con el top 10 de sellos discográficos por cantidad de pistas.
+
+### Eliminado
+- Gráfico de distribución de ratings: removido del panel de estadísticas por no ser relevante para el análisis de la biblioteca.
+
+---
+
 # 0.65 — Estadísticas de biblioteca y exportación
 
 **Fecha:** 25 de abril de 2026

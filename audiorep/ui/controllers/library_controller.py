@@ -111,7 +111,8 @@ class LibraryController:
 
     def _on_stats_requested(self) -> None:
         tracks = self._library.get_all_tracks()
-        self._stats_service.compute(tracks)
+        albums = self._library.get_all_albums()
+        self._stats_service.compute(tracks, albums)
         app_events.status_message.emit("Calculando estadísticas…")
 
     def _on_stats_ready(self, stats: LibraryStats) -> None:
@@ -161,7 +162,8 @@ class LibraryController:
         """Devuelve estadísticas cacheadas o las calcula sincrónicamente."""
         if self._last_stats is not None:
             return self._last_stats
-        stats = compute_stats(tracks)
+        albums = self._library.get_all_albums()
+        stats = compute_stats(tracks, albums)
         self._last_stats = stats
         return stats
 

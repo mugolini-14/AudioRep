@@ -21,6 +21,7 @@ from audiorep.core.interfaces import (
     ILibraryScanner,
     ITrackRepository,
 )
+from audiorep.domain.album import Album
 from audiorep.domain.track import Track
 
 logger = logging.getLogger(__name__)
@@ -189,6 +190,9 @@ class LibraryService(QObject):
 
     def get_all_tracks(self) -> list[Track]:
         return self._track_repo.get_all()
+
+    def get_all_albums(self) -> list[Album]:
+        return self._album_repo.get_all()
 
     def search_tracks(self, query: str) -> list[Track]:
         return self._track_repo.search(query)

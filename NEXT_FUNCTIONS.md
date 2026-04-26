@@ -45,9 +45,54 @@ Los cambios en el spec no afectan el código fuente, pero sí requieren un rebui
 
 ---
 
+## Estadísticas ampliadas — ítems pendientes por falta de datos en el dominio
+
+Identificados durante v0.66. Las siguientes secciones fueron solicitadas pero no pueden implementarse sin cambios previos en el dominio y la infraestructura:
+
+### Tipo de álbum (Estudio / EP / Single / Compilación / Box Set)
+
+**Dónde iría:** tab Álbumes → gráfico de barras.
+
+**Por qué no está:** el campo `release_type` no existe en la entidad `Album`. MusicBrainz lo provee en el campo `release-group/primary-type` pero actualmente no se persiste en la base de datos.
+
+**Lo que requiere:**
+1. Agregar el campo `release_type: str` a `audiorep/domain/album.py`.
+2. Persistirlo en `infrastructure/database/repositories/album_repository.py` (columna `release_type` en la tabla `albums`; migración de schema).
+3. Almacenarlo al identificar metadatos en `infrastructure/api/musicbrainz_client.py`.
+
+---
+
+### Nacionalidad de artistas
+
+**Dónde iría:** tab Artistas → gráfico de barras "Top 10 países de origen".
+
+**Por qué no está:** la entidad `Artist` no tiene un campo de país/nacionalidad. MusicBrainz provee `area/name` para el artista, pero no se consulta ni persiste.
+
+**Lo que requiere:**
+1. Agregar `country: str` a `audiorep/domain/artist.py`.
+2. Persistirlo en `infrastructure/database/repositories/artist_repository.py`.
+3. Consultarlo y almacenarlo desde `infrastructure/api/musicbrainz_client.py` al identificar artistas.
+
+---
+
+### Nacionalidad de sellos discográficos
+
+**Dónde iría:** tab Sellos → gráfico de barras "Top 10 países de origen de sellos".
+
+**Por qué no está:** los sellos son solo un `str` en `Album.label`. No hay entidad `Label` en el dominio, ni repositorio, ni metadatos de país asociados.
+
+**Lo que requiere:**
+1. Crear entidad `Label` con `name: str` y `country: str`.
+2. Crear `ILabelRepository` y su implementación SQLite.
+3. Poblar la entidad desde MusicBrainz al identificar releases (campo `label-info/label/country`).
+
+---
+
 ## Pantalla de estadísticas de la biblioteca
 
 ✅ **Implementado en v0.65** — Panel de estadísticas con gráficos interactivos (PyQt6-Charts): tortas de géneros y formatos, barras de décadas y ratings, top 10 artistas y pistas. Botón "Estadísticas" en la toolbar de la biblioteca alterna entre la vista de pistas y el panel de gráficos.
+
+✅ **Ampliado en v0.66** — Rediseño con 6 tabs (Generales, Pistas, Álbumes, Artistas, Géneros, Sellos). Nuevas tarjetas: géneros únicos, formatos únicos, sellos únicos. Nuevos gráficos: distribución de duración, bitrate y formato de pistas; distribución de álbumes por cantidad de pistas, duración y décadas; top 10 géneros en barras; top 10 sellos. Se eliminó el gráfico de ratings.
 
 **Descripción original:**
 Una pantalla accesible desde un botón en la Biblioteca que muestra estadísticas visuales del contenido musical del usuario: totales, distribuciones por género, por década, por formato, artistas con más pistas, canciones más reproducidas, y más. Los datos se presentan con gráficos de barras y/o torta según el tipo de información.

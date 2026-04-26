@@ -494,6 +494,22 @@ QChartView#statsChartView {
     border-radius: 6px;
 }
 
+/* Tabs internas del panel de estadísticas */
+QTabWidget#statsTabs::pane {
+    background-color: #12121e;
+    border: none;
+}
+
+QTabWidget#statsTabs > QTabBar {
+    alignment: left;
+}
+
+QTabWidget#statsTabs > QTabBar::tab {
+    font-size: 12px;
+    padding: 6px 16px;
+    min-width: 70px;
+}
+
 QLineEdit#searchBox {
     background-color: #2a2a3e;
     color: #e2e2f0;

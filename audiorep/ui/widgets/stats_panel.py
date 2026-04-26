@@ -1,15 +1,12 @@
 """
 StatsPanel — Panel de estadísticas de la biblioteca musical.
 
-Muestra gráficos y tarjetas de resumen calculados por StatsService.
+Muestra gráficos y tarjetas de resumen calculados por StatsService,
+organizados en 6 tabs: Generales, Pistas, Álbumes, Artistas, Géneros, Sellos.
 
 objectNames alineados con dark.qss:
-    statsPanel, statsSummaryRow, statsSummaryCard,
-    statsSectionLabel, statsChartView
-
-Modos:
-    show_loading()           — muestra indicador de carga.
-    load(stats: LibraryStats) — puebla y muestra los gráficos.
+    statsPanel, statsScrollContent, statsSummaryCard,
+    statsCardValue, statsCardLabel, statsSectionLabel, statsChartView, statsTabs
 """
 from __future__ import annotations
 
@@ -22,6 +19,7 @@ from PyQt6.QtWidgets import (
     QScrollArea,
     QSizePolicy,
     QStackedWidget,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -90,7 +88,9 @@ def _chart_view(chart: QChart, min_height: int = 260) -> QChartView:
     view.setRenderHint(view.renderHints().__class__.Antialiasing)
     view.setMinimumHeight(min_height)
     view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-    view.setStyleSheet("background-color: #1e1e2e; border: 1px solid #33334a; border-radius: 6px;")
+    view.setStyleSheet(
+        "background-color: #1e1e2e; border: 1px solid #33334a; border-radius: 6px;"
+    )
     return view
 
 
@@ -134,7 +134,7 @@ def make_pie_chart(title: str, data: dict[str, int]) -> QChartView:
             slc.setLabelFont(_FONT_LABEL)
 
     chart.addSeries(series)
-    return _chart_view(chart, 270)
+    return _chart_view(chart, 280)
 
 
 def make_bar_chart(title: str, categories: list[str], values: list[int]) -> QChartView:
@@ -167,7 +167,13 @@ def make_bar_chart(title: str, categories: list[str], values: list[int]) -> QCha
     return _chart_view(chart, 260)
 
 
-def make_hbar_chart(title: str, labels: list[str], values: list[int]) -> QChartView:
+def make_hbar_chart(
+    title: str,
+    labels: list[str],
+    values: list[int],
+    min_height: int = 320,
+    left_margin: int = 140,
+) -> QChartView:
     bar_set = QBarSet("")
     bar_set.setColor(_ACCENT)
     bar_set.setBorderColor(_ACCENT_DIM)
@@ -178,6 +184,8 @@ def make_hbar_chart(title: str, labels: list[str], values: list[int]) -> QChartV
     series.append(bar_set)
 
     chart = _base_chart(title)
+    # Margen izquierdo amplio para que se lean los nombres completos
+    chart.setMargins(chart.margins().__class__(left_margin, 8, 8, 8))
     chart.addSeries(series)
 
     axis_y = QBarCategoryAxis()
@@ -194,7 +202,256 @@ def make_hbar_chart(title: str, labels: list[str], values: list[int]) -> QChartV
     series.attachAxis(axis_y)
     series.attachAxis(axis_x)
 
-    return _chart_view(chart, 300)
+    return _chart_view(chart, min_height)
+
+
+# ---------------------------------------------------------------------------
+# Helpers de layout
+# ---------------------------------------------------------------------------
+
+def _scroll_tab() -> tuple[QScrollArea, QVBoxLayout]:
+    """Retorna (scroll_area, layout_del_contenedor_interno)."""
+    scroll = QScrollArea()
+    scroll.setWidgetResizable(True)
+    scroll.setFrameShape(QFrame.Shape.NoFrame)
+    scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+    container = QWidget()
+    container.setObjectName("statsScrollContent")
+    layout = QVBoxLayout(container)
+    layout.setContentsMargins(16, 16, 16, 16)
+    layout.setSpacing(16)
+    scroll.setWidget(container)
+    return scroll, layout
+
+
+def _section_label(text: str) -> QLabel:
+    lbl = QLabel(text)
+    lbl.setObjectName("statsSectionLabel")
+    return lbl
+
+
+def _chart_row(*views: QChartView) -> QHBoxLayout:
+    row = QHBoxLayout()
+    row.setSpacing(12)
+    for v in views:
+        row.addWidget(v)
+    return row
+
+
+def _make_card(value: str, label: str) -> QWidget:
+    card = QFrame()
+    card.setObjectName("statsSummaryCard")
+    v = QVBoxLayout(card)
+    v.setContentsMargins(12, 14, 12, 14)
+    v.setSpacing(4)
+
+    val_lbl = QLabel(value)
+    val_lbl.setObjectName("statsCardValue")
+    val_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+    lbl_lbl = QLabel(label)
+    lbl_lbl.setObjectName("statsCardLabel")
+    lbl_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+    v.addWidget(val_lbl)
+    v.addWidget(lbl_lbl)
+    return card
+
+
+# ---------------------------------------------------------------------------
+# Construcción de cada tab
+# ---------------------------------------------------------------------------
+
+def _build_tab_general(stats: LibraryStats) -> QWidget:
+    scroll, layout = _scroll_tab()
+
+    hours = stats.total_duration_ms / 3_600_000
+    cards = [
+        (str(stats.total_tracks),   "pistas"),
+        (str(stats.total_artists),  "artistas"),
+        (str(stats.total_albums),   "álbumes"),
+        (f"{hours:.1f}",            "horas"),
+        (str(stats.total_genres),   "géneros"),
+        (str(stats.total_formats),  "formatos"),
+        (str(stats.total_labels),   "sellos"),
+    ]
+
+    # Primera fila: 4 tarjetas principales
+    row1 = QWidget()
+    h1 = QHBoxLayout(row1)
+    h1.setContentsMargins(0, 0, 0, 0)
+    h1.setSpacing(12)
+    for value, label in cards[:4]:
+        h1.addWidget(_make_card(value, label), stretch=1)
+    layout.addWidget(row1)
+
+    # Segunda fila: 3 tarjetas adicionales
+    row2 = QWidget()
+    h2 = QHBoxLayout(row2)
+    h2.setContentsMargins(0, 0, 0, 0)
+    h2.setSpacing(12)
+    for value, label in cards[4:]:
+        h2.addWidget(_make_card(value, label), stretch=1)
+    h2.addStretch(1)  # ocupa el espacio del 4to lugar vacío
+    layout.addWidget(row2)
+
+    layout.addStretch(1)
+    return scroll
+
+
+def _build_tab_tracks(stats: LibraryStats, charts: bool) -> QWidget:
+    scroll, layout = _scroll_tab()
+
+    if not charts:
+        layout.addWidget(_no_charts_note())
+        layout.addStretch(1)
+        return scroll
+
+    # Duración de pistas
+    if any(stats.track_duration_dist.values()):
+        cats = list(stats.track_duration_dist.keys())
+        vals = list(stats.track_duration_dist.values())
+        layout.addWidget(make_bar_chart("Duración de pistas", cats, vals))
+
+    # Formatos de pistas
+    if stats.track_format_dist:
+        cats = list(stats.track_format_dist.keys())
+        vals = list(stats.track_format_dist.values())
+        layout.addWidget(make_bar_chart("Formatos de pistas", cats, vals))
+
+    # BitRate de pistas
+    if any(stats.track_bitrate_dist.values()):
+        cats = list(stats.track_bitrate_dist.keys())
+        vals = list(stats.track_bitrate_dist.values())
+        layout.addWidget(make_bar_chart("BitRate de pistas", cats, vals))
+
+    # Top 10 pistas más reproducidas
+    max_plays = max((t[2] for t in stats.top_tracks), default=0)
+    if stats.top_tracks and max_plays > 0:
+        tracks_rev = list(reversed(stats.top_tracks))
+        t_labels = [f"{t[0][:20]} — {t[1][:14]}" for t in tracks_rev]
+        t_vals   = [t[2] for t in tracks_rev]
+        layout.addWidget(_section_label("Top 10 pistas más reproducidas"))
+        layout.addWidget(make_hbar_chart("", t_labels, t_vals))
+
+    layout.addStretch(1)
+    return scroll
+
+
+def _build_tab_albums(stats: LibraryStats, charts: bool) -> QWidget:
+    scroll, layout = _scroll_tab()
+
+    if not charts:
+        layout.addWidget(_no_charts_note())
+        layout.addStretch(1)
+        return scroll
+
+    # Cantidad de pistas por álbum
+    if any(stats.album_track_count_dist.values()):
+        cats = list(stats.album_track_count_dist.keys())
+        vals = list(stats.album_track_count_dist.values())
+        layout.addWidget(make_bar_chart("Pistas por álbum", cats, vals))
+
+    # Duración de álbumes
+    if any(stats.album_duration_dist.values()):
+        cats = list(stats.album_duration_dist.keys())
+        vals = list(stats.album_duration_dist.values())
+        layout.addWidget(make_bar_chart("Duración de álbumes", cats, vals))
+
+    # Décadas de álbumes
+    if stats.album_decade_counts:
+        decades_clean = {k: v for k, v in stats.album_decade_counts.items() if k != "Sin año"}
+        if decades_clean:
+            keys = sorted(decades_clean.keys())
+            layout.addWidget(
+                make_bar_chart("Décadas", keys, [decades_clean[k] for k in keys])
+            )
+
+    layout.addStretch(1)
+    return scroll
+
+
+def _build_tab_artists(stats: LibraryStats, charts: bool) -> QWidget:
+    scroll, layout = _scroll_tab()
+
+    if not charts:
+        layout.addWidget(_no_charts_note())
+        layout.addStretch(1)
+        return scroll
+
+    # Top 10 artistas por cantidad de pistas
+    if stats.top_artists:
+        artists_rev = list(reversed(stats.top_artists))
+        a_labels = [a[0] for a in artists_rev]  # nombre completo (sin truncar)
+        a_vals   = [a[1] for a in artists_rev]
+        layout.addWidget(_section_label("Top 10 artistas por cantidad de pistas"))
+        layout.addWidget(make_hbar_chart("", a_labels, a_vals, min_height=360, left_margin=160))
+
+    layout.addStretch(1)
+    return scroll
+
+
+def _build_tab_genres(stats: LibraryStats, charts: bool) -> QWidget:
+    scroll, layout = _scroll_tab()
+
+    if not charts:
+        layout.addWidget(_no_charts_note())
+        layout.addStretch(1)
+        return scroll
+
+    # Torta de géneros (top 8 + Otros)
+    if stats.genre_counts:
+        layout.addWidget(make_pie_chart("Distribución de géneros", stats.genre_counts))
+
+    # Top 10 géneros (barras)
+    if stats.top_genres_bar:
+        genres_rev = list(reversed(stats.top_genres_bar))
+        g_labels = [g[0] for g in genres_rev]
+        g_vals   = [g[1] for g in genres_rev]
+        layout.addWidget(_section_label("Top 10 géneros por cantidad de pistas"))
+        layout.addWidget(make_hbar_chart("", g_labels, g_vals, min_height=320, left_margin=160))
+
+    layout.addStretch(1)
+    return scroll
+
+
+def _build_tab_labels(stats: LibraryStats, charts: bool) -> QWidget:
+    scroll, layout = _scroll_tab()
+
+    if not charts:
+        layout.addWidget(_no_charts_note())
+        layout.addStretch(1)
+        return scroll
+
+    if stats.top_labels:
+        labels_rev = list(reversed(stats.top_labels))
+        l_labels = [l[0] for l in labels_rev]
+        l_vals   = [l[1] for l in labels_rev]
+        layout.addWidget(_section_label("Top 10 sellos discográficos por cantidad de pistas"))
+        layout.addWidget(make_hbar_chart("", l_labels, l_vals, min_height=320, left_margin=160))
+    else:
+        note = QLabel(
+            "No hay información de sellos disponible.\n"
+            "Los sellos se toman de los tags de los álbumes importados."
+        )
+        note.setObjectName("statsSectionLabel")
+        note.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        note.setWordWrap(True)
+        layout.addWidget(note)
+
+    layout.addStretch(1)
+    return scroll
+
+
+def _no_charts_note() -> QLabel:
+    note = QLabel(
+        "PyQt6-Charts no está instalado. Instale 'PyQt6-Charts' para ver gráficos."
+    )
+    note.setObjectName("statsSectionLabel")
+    note.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    note.setWordWrap(True)
+    return note
 
 
 # ---------------------------------------------------------------------------
@@ -202,7 +459,7 @@ def make_hbar_chart(title: str, labels: list[str], values: list[int]) -> QChartV
 # ---------------------------------------------------------------------------
 
 class StatsPanel(QWidget):
-    """Panel de estadísticas con tarjetas de resumen y gráficos."""
+    """Panel de estadísticas con 6 tabs: Generales, Pistas, Álbumes, Artistas, Géneros, Sellos."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -225,7 +482,7 @@ class StatsPanel(QWidget):
         self._stack.addWidget(self._make_loading_page())
 
         # Página 1: contenido (se construye al recibir datos)
-        self._content_page = QWidget()
+        self._content_page: QWidget = QWidget()
         self._stack.addWidget(self._content_page)
 
     def _make_loading_page(self) -> QWidget:
@@ -247,7 +504,6 @@ class StatsPanel(QWidget):
 
     def load(self, stats: LibraryStats) -> None:
         """Puebla el panel con los datos de stats y lo muestra."""
-        # Reconstruir la página de contenido
         old = self._content_page
         self._stack.removeWidget(old)
         old.deleteLater()
@@ -261,129 +517,16 @@ class StatsPanel(QWidget):
     # ------------------------------------------------------------------
 
     def _build_content(self, stats: LibraryStats) -> QWidget:
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        tabs = QTabWidget()
+        tabs.setObjectName("statsTabs")
 
-        container = QWidget()
-        container.setObjectName("statsScrollContent")
-        layout = QVBoxLayout(container)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(16)
+        charts = _CHARTS_AVAILABLE
 
-        # ── Tarjetas de resumen ──────────────────────────────────── #
-        layout.addWidget(self._make_summary_row(stats))
+        tabs.addTab(_build_tab_general(stats),            "Generales")
+        tabs.addTab(_build_tab_tracks(stats, charts),     "Pistas")
+        tabs.addTab(_build_tab_albums(stats, charts),     "Álbumes")
+        tabs.addTab(_build_tab_artists(stats, charts),    "Artistas")
+        tabs.addTab(_build_tab_genres(stats, charts),     "Géneros")
+        tabs.addTab(_build_tab_labels(stats, charts),     "Sellos")
 
-        if _CHARTS_AVAILABLE:
-            self._add_charts(layout, stats)
-        else:
-            self._add_fallback_tables(layout, stats)
-
-        layout.addStretch(1)
-        scroll.setWidget(container)
-        return scroll
-
-    def _make_summary_row(self, stats: LibraryStats) -> QWidget:
-        row = QWidget()
-        row.setObjectName("statsSummaryRow")
-        h = QHBoxLayout(row)
-        h.setContentsMargins(0, 0, 0, 0)
-        h.setSpacing(12)
-
-        hours = stats.total_duration_ms / 3_600_000
-        cards = [
-            (str(stats.total_tracks), "pistas"),
-            (str(stats.total_artists), "artistas"),
-            (str(stats.total_albums), "álbumes"),
-            (f"{hours:.1f}", "horas"),
-        ]
-        for value, label in cards:
-            h.addWidget(self._make_card(value, label), stretch=1)
-        return row
-
-    def _make_card(self, value: str, label: str) -> QWidget:
-        card = QFrame()
-        card.setObjectName("statsSummaryCard")
-        v = QVBoxLayout(card)
-        v.setContentsMargins(12, 14, 12, 14)
-        v.setSpacing(4)
-
-        val_lbl = QLabel(value)
-        val_lbl.setObjectName("statsCardValue")
-        val_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        lbl_lbl = QLabel(label)
-        lbl_lbl.setObjectName("statsCardLabel")
-        lbl_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        v.addWidget(val_lbl)
-        v.addWidget(lbl_lbl)
-        return card
-
-    def _add_charts(self, layout: QVBoxLayout, stats: LibraryStats) -> None:
-        """Agrega todos los gráficos al layout."""
-
-        # Fila 1: géneros (torta) + décadas (barras)
-        row1 = QHBoxLayout()
-        row1.setSpacing(12)
-
-        if stats.genre_counts:
-            row1.addWidget(make_pie_chart("Géneros", stats.genre_counts))
-
-        if stats.decade_counts:
-            decades_clean = {k: v for k, v in stats.decade_counts.items() if k != "Sin año"}
-            if decades_clean:
-                keys = sorted(decades_clean.keys())
-                row1.addWidget(make_bar_chart("Décadas", keys, [decades_clean[k] for k in keys]))
-
-        if row1.count():
-            layout.addLayout(row1)
-
-        # Fila 2: formatos (torta) + ratings (barras)
-        row2 = QHBoxLayout()
-        row2.setSpacing(12)
-
-        if stats.format_counts:
-            row2.addWidget(make_pie_chart("Formatos", stats.format_counts))
-
-        rating_labels = ["Sin rating", "★", "★★", "★★★", "★★★★", "★★★★★"]
-        rating_vals   = [stats.rating_counts.get(i, 0) for i in range(6)]
-        if any(rating_vals):
-            row2.addWidget(make_bar_chart("Ratings", rating_labels, rating_vals))
-
-        if row2.count():
-            layout.addLayout(row2)
-
-        # Fila 3: top artistas (barras horizontales)
-        if stats.top_artists:
-            artists_rev = list(reversed(stats.top_artists))
-            a_labels = [a[0][:22] for a in artists_rev]
-            a_vals   = [a[1] for a in artists_rev]
-            self._add_section_label(layout, "Top 10 artistas por cantidad de pistas")
-            layout.addWidget(make_hbar_chart("", a_labels, a_vals))
-
-        # Fila 4: top pistas (solo si hay alguna reproducida)
-        max_plays = max((t[2] for t in stats.top_tracks), default=0)
-        if stats.top_tracks and max_plays > 0:
-            tracks_rev = list(reversed(stats.top_tracks))
-            t_labels = [f"{t[0][:18]} — {t[1][:12]}" for t in tracks_rev]
-            t_vals   = [t[2] for t in tracks_rev]
-            self._add_section_label(layout, "Top 10 pistas más reproducidas")
-            layout.addWidget(make_hbar_chart("", t_labels, t_vals))
-
-    def _add_section_label(self, layout: QVBoxLayout, text: str) -> None:
-        lbl = QLabel(text)
-        lbl.setObjectName("statsSectionLabel")
-        layout.addWidget(lbl)
-
-    def _add_fallback_tables(self, layout: QVBoxLayout, stats: LibraryStats) -> None:
-        """Tabla de texto simple cuando PyQt6-Charts no está disponible."""
-        note = QLabel(
-            "PyQt6-Charts no está instalado. Instale 'PyQt6-Charts' para ver gráficos.\n\n"
-            "Estadísticas numéricas disponibles en la exportación XLSX."
-        )
-        note.setObjectName("statsSectionLabel")
-        note.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        note.setWordWrap(True)
-        layout.addWidget(note)
+        return tabs
