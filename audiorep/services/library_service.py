@@ -18,10 +18,12 @@ from audiorep.core.interfaces import (
     IAlbumRepository,
     IArtistRepository,
     IFileTagger,
+    ILabelRepository,
     ILibraryScanner,
     ITrackRepository,
 )
 from audiorep.domain.album import Album
+from audiorep.domain.artist import Artist
 from audiorep.domain.track import Track
 
 logger = logging.getLogger(__name__)
@@ -145,12 +147,14 @@ class LibraryService(QObject):
         album_repo:  IAlbumRepository,
         scanner:     ILibraryScanner,
         tagger:      IFileTagger,
+        label_repo:  ILabelRepository | None = None,
         parent:      QObject | None = None,
     ) -> None:
         super().__init__(parent)
         self._track_repo  = track_repo
         self._artist_repo = artist_repo
         self._album_repo  = album_repo
+        self._label_repo  = label_repo
         self._scanner     = scanner
         self._tagger      = tagger
         self._worker: _ScanWorker | None = None
@@ -194,8 +198,57 @@ class LibraryService(QObject):
     def get_all_albums(self) -> list[Album]:
         return self._album_repo.get_all()
 
+    def get_all_artists(self) -> list[Artist]:
+        return self._artist_repo.get_all()
+
+    def get_label_country_map(self) -> dict[str, str]:
+        """Retorna {nombre_sello: país} para todos los sellos con país conocido."""
+        if self._label_repo is None:
+            return {}
+        return self._label_repo.get_country_map()
+
     def search_tracks(self, query: str) -> list[Track]:
         return self._track_repo.search(query)
+
+    # ------------------------------------------------------------------
+    # Enriquecimiento de metadatos desde identificación MB
+    # ------------------------------------------------------------------
+
+    def enrich_from_cd_disc(self, disc_data: dict) -> None:
+        """
+        Actualiza Album.release_type, Artist.country y Label.country
+        usando los datos de un disco identificado por MusicBrainz.
+
+        disc_data keys: album, artist, artist_country, label, label_country, release_type
+        """
+        album_title    = disc_data.get("album", "")
+        artist_name    = disc_data.get("artist", "")
+        artist_country = disc_data.get("artist_country", "")
+        label_name     = disc_data.get("label", "")
+        label_country  = disc_data.get("label_country", "")
+        release_type   = disc_data.get("release_type", "")
+
+        if release_type and album_title and artist_name:
+            try:
+                self._album_repo.update_release_type(  # type: ignore[attr-defined]
+                    album_title, artist_name, release_type
+                )
+            except Exception:
+                pass
+
+        if artist_country and artist_name:
+            try:
+                self._artist_repo.update_country(  # type: ignore[attr-defined]
+                    artist_name, artist_country
+                )
+            except Exception:
+                pass
+
+        if label_name and label_country and self._label_repo is not None:
+            try:
+                self._label_repo.upsert_country(label_name, label_country)
+            except Exception:
+                pass
 
     def get_recently_added(self, limit: int = 50) -> list[Track]:
         return self._track_repo.get_recently_added(limit)

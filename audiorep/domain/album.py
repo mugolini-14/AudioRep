@@ -20,6 +20,7 @@ class Album:
     cover_path:     str | None      = None
     total_tracks:   int             = 0
     total_discs:    int             = 1
+    release_type:   str             = ""   # "Album", "Single", "EP", "Compilation", etc.
     id:             int | None      = None
 
     def __str__(self) -> str:

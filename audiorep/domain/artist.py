@@ -12,6 +12,7 @@ class Artist:
     sort_name:      str             = ""
     musicbrainz_id: str | None      = None
     genres:         list[str]       = field(default_factory=list)
+    country:        str             = ""   # Código ISO o nombre de país/área
     id:             int | None      = None
 
     def __str__(self) -> str:

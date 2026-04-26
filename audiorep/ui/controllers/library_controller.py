@@ -86,6 +86,7 @@ class LibraryController:
         app_events.scan_progress.connect(
             lambda p, t: self._panel.set_scan_progress(p, t)
         )
+        app_events.cd_identified.connect(self._on_cd_identified)
 
     # ------------------------------------------------------------------
     # Handlers
@@ -110,9 +111,11 @@ class LibraryController:
         self._panel.set_tracks(tracks)
 
     def _on_stats_requested(self) -> None:
-        tracks = self._library.get_all_tracks()
-        albums = self._library.get_all_albums()
-        self._stats_service.compute(tracks, albums)
+        tracks            = self._library.get_all_tracks()
+        albums            = self._library.get_all_albums()
+        artists           = self._library.get_all_artists()
+        label_country_map = self._library.get_label_country_map()
+        self._stats_service.compute(tracks, albums, artists, label_country_map)
         app_events.status_message.emit("Calculando estadísticas…")
 
     def _on_stats_ready(self, stats: LibraryStats) -> None:
@@ -158,12 +161,32 @@ class LibraryController:
                 f"No se pudo exportar la biblioteca:\n{exc}",
             )
 
+    def _on_cd_identified(self, disc: object) -> None:
+        """Enriquece la biblioteca con los metadatos del disco identificado."""
+        try:
+            from audiorep.domain.cd_disc import CDDisc
+            if not isinstance(disc, CDDisc):
+                return
+            disc_data = {
+                "album":          disc.album_title,
+                "artist":         disc.artist_name,
+                "artist_country": disc.artist_country,
+                "label":          disc.label,
+                "label_country":  disc.label_country,
+                "release_type":   disc.release_type,
+            }
+            self._library.enrich_from_cd_disc(disc_data)
+        except Exception as exc:
+            logger.debug("enrich_from_cd_disc: %s", exc)
+
     def _get_or_compute_stats(self, tracks: list[Track]) -> LibraryStats:
         """Devuelve estadísticas cacheadas o las calcula sincrónicamente."""
         if self._last_stats is not None:
             return self._last_stats
-        albums = self._library.get_all_albums()
-        stats = compute_stats(tracks, albums)
+        albums            = self._library.get_all_albums()
+        artists           = self._library.get_all_artists()
+        label_country_map = self._library.get_label_country_map()
+        stats = compute_stats(tracks, albums, artists, label_country_map)
         self._last_stats = stats
         return stats
 

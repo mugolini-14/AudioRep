@@ -4,6 +4,7 @@ from audiorep.infrastructure.database.repositories.album_repository import Album
 from audiorep.infrastructure.database.repositories.track_repository import TrackRepository
 from audiorep.infrastructure.database.repositories.playlist_repository import PlaylistRepository
 from audiorep.infrastructure.database.repositories.radio_station_repository import RadioStationRepository
+from audiorep.infrastructure.database.repositories.label_repository import LabelRepository
 
 __all__ = [
     "ArtistRepository",
@@ -11,4 +12,5 @@ __all__ = [
     "TrackRepository",
     "PlaylistRepository",
     "RadioStationRepository",
+    "LabelRepository",
 ]

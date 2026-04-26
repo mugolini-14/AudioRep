@@ -69,7 +69,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.66.0")
+    app.setApplicationVersion("0.67.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
@@ -86,16 +86,18 @@ def main() -> None:
     from audiorep.infrastructure.database.repositories.track_repository import TrackRepository
     from audiorep.infrastructure.database.repositories.playlist_repository import PlaylistRepository
     from audiorep.infrastructure.database.repositories.radio_station_repository import RadioStationRepository
+    from audiorep.infrastructure.database.repositories.label_repository import LabelRepository
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     db = DatabaseConnection(DB_PATH)
     db.connect()
 
-    artist_repo       = ArtistRepository(db)
-    album_repo        = AlbumRepository(db)
-    track_repo        = TrackRepository(db)
-    playlist_repo     = PlaylistRepository(db)
+    artist_repo        = ArtistRepository(db)
+    album_repo         = AlbumRepository(db)
+    track_repo         = TrackRepository(db)
+    playlist_repo      = PlaylistRepository(db)
     radio_station_repo = RadioStationRepository(db)
+    label_repo         = LabelRepository(db)
 
     logger.info("Base de datos lista en: %s", DB_PATH)
 
@@ -149,6 +151,7 @@ def main() -> None:
         album_repo=album_repo,
         scanner=scanner,
         tagger=tagger,
+        label_repo=label_repo,
     )
     logger.info("LibraryService listo.")
 

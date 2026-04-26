@@ -46,23 +46,32 @@ class ArtistRepository(BaseRepository):
     def _insert(self, artist: Artist) -> Artist:
         import json
         cur = self._execute(
-            "INSERT INTO artists (name, sort_name, musicbrainz_id, genres) VALUES (?,?,?,?)",
+            "INSERT INTO artists (name, sort_name, musicbrainz_id, genres, country) VALUES (?,?,?,?,?)",
             (artist.name, artist.sort_name or artist.name,
-             artist.musicbrainz_id, json.dumps(artist.genres)),
+             artist.musicbrainz_id, json.dumps(artist.genres), artist.country),
         )
         self._commit()
         return Artist(id=cur.lastrowid, name=artist.name, sort_name=artist.sort_name,
-                      musicbrainz_id=artist.musicbrainz_id, genres=artist.genres)
+                      musicbrainz_id=artist.musicbrainz_id, genres=artist.genres,
+                      country=artist.country)
 
     def _update(self, artist: Artist) -> Artist:
         import json
         self._execute(
-            "UPDATE artists SET name=?, sort_name=?, musicbrainz_id=?, genres=? WHERE id=?",
+            "UPDATE artists SET name=?, sort_name=?, musicbrainz_id=?, genres=?, country=? WHERE id=?",
             (artist.name, artist.sort_name or artist.name,
-             artist.musicbrainz_id, json.dumps(artist.genres), artist.id),
+             artist.musicbrainz_id, json.dumps(artist.genres), artist.country, artist.id),
         )
         self._commit()
         return artist
+
+    def update_country(self, name: str, country: str) -> None:
+        """Actualiza el país del artista si aún no tiene uno asignado."""
+        self._execute(
+            "UPDATE artists SET country=? WHERE name=? AND country=''",
+            (country, name),
+        )
+        self._commit()
 
     @staticmethod
     def _row_to_artist(row) -> Artist:
@@ -71,5 +80,10 @@ class ArtistRepository(BaseRepository):
             genres = json.loads(row["genres"] or "[]")
         except Exception:
             genres = []
+        country = ""
+        try:
+            country = row["country"] or ""
+        except (IndexError, KeyError):
+            pass
         return Artist(id=row["id"], name=row["name"], sort_name=row["sort_name"] or "",
-                      musicbrainz_id=row["musicbrainz_id"], genres=genres)
+                      musicbrainz_id=row["musicbrainz_id"], genres=genres, country=country)

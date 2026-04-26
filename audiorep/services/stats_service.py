@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
 from audiorep.domain.album import Album
+from audiorep.domain.artist import Artist
 from audiorep.domain.track import Track
 
 
@@ -113,16 +114,19 @@ class LibraryStats:
     album_track_count_dist: dict[str, int]        = field(default_factory=dict)
     album_duration_dist:    dict[str, int]        = field(default_factory=dict)
     album_decade_counts:    dict[str, int]        = field(default_factory=dict)
+    album_type_counts:      dict[str, int]        = field(default_factory=dict)  # tipo → cant.
 
     # ── Artistas ───────────────────────────────────────────────────────── #
-    top_artists: list[tuple[str, int]]            = field(default_factory=list)
+    top_artists:          list[tuple[str, int]]   = field(default_factory=list)
+    artist_country_counts: dict[str, int]         = field(default_factory=dict)  # país → cant.
 
     # ── Géneros ────────────────────────────────────────────────────────── #
     genre_counts:    dict[str, int]               = field(default_factory=dict)  # top8+Otros (pie)
     top_genres_bar:  list[tuple[str, int]]        = field(default_factory=list)  # top10 (barras)
 
     # ── Sellos ─────────────────────────────────────────────────────────── #
-    top_labels: list[tuple[str, int]]             = field(default_factory=list)
+    top_labels:           list[tuple[str, int]]   = field(default_factory=list)
+    label_country_counts: dict[str, int]          = field(default_factory=dict)  # país → cant.
 
     # ── Compatibilidad con exportación (no mostrar en UI) ──────────────── #
     decade_counts:  dict[str, int]                = field(default_factory=dict)
@@ -134,21 +138,28 @@ class LibraryStats:
 # Función pura de cómputo (sin UI, sin threading)
 # ---------------------------------------------------------------------------
 
-def compute_stats(tracks: list[Track], albums: list[Album] | None = None) -> LibraryStats:
-    """Calcula LibraryStats a partir de listas de pistas y álbumes."""
+def compute_stats(
+    tracks: list[Track],
+    albums: list[Album] | None = None,
+    artists: list[Artist] | None = None,
+    label_country_map: dict[str, str] | None = None,
+) -> LibraryStats:
+    """Calcula LibraryStats a partir de listas de pistas, álbumes y artistas."""
     if not tracks:
         return LibraryStats()
 
     albums = albums or []
+    artists = artists or []
+    label_country_map = label_country_map or {}
 
     # ── Acumuladores de pistas ──────────────────────────────────────────── #
-    genres:       dict[str, int]           = defaultdict(int)
-    formats:      dict[str, int]           = defaultdict(int)
-    ratings:      dict[int, int]           = defaultdict(int)
-    artists:      dict[str, int]           = defaultdict(int)
-    dur_dist:     dict[str, int]           = defaultdict(int)
-    bitrate_dist: dict[str, int]           = defaultdict(int)
-    decades:      dict[str, int]           = defaultdict(int)   # para export compat
+    genres:        dict[str, int]          = defaultdict(int)
+    formats:       dict[str, int]          = defaultdict(int)
+    ratings:       dict[int, int]          = defaultdict(int)
+    artist_counts: dict[str, int]          = defaultdict(int)   # nombre → cant. pistas
+    dur_dist:      dict[str, int]          = defaultdict(int)
+    bitrate_dist:  dict[str, int]          = defaultdict(int)
+    decades:       dict[str, int]          = defaultdict(int)   # para export compat
 
     artist_set: set[str]               = set()
     album_set:  set[tuple[str, str]]   = set()
@@ -172,7 +183,7 @@ def compute_stats(tracks: list[Track], albums: list[Album] | None = None) -> Lib
         ratings[rating] += 1
 
         artist = (t.artist_name or "").strip() or "Artista desconocido"
-        artists[artist] += 1
+        artist_counts[artist] += 1
         artist_set.add(artist)
 
         dur_dist[_duration_bucket(t.duration_ms or 0)] += 1
@@ -192,7 +203,7 @@ def compute_stats(tracks: list[Track], albums: list[Album] | None = None) -> Lib
             album_track_acc[key] += 1
 
     # ── Top artistas ────────────────────────────────────────────────────── #
-    top_artists = sorted(artists.items(), key=lambda x: x[1], reverse=True)[:10]
+    top_artists = sorted(artist_counts.items(), key=lambda x: x[1], reverse=True)[:10]
 
     # ── Top pistas más reproducidas ─────────────────────────────────────── #
     sorted_by_plays = sorted(tracks, key=lambda t: t.play_count or 0, reverse=True)[:10]
@@ -218,8 +229,9 @@ def compute_stats(tracks: list[Track], albums: list[Album] | None = None) -> Lib
     album_decade: dict[str, int] = defaultdict(int)
     label_track_count: dict[str, int] = defaultdict(int)
     label_set: set[str] = set()
+    album_type_raw: dict[str, int] = defaultdict(int)
 
-    # Mapa (artist_name, album_title) → label para cruzar con pistas
+    # Mapa (artist_name, album_title) → (label, release_type) para cruzar con pistas
     album_label_map: dict[tuple[str, str], str] = {}
     for a in albums:
         lbl = (a.label or "").strip()
@@ -233,6 +245,11 @@ def compute_stats(tracks: list[Track], albums: list[Album] | None = None) -> Lib
         if lbl:
             label_set.add(lbl)
 
+        # Tipo de álbum (release_type)
+        rtype = (a.release_type or "").strip()
+        if rtype:
+            album_type_raw[rtype] += 1
+
     # Acumular tracks por sello usando el mapa
     for (artist, album_title), count in album_track_acc.items():
         lbl = album_label_map.get((artist, album_title), "")
@@ -240,6 +257,25 @@ def compute_stats(tracks: list[Track], albums: list[Album] | None = None) -> Lib
             label_track_count[lbl] += count
 
     top_labels = sorted(label_track_count.items(), key=lambda x: x[1], reverse=True)[:10]
+
+    # ── Países de artistas ───────────────────────────────────────────────── #
+    artist_country_raw: dict[str, int] = defaultdict(int)
+    for ar in artists:
+        c = (ar.country or "").strip()
+        if c:
+            artist_country_raw[c] += 1
+    artist_country_counts = dict(
+        sorted(artist_country_raw.items(), key=lambda x: x[1], reverse=True)[:15]
+    )
+
+    # ── Países de sellos ─────────────────────────────────────────────────── #
+    label_country_raw: dict[str, int] = defaultdict(int)
+    for lbl_name, lbl_country in label_country_map.items():
+        if lbl_country and lbl_name in {lbl for lbl in label_set if lbl}:
+            label_country_raw[lbl_country] += 1
+    label_country_counts = dict(
+        sorted(label_country_raw.items(), key=lambda x: x[1], reverse=True)[:15]
+    )
 
     # Distribución de álbumes por cantidad de pistas
     atc_dist = {k: 0 for k in _ALBUM_TRACK_BUCKETS}
@@ -269,13 +305,16 @@ def compute_stats(tracks: list[Track], albums: list[Album] | None = None) -> Lib
         album_track_count_dist=atc_dist,
         album_duration_dist=adur_dist,
         album_decade_counts=dict(sorted(album_decade.items())),
+        album_type_counts=dict(sorted(album_type_raw.items(), key=lambda x: x[1], reverse=True)),
         # Artistas
         top_artists=top_artists,
+        artist_country_counts=artist_country_counts,
         # Géneros
         genre_counts=pie_genres,
         top_genres_bar=top_genres_bar,
         # Sellos
         top_labels=top_labels,
+        label_country_counts=label_country_counts,
         # Compat. exportación
         decade_counts=dict(sorted(decades.items())),
         format_counts=dict(formats),
@@ -290,13 +329,26 @@ def compute_stats(tracks: list[Track], albums: list[Album] | None = None) -> Lib
 class _StatsWorker(QThread):
     stats_ready = pyqtSignal(object)  # LibraryStats
 
-    def __init__(self, tracks: list[Track], albums: list[Album]) -> None:
+    def __init__(
+        self,
+        tracks: list[Track],
+        albums: list[Album],
+        artists: list[Artist] | None = None,
+        label_country_map: dict[str, str] | None = None,
+    ) -> None:
         super().__init__()
-        self._tracks = tracks
-        self._albums = albums
+        self._tracks            = tracks
+        self._albums            = albums
+        self._artists           = artists or []
+        self._label_country_map = label_country_map or {}
 
     def run(self) -> None:
-        stats = compute_stats(self._tracks, self._albums)
+        stats = compute_stats(
+            self._tracks,
+            self._albums,
+            self._artists,
+            self._label_country_map,
+        )
         self.stats_ready.emit(stats)
 
 
@@ -318,12 +370,23 @@ class StatsService(QObject):
         super().__init__(parent)
         self._worker: _StatsWorker | None = None
 
-    def compute(self, tracks: list[Track], albums: list[Album] | None = None) -> None:
+    def compute(
+        self,
+        tracks: list[Track],
+        albums: list[Album] | None = None,
+        artists: list[Artist] | None = None,
+        label_country_map: dict[str, str] | None = None,
+    ) -> None:
         """Inicia el cómputo asíncrono. Emite stats_ready al terminar."""
         if self._worker and self._worker.isRunning():
             self._worker.quit()
             self._worker.wait()
 
-        self._worker = _StatsWorker(tracks, albums or [])
+        self._worker = _StatsWorker(
+            tracks,
+            albums or [],
+            artists or [],
+            label_country_map or {},
+        )
         self._worker.stats_ready.connect(self.stats_ready)
         self._worker.start()

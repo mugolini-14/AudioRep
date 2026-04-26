@@ -51,10 +51,13 @@ class _IdentifyWorker(QThread):
             best = results[0]
             self._disc.album_title    = best.get("album", self._disc.album_title)
             self._disc.artist_name    = best.get("artist", self._disc.artist_name)
+            self._disc.artist_country = best.get("artist_country", "")
             self._disc.year           = best.get("year", self._disc.year)
             self._disc.musicbrainz_id = best.get("release_id", "")
             self._disc.genre          = best.get("genre", "")
             self._disc.label          = best.get("label", "")
+            self._disc.label_country  = best.get("label_country", "")
+            self._disc.release_type   = best.get("release_type", "")
 
             # Actualizar títulos y musicbrainz_id de pistas si están disponibles.
             # Formato normalizado esperado: [{"number": int, "title": str, "recording_id": str}]

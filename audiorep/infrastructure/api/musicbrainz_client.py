@@ -31,13 +31,20 @@ def _normalize_release(release: dict) -> dict:
     # Título del álbum
     album = release.get("title", "")
 
-    # Artista principal
+    # Artista principal + país/área del artista
     credits = release.get("artist-credit", [])
     artist = ""
+    artist_country = ""
     if credits:
         first = credits[0]
         if isinstance(first, dict):
             artist = first.get("name") or first.get("artist", {}).get("name", "")
+            artist_obj = first.get("artist", {})
+            # Intentar obtener país/área del artista
+            artist_country = (
+                artist_obj.get("area", {}).get("name", "")
+                or artist_obj.get("country", "")
+            )
 
     # Año (date puede ser "1994", "1994-05-10", etc.)
     date = release.get("date", "") or release.get("first-release-date", "")
@@ -46,13 +53,24 @@ def _normalize_release(release: dict) -> dict:
     # Release ID (MBID)
     release_id = release.get("id", "")
 
-    # Sello discográfico (primer label-info con label name)
+    # Tipo de release (Album, Single, EP, Compilation, etc.)
+    release_type = ""
+    rg = release.get("release-group") or {}
+    release_type = rg.get("primary-type", "")
+
+    # Sello discográfico + país del sello
     label = ""
+    label_country = ""
     for info in release.get("label-info-list", []):
         lbl = info.get("label") or {}
         name = lbl.get("name", "")
         if name:
             label = name
+            # Intentar obtener país del sello
+            label_country = (
+                lbl.get("area", {}).get("name", "")
+                or lbl.get("country", "")
+            )
             break
 
     # Pistas: buscar en medium-list → track-list → recording
@@ -81,13 +99,16 @@ def _normalize_release(release: dict) -> dict:
             })
 
     return {
-        "album":      album,
-        "artist":     artist,
-        "year":       year,
-        "genre":      "",          # MusicBrainz no expone género por release
-        "label":      label,
-        "release_id": release_id,
-        "tracks":     tracks,
+        "album":          album,
+        "artist":         artist,
+        "artist_country": artist_country,
+        "year":           year,
+        "genre":          "",          # MusicBrainz no expone género por release
+        "label":          label,
+        "label_country":  label_country,
+        "release_type":   release_type,
+        "release_id":     release_id,
+        "tracks":         tracks,
     }
 
 
@@ -118,7 +139,7 @@ class MusicBrainzClient:
         """
         try:
             result = musicbrainzngs.get_releases_by_discid(
-                disc_id, includes=["artists", "recordings", "labels"]
+                disc_id, includes=["artists", "recordings", "labels", "release-groups"]
             )
             releases = (
                 result.get("disc", {}).get("release-list", [])

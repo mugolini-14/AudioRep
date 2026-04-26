@@ -2,6 +2,24 @@
 
 ---
 
+# 0.67 — Estadísticas ampliadas: tipo de álbum, países de artistas y sellos
+
+**Fecha:** 26 de abril de 2026
+
+### Agregado
+
+- **Tipo de álbum en estadísticas** — la sección Álbumes del panel de estadísticas incorpora un gráfico de barras con la distribución por tipo de lanzamiento (Estudio, Single, EP, Compilación, etc.). El dato se obtiene de MusicBrainz al identificar un disco CD y se almacena en la base de datos. Los álbumes sin dato identificado muestran una nota indicando cómo completar la información.
+- **País de origen de artistas en estadísticas** — la sección Artistas incorpora un gráfico de barras horizontal con los países de origen de los artistas de la biblioteca. El dato se obtiene de MusicBrainz al identificar un CD y se persiste en la base de datos del artista.
+- **País de origen de sellos en estadísticas** — la sección Sellos incorpora un gráfico de barras horizontal con los países de origen de los sellos discográficos. El dato se obtiene de MusicBrainz al identificar un CD.
+- **Nueva entidad `Label`** — el dominio de AudioRep incorpora un modelo `Label` con nombre y país de origen, respaldado por una nueva tabla `labels` en la base de datos.
+
+### Modificado
+
+- **MusicBrainz extrae más datos por identificación** — al identificar un CD, el cliente de MusicBrainz ahora obtiene el tipo de lanzamiento del release group, el país/área del artista y el país del sello discográfico. Estos datos se persisten automáticamente en la base de datos al momento de la identificación.
+- **Panel de estadísticas actualiza álbumes y artistas existentes** — cuando se identifica un CD, si el álbum o artista ya existe en la biblioteca, sus campos `release_type` y `country` se actualizan automáticamente con el dato de MusicBrainz (si no tenían uno asignado previamente).
+
+---
+
 # 0.66 — Estadísticas ampliadas por secciones
 
 **Fecha:** 26 de abril de 2026

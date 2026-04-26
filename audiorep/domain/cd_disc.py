@@ -46,6 +46,9 @@ class CDDisc:
     year:           int | None          = None
     genre:          str                 = ""
     label:          str                 = ""
+    label_country:  str                 = ""   # País del sello (de MusicBrainz)
+    release_type:   str                 = ""   # "Album", "Single", "EP", etc.
+    artist_country: str                 = ""   # País/área del artista (de MusicBrainz)
     cover_data:     bytes | None        = None
     identified:     bool                = False
 

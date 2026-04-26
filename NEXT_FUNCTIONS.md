@@ -47,44 +47,12 @@ Los cambios en el spec no afectan el código fuente, pero sí requieren un rebui
 
 ## Estadísticas ampliadas — ítems pendientes por falta de datos en el dominio
 
-Identificados durante v0.66. Las siguientes secciones fueron solicitadas pero no pueden implementarse sin cambios previos en el dominio y la infraestructura:
+✅ **Implementados en v0.67** — Los tres ítems fueron implementados:
+- Tipo de álbum (`Album.release_type`): dominio + DB + repo + extracción MB + gráfico en tab Álbumes.
+- Nacionalidad de artistas (`Artist.country`): dominio + DB + repo + extracción MB + gráfico en tab Artistas.
+- Nacionalidad de sellos (`Label` entity + `LabelRepository`): dominio + DB + repo + extracción MB + gráfico en tab Sellos.
 
-### Tipo de álbum (Estudio / EP / Single / Compilación / Box Set)
-
-**Dónde iría:** tab Álbumes → gráfico de barras.
-
-**Por qué no está:** el campo `release_type` no existe en la entidad `Album`. MusicBrainz lo provee en el campo `release-group/primary-type` pero actualmente no se persiste en la base de datos.
-
-**Lo que requiere:**
-1. Agregar el campo `release_type: str` a `audiorep/domain/album.py`.
-2. Persistirlo en `infrastructure/database/repositories/album_repository.py` (columna `release_type` en la tabla `albums`; migración de schema).
-3. Almacenarlo al identificar metadatos en `infrastructure/api/musicbrainz_client.py`.
-
----
-
-### Nacionalidad de artistas
-
-**Dónde iría:** tab Artistas → gráfico de barras "Top 10 países de origen".
-
-**Por qué no está:** la entidad `Artist` no tiene un campo de país/nacionalidad. MusicBrainz provee `area/name` para el artista, pero no se consulta ni persiste.
-
-**Lo que requiere:**
-1. Agregar `country: str` a `audiorep/domain/artist.py`.
-2. Persistirlo en `infrastructure/database/repositories/artist_repository.py`.
-3. Consultarlo y almacenarlo desde `infrastructure/api/musicbrainz_client.py` al identificar artistas.
-
----
-
-### Nacionalidad de sellos discográficos
-
-**Dónde iría:** tab Sellos → gráfico de barras "Top 10 países de origen de sellos".
-
-**Por qué no está:** los sellos son solo un `str` en `Album.label`. No hay entidad `Label` en el dominio, ni repositorio, ni metadatos de país asociados.
-
-**Lo que requiere:**
-1. Crear entidad `Label` con `name: str` y `country: str`.
-2. Crear `ILabelRepository` y su implementación SQLite.
-3. Poblar la entidad desde MusicBrainz al identificar releases (campo `label-info/label/country`).
+Los datos se populan automáticamente al identificar discos CD con MusicBrainz. Los álbumes/artistas/sellos existentes en la biblioteca se actualizan si ya están en la DB y tienen coincidencia por nombre.
 
 ---
 

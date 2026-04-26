@@ -125,6 +125,12 @@ class DatabaseConnection:
             self._conn.commit()
             logger.info("Migración v2 aplicada (radio_stations).")
 
+        if version < 3:
+            self._migrate_v3()
+            self._conn.execute("PRAGMA user_version = 3")
+            self._conn.commit()
+            logger.info("Migración v3 aplicada (labels, release_type, artist.country).")
+
         # Reparación de esquema: agrega columnas que pueden faltar en bases de
         # datos creadas antes de que se agregaran al esquema original.
         self._repair_schema()
@@ -137,8 +143,10 @@ class DatabaseConnection:
         """
         assert self._conn is not None
         repairs = [
-            ("playlists", "is_smart",    "INTEGER NOT NULL DEFAULT 0"),
-            ("playlists", "smart_query", "TEXT    NOT NULL DEFAULT '{}'"),
+            ("playlists", "is_smart",      "INTEGER NOT NULL DEFAULT 0"),
+            ("playlists", "smart_query",   "TEXT    NOT NULL DEFAULT '{}'"),
+            ("albums",    "release_type",  "TEXT    NOT NULL DEFAULT ''"),
+            ("artists",   "country",       "TEXT    NOT NULL DEFAULT ''"),
         ]
         for table, column, definition in repairs:
             try:
@@ -244,4 +252,21 @@ class DatabaseConnection:
             );
 
             CREATE INDEX IF NOT EXISTS idx_radio_favorite ON radio_stations(is_favorite);
+        """)
+
+    def _migrate_v3(self) -> None:
+        """
+        Migración 3: tabla labels para sellos discográficos con país de origen.
+        Las columnas release_type (albums) y country (artists) se agregan
+        vía _repair_schema para compatibilidad con bases de datos existentes.
+        """
+        assert self._conn is not None
+        self._conn.executescript("""
+            CREATE TABLE IF NOT EXISTS labels (
+                id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                name    TEXT    NOT NULL UNIQUE,
+                country TEXT    NOT NULL DEFAULT ''
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_labels_name ON labels(name);
         """)

@@ -368,6 +368,18 @@ def _build_tab_albums(stats: LibraryStats, charts: bool) -> QWidget:
                 make_bar_chart("Décadas", keys, [decades_clean[k] for k in keys])
             )
 
+    # Tipo de álbum (release_type) — solo si hay datos
+    if stats.album_type_counts:
+        types = list(stats.album_type_counts.keys())
+        vals  = list(stats.album_type_counts.values())
+        layout.addWidget(_section_label("Tipo de álbum"))
+        layout.addWidget(make_bar_chart("Tipo de álbum", types, vals))
+    else:
+        layout.addWidget(_no_data_note(
+            "Tipo de álbum: sin datos.\n"
+            "Se completa al identificar discos CD con MusicBrainz."
+        ))
+
     layout.addStretch(1)
     return scroll
 
@@ -387,6 +399,20 @@ def _build_tab_artists(stats: LibraryStats, charts: bool) -> QWidget:
         a_vals   = [a[1] for a in artists_rev]
         layout.addWidget(_section_label("Top 10 artistas por cantidad de pistas"))
         layout.addWidget(make_hbar_chart("", a_labels, a_vals, min_height=360, left_margin=160))
+
+    # Top países de artistas — solo si hay datos
+    if stats.artist_country_counts:
+        countries     = list(reversed(list(stats.artist_country_counts.keys())))
+        country_vals  = list(reversed(list(stats.artist_country_counts.values())))
+        layout.addWidget(_section_label("País de origen de artistas"))
+        layout.addWidget(
+            make_hbar_chart("", countries, country_vals, min_height=320, left_margin=160)
+        )
+    else:
+        layout.addWidget(_no_data_note(
+            "País de origen: sin datos.\n"
+            "Se completa al identificar discos CD con MusicBrainz."
+        ))
 
     layout.addStretch(1)
     return scroll
@@ -431,14 +457,24 @@ def _build_tab_labels(stats: LibraryStats, charts: bool) -> QWidget:
         layout.addWidget(_section_label("Top 10 sellos discográficos por cantidad de pistas"))
         layout.addWidget(make_hbar_chart("", l_labels, l_vals, min_height=320, left_margin=160))
     else:
-        note = QLabel(
+        layout.addWidget(_no_data_note(
             "No hay información de sellos disponible.\n"
             "Los sellos se toman de los tags de los álbumes importados."
+        ))
+
+    # País de origen de sellos — solo si hay datos
+    if stats.label_country_counts:
+        countries    = list(reversed(list(stats.label_country_counts.keys())))
+        country_vals = list(reversed(list(stats.label_country_counts.values())))
+        layout.addWidget(_section_label("País de origen de sellos"))
+        layout.addWidget(
+            make_hbar_chart("", countries, country_vals, min_height=280, left_margin=160)
         )
-        note.setObjectName("statsSectionLabel")
-        note.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        note.setWordWrap(True)
-        layout.addWidget(note)
+    else:
+        layout.addWidget(_no_data_note(
+            "País de sellos: sin datos.\n"
+            "Se completa al identificar discos CD con MusicBrainz."
+        ))
 
     layout.addStretch(1)
     return scroll
@@ -448,6 +484,14 @@ def _no_charts_note() -> QLabel:
     note = QLabel(
         "PyQt6-Charts no está instalado. Instale 'PyQt6-Charts' para ver gráficos."
     )
+    note.setObjectName("statsSectionLabel")
+    note.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    note.setWordWrap(True)
+    return note
+
+
+def _no_data_note(text: str) -> QLabel:
+    note = QLabel(text)
     note.setObjectName("statsSectionLabel")
     note.setAlignment(Qt.AlignmentFlag.AlignCenter)
     note.setWordWrap(True)
