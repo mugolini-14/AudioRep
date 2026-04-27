@@ -69,15 +69,15 @@ class ExportService:
         """Rellena una hoja de openpyxl con la tabla de pistas."""
         from openpyxl.styles import Alignment, Font, PatternFill
 
-        hdr_font  = Font(bold=True, color="FFFFFF", size=9)
+        hdr_font  = Font(bold=True, color="FFFFFF", size=11)
         hdr_fill  = PatternFill("solid", fgColor="2D2D2D")
         alt_fill  = PatternFill("solid", fgColor="F2F2F2")
-        data_font = Font(color="1A1A1A", size=9)
+        data_font = Font(color="1A1A1A", size=11)
         center    = Alignment(horizontal="center")
         left      = Alignment(horizontal="left")
 
         headers    = ["#", "Título", "Artista", "Álbum", "Año", "Género", "Duración", "Formato"]
-        col_widths = [5,    40,       25,         30,      6,     20,       10,          8]
+        col_widths = [5,    44,       28,         32,      7,     22,       12,          10]
 
         for col, (h, w) in enumerate(zip(headers, col_widths), 1):
             cell = ws.cell(row=1, column=col, value=h)  # type: ignore[union-attr]
@@ -110,97 +110,121 @@ class ExportService:
 
     @staticmethod
     def _write_stats_sheet(ws: object, stats: LibraryStats) -> None:
-        """Rellena una hoja de openpyxl con las estadísticas."""
+        """Rellena una hoja de openpyxl con las estadísticas y gráficos al costado."""
         from openpyxl.styles import Font, PatternFill
+        from openpyxl.chart import BarChart, PieChart, Reference  # type: ignore[import]
 
-        ws.column_dimensions["A"].width = 32  # type: ignore[union-attr]
-        ws.column_dimensions["B"].width = 20  # type: ignore[union-attr]
-        ws.column_dimensions["C"].width = 20  # type: ignore[union-attr]
+        ws.column_dimensions["A"].width = 35  # type: ignore[union-attr]
+        ws.column_dimensions["B"].width = 22  # type: ignore[union-attr]
+        ws.column_dimensions["C"].width = 22  # type: ignore[union-attr]
 
-        section_font = Font(bold=True, size=12, color="1A1A1A")
-        label_font   = Font(bold=True, color="FFFFFF", size=9)
-        value_font   = Font(color="1A1A1A", size=9)
+        section_font = Font(bold=True, size=13, color="1A1A1A")
+        label_font   = Font(bold=True, color="FFFFFF", size=11)
+        value_font   = Font(color="1A1A1A", size=11)
         hdr_fill     = PatternFill("solid", fgColor="2D2D2D")
         alt_fill     = PatternFill("solid", fgColor="F2F2F2")
 
         row = 1
+        # chart_defs: (anchor_row, header_row, data_start, data_end, chart_type, title)
+        chart_defs: list[tuple[int, int, int, int, str, str]] = []
 
-        def section(title: str) -> None:
+        def _sec(title: str) -> int:
             nonlocal row
             ws.cell(row=row, column=1, value=title).font = section_font  # type: ignore[union-attr]
-            row += 1
+            r = row; row += 1; return r
 
-        def table_header(*cols: str) -> None:
+        def _hdr(*cols: str) -> int:
             nonlocal row
-            for col_idx, col in enumerate(cols, 1):
-                cell = ws.cell(row=row, column=col_idx, value=col)  # type: ignore[union-attr]
-                cell.font = label_font
-                cell.fill = hdr_fill
-            row += 1
+            for i, col in enumerate(cols, 1):
+                cell = ws.cell(row=row, column=i, value=col)  # type: ignore[union-attr]
+                cell.font = label_font; cell.fill = hdr_fill
+            r = row; row += 1; return r
 
-        def table_row(*vals: object) -> None:
+        def _row(*vals: object) -> None:
             nonlocal row
             is_alt = row % 2 == 0
-            for col_idx, val in enumerate(vals, 1):
-                cell = ws.cell(row=row, column=col_idx, value=val)  # type: ignore[union-attr]
+            for i, val in enumerate(vals, 1):
+                cell = ws.cell(row=row, column=i, value=val)  # type: ignore[union-attr]
                 cell.font = value_font
-                if is_alt:
-                    cell.fill = alt_fill
+                if is_alt: cell.fill = alt_fill
+            row += 1
+
+        def _section_charted(
+            title: str, col_h: tuple[str, str], data: list[tuple[object, object]],
+            chart_type: str,
+        ) -> None:
+            nonlocal row
+            anchor = _sec(title)
+            hr     = _hdr(*col_h)
+            ds     = row
+            for item in data:
+                _row(*item)
+            de = row - 1
+            if de >= ds:
+                chart_defs.append((anchor, hr, ds, de, chart_type, title))
             row += 1
 
         hours = stats.total_duration_ms / 3_600_000
-        section("Resumen general")
-        table_header("Indicador", "Valor")
-        table_row("Total pistas",               stats.total_tracks)
-        table_row("Total artistas",             stats.total_artists)
-        table_row("Total álbumes",              stats.total_albums)
-        table_row("Horas de música",            f"{hours:.1f} h")
-        table_row("Nacionalidades de artistas", stats.total_countries)
+        _sec("Resumen general")
+        _hdr("Indicador", "Valor")
+        _row("Total pistas",               stats.total_tracks)
+        _row("Total artistas",             stats.total_artists)
+        _row("Total álbumes",              stats.total_albums)
+        _row("Horas de música",            f"{hours:.1f} h")
+        _row("Nacionalidades de artistas", stats.total_countries)
         row += 1
 
-        section("Géneros")
-        table_header("Género", "Pistas")
-        for g, c in sorted(stats.genre_counts.items(), key=lambda x: x[1], reverse=True):
-            table_row(g, c)
-        row += 1
-
-        section("Décadas")
-        table_header("Década", "Pistas")
-        for d, c in sorted(stats.decade_counts.items()):
-            table_row(d, c)
-        row += 1
-
-        section("Formatos")
-        table_header("Formato", "Pistas")
-        for f, c in sorted(stats.format_counts.items(), key=lambda x: x[1], reverse=True):
-            table_row(f, c)
-        row += 1
-
-        section("Top 10 artistas por cantidad de pistas")
-        table_header("Artista", "Pistas")
-        for artist, count in stats.top_artists:
-            table_row(artist, count)
-        row += 1
-
+        if stats.genre_counts:
+            _section_charted("Géneros", ("Género", "Pistas"),
+                             sorted(stats.genre_counts.items(), key=lambda x: x[1], reverse=True),
+                             "bar_col")
+        if stats.decade_counts:
+            _section_charted("Décadas", ("Década", "Pistas"),
+                             sorted(stats.decade_counts.items()),
+                             "bar_col")
+        if stats.format_counts:
+            _section_charted("Formatos", ("Formato", "Pistas"),
+                             sorted(stats.format_counts.items(), key=lambda x: x[1], reverse=True),
+                             "pie")
+        if stats.top_artists:
+            _section_charted("Top 10 artistas por cantidad de pistas", ("Artista", "Pistas"),
+                             stats.top_artists, "bar_horiz")
         if stats.album_type_counts:
-            section("Tipo de álbum")
-            table_header("Tipo", "Álbumes")
-            for t, c in sorted(stats.album_type_counts.items(), key=lambda x: x[1], reverse=True):
-                table_row(t, c)
-            row += 1
-
+            _section_charted("Tipo de álbum", ("Tipo", "Álbumes"),
+                             sorted(stats.album_type_counts.items(), key=lambda x: x[1], reverse=True),
+                             "bar_col")
         if stats.artist_country_counts:
-            section("País de origen de artistas")
-            table_header("País", "Artistas")
-            for country, count in sorted(stats.artist_country_counts.items(), key=lambda x: x[1], reverse=True):
-                table_row(country, count)
-            row += 1
-
+            _section_charted("País de origen de artistas", ("País", "Artistas"),
+                             sorted(stats.artist_country_counts.items(), key=lambda x: x[1], reverse=True),
+                             "bar_horiz")
         if stats.label_country_counts:
-            section("País de origen de sellos")
-            table_header("País", "Sellos")
-            for country, count in sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True):
-                table_row(country, count)
+            _section_charted("País de origen de sellos", ("País", "Sellos"),
+                             sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True),
+                             "bar_horiz")
+
+        # ── Insertar gráficos al costado de cada sección ─────────────── #
+        for anchor, hr, ds, de, ct, title in chart_defs:
+            if ct == "pie":
+                chart: BarChart | PieChart = PieChart()
+                chart.title  = title
+                chart.width  = 15
+                chart.height = 8
+                data_ref = Reference(ws, min_col=2, min_row=ds, max_row=de)
+                cats_ref = Reference(ws, min_col=1, min_row=ds, max_row=de)
+                chart.add_data(data_ref)
+                chart.set_categories(cats_ref)
+            else:
+                chart = BarChart()
+                chart.type     = "bar" if ct == "bar_horiz" else "col"  # type: ignore[union-attr]
+                chart.grouping = "clustered"                             # type: ignore[union-attr]
+                chart.title    = title
+                chart.width    = 15
+                chart.height   = 8
+                data_ref = Reference(ws, min_col=2, min_row=hr, max_row=de)
+                cats_ref = Reference(ws, min_col=1, min_row=ds, max_row=de)
+                chart.add_data(data_ref, titles_from_data=True)
+                chart.set_categories(cats_ref)
+            ws.add_chart(chart, f"E{anchor}")  # type: ignore[union-attr]
 
     # ------------------------------------------------------------------
     # Helpers privados PDF
@@ -216,7 +240,7 @@ class ExportService:
         pdf.set_font("Helvetica", "B", 14)
         pdf.set_text_color(0, 0, 0)
         pdf.cell(0, 10, "AudioRep - Biblioteca de pistas", new_x="LMARGIN", new_y="NEXT")
-        pdf.set_font("Helvetica", size=7)
+        pdf.set_font("Helvetica", size=9)
         pdf.set_text_color(80, 80, 80)
         hours = stats.total_duration_ms / 3_600_000
         pdf.cell(
@@ -232,16 +256,16 @@ class ExportService:
 
         pdf.set_fill_color(210, 210, 210)
         pdf.set_text_color(0, 0, 0)
-        pdf.set_font("Helvetica", "B", 7)
+        pdf.set_font("Helvetica", "B", 9)
         for w, h in zip(col_w, headers):
-            pdf.cell(w, 5, h, border=1, fill=True)
+            pdf.cell(w, 6, h, border=1, fill=True)
         pdf.ln()
 
         for i, t in enumerate(tracks, 1):
             is_alt = i % 2 == 0
             pdf.set_fill_color(242, 242, 242) if is_alt else pdf.set_fill_color(255, 255, 255)
             pdf.set_text_color(30, 30, 30)
-            pdf.set_font("Helvetica", size=7)
+            pdf.set_font("Helvetica", size=9)
             row_vals = [
                 str(i),
                 (t.title or "")[:38],
@@ -253,47 +277,137 @@ class ExportService:
                 (t.format.value if t.format else "")[:6],
             ]
             for w, val in zip(col_w, row_vals):
-                pdf.cell(w, 4, val, border="B", fill=True)
+                pdf.cell(w, 5, val, border="B", fill=True)
             pdf.ln()
 
     @staticmethod
     def _write_stats_pdf(pdf: object, stats: LibraryStats) -> None:
-        """Añade la sección de estadísticas al objeto FPDF."""
+        """Añade la sección de estadísticas con layout 2 columnas (tabla + gráfico)."""
         import fpdf as fpdf_mod
         assert isinstance(pdf, fpdf_mod.FPDF)
+
+        # ── Constantes de layout ──────────────────────────────────────── #
+        LEFT_X:  float = 10.0
+        LEFT_W:  float = 90.0
+        RIGHT_X: float = 105.0
+        RIGHT_W: float = 85.0
+        HDR_H:   float = 6.0
+        DATA_H:  float = 5.0
+        TW: list[float] = [62.0, 28.0]   # anchos columnas tabla (suma = LEFT_W)
 
         pdf.add_page()
         pdf.set_font("Helvetica", "B", 14)
         pdf.set_text_color(0, 0, 0)
-        pdf.cell(0, 10, "AudioRep - Estadisticas de la biblioteca", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 10, "AudioRep - Estadisticas de la biblioteca",
+                 new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
 
-        def _pdf_section(title: str) -> None:
-            pdf.set_font("Helvetica", "B", 10)
-            pdf.set_text_color(40, 40, 40)
-            pdf.cell(0, 7, title, new_x="LMARGIN", new_y="NEXT")
+        def _check_space(needed: float) -> None:
+            available = pdf.h - pdf.get_y() - pdf.b_margin  # type: ignore[union-attr]
+            if available < needed:
+                pdf.add_page()  # type: ignore[union-attr]
 
-        def _pdf_table(headers_row: list[str], rows: list[tuple], col_widths: list[int]) -> None:
-            pdf.set_fill_color(210, 210, 210)
-            pdf.set_text_color(0, 0, 0)
-            pdf.set_font("Helvetica", "B", 8)
-            for h, w in zip(headers_row, col_widths):
-                pdf.cell(w, 5, h, border=1, fill=True)
-            pdf.ln()
+        def _section_title(title: str) -> None:
+            pdf.set_font("Helvetica", "B", 11)   # type: ignore[union-attr]
+            pdf.set_text_color(40, 40, 40)        # type: ignore[union-attr]
+            pdf.cell(0, 7, title, new_x="LMARGIN", new_y="NEXT")  # type: ignore[union-attr]
+
+        def _table_left(headers: list[str], rows: list[tuple]) -> float:
+            """Escribe la tabla en columna izquierda. Retorna Y final."""
+            pdf.set_x(LEFT_X)                    # type: ignore[union-attr]
+            pdf.set_fill_color(210, 210, 210)    # type: ignore[union-attr]
+            pdf.set_text_color(0, 0, 0)          # type: ignore[union-attr]
+            pdf.set_font("Helvetica", "B", 10)   # type: ignore[union-attr]
+            for h, w in zip(headers, TW):
+                pdf.cell(w, HDR_H, h, border=1, fill=True)  # type: ignore[union-attr]
+            pdf.ln()                             # type: ignore[union-attr]
             for i, row_data in enumerate(rows):
-                is_alt = i % 2 == 0
-                pdf.set_fill_color(242, 242, 242) if is_alt else pdf.set_fill_color(255, 255, 255)
-                pdf.set_text_color(30, 30, 30)
-                pdf.set_font("Helvetica", size=8)
-                for val, w in zip(row_data, col_widths):
-                    pdf.cell(w, 4, str(val)[:24], border="B", fill=True)
-                pdf.ln()
-            pdf.ln(3)
+                pdf.set_x(LEFT_X)                # type: ignore[union-attr]
+                if i % 2 == 0:
+                    pdf.set_fill_color(242, 242, 242)   # type: ignore[union-attr]
+                else:
+                    pdf.set_fill_color(255, 255, 255)   # type: ignore[union-attr]
+                pdf.set_text_color(30, 30, 30)   # type: ignore[union-attr]
+                pdf.set_font("Helvetica", size=9)  # type: ignore[union-attr]
+                for val, w in zip(row_data, TW):
+                    max_ch = max(5, int(w / 1.9))
+                    pdf.cell(w, DATA_H, str(val)[:max_ch], border="B", fill=True)  # type: ignore[union-attr]
+                pdf.ln()                          # type: ignore[union-attr]
+            pdf.ln(2)                             # type: ignore[union-attr]
+            return pdf.get_y()                    # type: ignore[union-attr]
 
+        def _bars_right(labels: list[str], values: list[int], y0: float) -> float:
+            """Dibuja barras horizontales en columna derecha. Retorna Y final."""
+            if not values:
+                return y0
+            max_v = max(values) or 1
+            lbl_w = 33.0
+            val_w = 10.0
+            bar_max = RIGHT_W - lbl_w - val_w
+            y = y0
+            for label, value in zip(labels, values):
+                pdf.set_xy(RIGHT_X, y)           # type: ignore[union-attr]
+                pdf.set_font("Helvetica", size=8)  # type: ignore[union-attr]
+                pdf.set_text_color(30, 30, 30)   # type: ignore[union-attr]
+                pdf.cell(lbl_w, DATA_H, label[:18])  # type: ignore[union-attr]
+                bar_w = (value / max_v) * bar_max
+                if bar_w > 0.5:
+                    pdf.set_fill_color(92, 61, 159)   # type: ignore[union-attr]
+                    pdf.rect(RIGHT_X + lbl_w, y + 1.0, bar_w, DATA_H - 2.0, "F")  # type: ignore[union-attr]
+                pdf.set_xy(RIGHT_X + lbl_w + bar_w + 1.0, y)  # type: ignore[union-attr]
+                pdf.set_font("Helvetica", size=7)  # type: ignore[union-attr]
+                pdf.set_text_color(60, 60, 60)   # type: ignore[union-attr]
+                pdf.cell(val_w, DATA_H, str(value))  # type: ignore[union-attr]
+                y += DATA_H + 1.0
+            return y + 2.0
+
+        def _section_2col(title: str, headers: list[str], rows: list[tuple]) -> None:
+            """Sección con tabla a la izquierda y gráfico de barras a la derecha."""
+            if not rows:
+                return
+            n = min(len(rows), 20)
+            est_h = 7.0 + HDR_H + n * (DATA_H + 1.0) + 5.0
+            _check_space(max(est_h, 75.0))
+            pdf.set_auto_page_break(False)       # type: ignore[union-attr]
+            _section_title(title)
+            y0 = pdf.get_y()                     # type: ignore[union-attr]
+            labels = [str(r[0])[:18] for r in rows[:n]]
+            int_vals: list[int] = []
+            for r in rows[:n]:
+                try:    int_vals.append(int(r[1]))
+                except (ValueError, TypeError): int_vals.append(0)
+            t_end = _table_left(headers, rows[:n])
+            c_end = _bars_right(labels, int_vals, y0 + HDR_H)
+            pdf.set_auto_page_break(True, margin=15)   # type: ignore[union-attr]
+            pdf.set_y(max(t_end, c_end) + 3.0)         # type: ignore[union-attr]
+
+        def _section_1col(title: str, headers: list[str], rows: list[tuple],
+                          col_widths: list[float]) -> None:
+            """Sección con tabla a ancho completo (para Resumen)."""
+            _check_space(60.0)
+            _section_title(title)
+            pdf.set_fill_color(210, 210, 210)    # type: ignore[union-attr]
+            pdf.set_text_color(0, 0, 0)          # type: ignore[union-attr]
+            pdf.set_font("Helvetica", "B", 10)   # type: ignore[union-attr]
+            for h, w in zip(headers, col_widths):
+                pdf.cell(w, HDR_H, h, border=1, fill=True)  # type: ignore[union-attr]
+            pdf.ln()                             # type: ignore[union-attr]
+            for i, row_data in enumerate(rows):
+                if i % 2 == 0:
+                    pdf.set_fill_color(242, 242, 242)   # type: ignore[union-attr]
+                else:
+                    pdf.set_fill_color(255, 255, 255)   # type: ignore[union-attr]
+                pdf.set_text_color(30, 30, 30)   # type: ignore[union-attr]
+                pdf.set_font("Helvetica", size=9)  # type: ignore[union-attr]
+                for val, w in zip(row_data, col_widths):
+                    pdf.cell(w, DATA_H, str(val)[:35], border="B", fill=True)  # type: ignore[union-attr]
+                pdf.ln()                          # type: ignore[union-attr]
+            pdf.ln(3)                             # type: ignore[union-attr]
+
+        # ── Secciones ─────────────────────────────────────────────────── #
         hours = stats.total_duration_ms / 3_600_000
-        _pdf_section("Resumen general")
-        _pdf_table(
-            ["Indicador", "Valor"],
+        _section_1col(
+            "Resumen general", ["Indicador", "Valor"],
             [
                 ("Total pistas",               stats.total_tracks),
                 ("Total artistas",             stats.total_artists),
@@ -301,42 +415,29 @@ class ExportService:
                 ("Horas de musica",            f"{hours:.1f} h"),
                 ("Nacionalidades de artistas", stats.total_countries),
             ],
-            [80, 50],
+            [100.0, 60.0],
         )
 
-        _pdf_section("Generos")
-        _pdf_table(["Genero", "Pistas"],
-                   sorted(stats.genre_counts.items(), key=lambda x: x[1], reverse=True),
-                   [80, 30])
-
-        _pdf_section("Decadas")
-        _pdf_table(["Decada", "Pistas"], sorted(stats.decade_counts.items()), [40, 30])
-
-        _pdf_section("Formatos")
-        _pdf_table(["Formato", "Pistas"],
-                   sorted(stats.format_counts.items(), key=lambda x: x[1], reverse=True),
-                   [40, 30])
-
-        _pdf_section("Top 10 artistas por pistas")
-        _pdf_table(["Artista", "Pistas"], stats.top_artists, [90, 30])
-
+        if stats.genre_counts:
+            _section_2col("Generos", ["Genero", "Pistas"],
+                          sorted(stats.genre_counts.items(), key=lambda x: x[1], reverse=True))
+        if stats.decade_counts:
+            _section_2col("Decadas", ["Decada", "Pistas"],
+                          sorted(stats.decade_counts.items()))
+        if stats.format_counts:
+            _section_2col("Formatos", ["Formato", "Pistas"],
+                          sorted(stats.format_counts.items(), key=lambda x: x[1], reverse=True))
+        if stats.top_artists:
+            _section_2col("Top 10 artistas por pistas", ["Artista", "Pistas"], stats.top_artists)
         if stats.album_type_counts:
-            _pdf_section("Tipo de album")
-            _pdf_table(["Tipo", "Albumes"],
-                       sorted(stats.album_type_counts.items(), key=lambda x: x[1], reverse=True),
-                       [60, 30])
-
+            _section_2col("Tipo de album", ["Tipo", "Albums"],
+                          sorted(stats.album_type_counts.items(), key=lambda x: x[1], reverse=True))
         if stats.artist_country_counts:
-            _pdf_section("Pais de origen de artistas")
-            _pdf_table(["Pais", "Artistas"],
-                       sorted(stats.artist_country_counts.items(), key=lambda x: x[1], reverse=True),
-                       [80, 30])
-
+            _section_2col("Pais de origen de artistas", ["Pais", "Artistas"],
+                          sorted(stats.artist_country_counts.items(), key=lambda x: x[1], reverse=True))
         if stats.label_country_counts:
-            _pdf_section("Pais de origen de sellos")
-            _pdf_table(["Pais", "Sellos"],
-                       sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True),
-                       [80, 30])
+            _section_2col("Pais de origen de sellos", ["Pais", "Sellos"],
+                          sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True))
 
     # ------------------------------------------------------------------
     # XLSX — combinado y por sección

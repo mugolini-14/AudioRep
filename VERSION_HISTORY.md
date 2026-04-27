@@ -2,6 +2,20 @@
 
 ---
 
+# 0.74 — Exportaciones mejoradas: fuente legible y gráficos integrados
+
+**Fecha:** 27 de abril de 2026
+
+### Modificado
+
+- **Excel (XLSX) — fuente más grande** — la fuente de cabeceras, filas y columnas en ambas hojas (Biblioteca y Estadísticas) pasó de tamaño 9 a 11, mejorando significativamente la legibilidad al abrir el archivo en Excel.
+- **Excel (XLSX) — gráficos en hoja Estadísticas** — la hoja de estadísticas ahora incluye gráficos visuales al costado de cada tabla de datos: barras verticales para géneros, décadas, formatos y tipo de álbum; barras horizontales para top artistas y países de origen; torta para distribución de formatos. Los gráficos se posicionan automáticamente en la columna E junto a su tabla correspondiente.
+- **PDF — fuente más grande** — el tamaño de fuente en la tabla de la biblioteca y las tablas de estadísticas aumentó de 7 a 9, con cabeceras de 9 a 10.
+- **PDF — gráficos al costado en Estadísticas** — cada sección del PDF de estadísticas muestra la tabla de datos en la mitad izquierda de la página y un gráfico de barras simple en la mitad derecha, generado directamente desde los datos sin dependencias adicionales.
+- **CSV** — sin cambios (el formato CSV es texto plano y no soporta configuración de fuente; el tamaño de letra queda determinado por la aplicación que lo abre).
+
+---
+
 # 0.73 — Estandarización visual de gráficos estadísticos
 
 **Fecha:** 26 de abril de 2026
