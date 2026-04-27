@@ -77,6 +77,8 @@ domain → core → services ← infrastructure
 
 **NowPlaying typography standard (v0.60+)**: All NowPlaying labels share the same font family. Track title (`trackTitle`): 14px, bold, italic. All other fields (artist, album, label, year, rating): 13px, normal weight, italic. Colors remain per-field (`#e2e2f0` title, `#a0a0c0` artist, `#7070a0` album/label/year, `#7c5cbf` rating). Never use different font sizes or weights between fields other than title vs. rest.
 
+**ExportService PDF standard (v0.75+)**: Library PDF uses landscape orientation (`pdf.add_page(orientation="L")`, A4 = 297×210mm, ~277mm usable width). Column widths: `[11, 78, 48, 54, 13, 28, 20, 17]` (~269mm total). Stats PDF uses portrait. Font sizes: library table headers 9pt bold, data rows 9pt; stats section titles 11pt bold, table headers 10pt bold, data rows 9pt. XLSX font size is 11 for all cells (headers and data) in both sheets.
+
 **StatsPanel chart height standard (v0.73+)**: All chart views use `setFixedHeight` (never `setMinimumHeight`) to ensure uniform row heights and eliminate internal `QGraphicsView` scrollbars. Two height constants in `stats_panel.py`: `_H_HALF = 280` for half-width charts (`make_bar_chart`, `make_pie_chart`) and `_H_FULL = 340` for full-width horizontal bar charts (`make_hbar_chart`). Always pass `setHorizontalScrollBarPolicy(ScrollBarAlwaysOff)` and `setVerticalScrollBarPolicy(ScrollBarAlwaysOff)` on every `QChartView`. Pie chart legends use `AlignLeft` (not `AlignBottom`) to maximize pie area. Full layout and pairing rules in `.claude/skills/ui-builder/SKILL.md`.
 
 ## Building installers

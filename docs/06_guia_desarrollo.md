@@ -178,6 +178,9 @@ class MiController:
 | 35 | `EnrichmentService` + `LastFmClient`: enriquece metadatos con MusicBrainz (género, sello, país, release_type) y Last.fm; configuración en SettingsDialog; auto-enriquecimiento al importar y al arrancar | ✅ Completo — v0.69 |
 | 36 | XLSX/PDF con tema profesional legible (fondo blanco, filas alternadas claras); nueva tarjeta "nacionalidades" en StatsPanel Generales; `total_countries` en stats | ✅ Completo — v0.70 |
 | 37 | Gráfico de formatos convertido a torta (pie chart); layout 2-por-fila en tabs Pistas y Álbumes del StatsPanel | ✅ Completo — v0.71 |
+| 38 | Exportaciones separadas: "Exportar Biblioteca" y "Exportar Estadísticas" como botones independientes; `export_stats_csv` en formato Sección/Indicador/Valor | ✅ Completo — v0.72 |
+| 39 | Alturas fijas en gráficos (`_H_HALF`=280px / `_H_FULL`=340px), sin scroll interno (`ScrollBarAlwaysOff`), leyenda de torta a la izquierda | ✅ Completo — v0.73 |
+| 40 | XLSX fuente 11; PDF estadísticas fuente 9/10/11; PDF biblioteca en orientación landscape (A4, columnas ampliadas ~269mm) | ✅ Completo — v0.74–v0.75 |
 
 ---
 
