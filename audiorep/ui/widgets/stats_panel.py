@@ -64,6 +64,10 @@ _PIE_COLORS = [
 _FONT_LABEL = QFont("Segoe UI", 9)
 _FONT_TITLE = QFont("Segoe UI", 10, QFont.Weight.Bold)
 
+# Alturas estándar de gráficos (fijas — no permiten scroll interno ni variación)
+_H_HALF = 280   # gráficos en media fila (bar, pie)
+_H_FULL = 340   # gráficos en fila completa (hbar tops)
+
 
 # ---------------------------------------------------------------------------
 # Fábrica de gráficos
@@ -80,12 +84,15 @@ def _base_chart(title: str = "") -> QChart:
     return chart
 
 
-def _chart_view(chart: QChart, min_height: int = 260) -> QChartView:
+def _chart_view(chart: QChart, height: int = _H_HALF) -> QChartView:
     view = QChartView(chart)
     view.setObjectName("statsChartView")
     view.setRenderHint(view.renderHints().__class__.Antialiasing)
-    view.setMinimumHeight(min_height)
+    # Altura fija: evita variaciones entre gráficos y scroll interno de QGraphicsView
+    view.setFixedHeight(height)
     view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
     view.setStyleSheet(
         "background-color: #1e1e2e; border: 1px solid #33334a; border-radius: 6px;"
     )
@@ -115,7 +122,7 @@ def make_pie_chart(title: str, data: dict[str, int]) -> QChartView:
     chart.legend().setVisible(True)
     chart.legend().setLabelColor(_TEXT_MID)
     chart.legend().setFont(_FONT_LABEL)
-    chart.legend().setAlignment(Qt.AlignmentFlag.AlignBottom)
+    chart.legend().setAlignment(Qt.AlignmentFlag.AlignLeft)
 
     series = QPieSeries()
     series.setHoleSize(0.3)
@@ -132,7 +139,7 @@ def make_pie_chart(title: str, data: dict[str, int]) -> QChartView:
             slc.setLabelFont(_FONT_LABEL)
 
     chart.addSeries(series)
-    return _chart_view(chart, 280)
+    return _chart_view(chart, _H_HALF)
 
 
 def make_bar_chart(title: str, categories: list[str], values: list[int]) -> QChartView:
@@ -166,14 +173,14 @@ def make_bar_chart(title: str, categories: list[str], values: list[int]) -> QCha
     series.attachAxis(axis_x)
     series.attachAxis(axis_y)
 
-    return _chart_view(chart, 260)
+    return _chart_view(chart, _H_HALF)
 
 
 def make_hbar_chart(
     title: str,
     labels: list[str],
     values: list[int],
-    min_height: int = 320,
+    height: int = _H_FULL,
     left_margin: int = 140,
 ) -> QChartView:
     bar_set = QBarSet("")
@@ -218,7 +225,7 @@ def make_hbar_chart(
     series.attachAxis(axis_y)
     series.attachAxis(axis_x)
 
-    return _chart_view(chart, min_height)
+    return _chart_view(chart, height)
 
 
 # ---------------------------------------------------------------------------
@@ -430,7 +437,7 @@ def _build_tab_artists(stats: LibraryStats, charts: bool) -> QWidget:
         a_labels = [a[0] for a in artists_rev]  # nombre completo (sin truncar)
         a_vals   = [a[1] for a in artists_rev]
         layout.addWidget(_section_label("Top 10 artistas por cantidad de pistas"))
-        layout.addWidget(make_hbar_chart("", a_labels, a_vals, min_height=360, left_margin=160))
+        layout.addWidget(make_hbar_chart("", a_labels, a_vals, left_margin=160))
 
     # Top países de artistas — solo si hay datos
     if stats.artist_country_counts:
@@ -438,7 +445,7 @@ def _build_tab_artists(stats: LibraryStats, charts: bool) -> QWidget:
         country_vals  = list(reversed(list(stats.artist_country_counts.values())))
         layout.addWidget(_section_label("País de origen de artistas"))
         layout.addWidget(
-            make_hbar_chart("", countries, country_vals, min_height=320, left_margin=160)
+            make_hbar_chart("", countries, country_vals, left_margin=160)
         )
     else:
         layout.addWidget(_no_data_note(
@@ -468,7 +475,7 @@ def _build_tab_genres(stats: LibraryStats, charts: bool) -> QWidget:
         g_labels = [g[0] for g in genres_rev]
         g_vals   = [g[1] for g in genres_rev]
         layout.addWidget(_section_label("Top 10 géneros por cantidad de pistas"))
-        layout.addWidget(make_hbar_chart("", g_labels, g_vals, min_height=320, left_margin=160))
+        layout.addWidget(make_hbar_chart("", g_labels, g_vals, left_margin=160))
 
     layout.addStretch(1)
     return scroll
@@ -487,7 +494,7 @@ def _build_tab_labels(stats: LibraryStats, charts: bool) -> QWidget:
         l_labels = [l[0] for l in labels_rev]
         l_vals   = [l[1] for l in labels_rev]
         layout.addWidget(_section_label("Top 10 sellos discográficos por cantidad de pistas"))
-        layout.addWidget(make_hbar_chart("", l_labels, l_vals, min_height=320, left_margin=160))
+        layout.addWidget(make_hbar_chart("", l_labels, l_vals, left_margin=160))
     else:
         layout.addWidget(_no_data_note(
             "No hay información de sellos disponible.\n"
@@ -500,7 +507,7 @@ def _build_tab_labels(stats: LibraryStats, charts: bool) -> QWidget:
         country_vals = list(reversed(list(stats.label_country_counts.values())))
         layout.addWidget(_section_label("País de origen de sellos"))
         layout.addWidget(
-            make_hbar_chart("", countries, country_vals, min_height=280, left_margin=160)
+            make_hbar_chart("", countries, country_vals, left_margin=160)
         )
     else:
         layout.addWidget(_no_data_note(

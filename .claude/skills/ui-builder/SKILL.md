@@ -475,13 +475,37 @@ Este es el escenario que motivó esta skill. Procedimiento estricto:
 
 Aplica a todos los tabs del `StatsPanel` (`audiorep/ui/widgets/stats_panel.py`).
 
-### Reglas
+### Alturas estándar (v0.73+)
+
+Las alturas son **fijas** (`setFixedHeight`), no mínimas. Esto garantiza uniformidad y elimina el scroll interno de `QGraphicsView`.
+
+| Constante | Valor | Aplica a |
+|---|---|---|
+| `_H_HALF` | 280 px | Gráficos en media fila: `make_bar_chart`, `make_pie_chart` |
+| `_H_FULL` | 340 px | Gráficos en fila completa: `make_hbar_chart` (tops) |
+
+**Regla de implementación en `_chart_view()`:**
+```python
+view.setFixedHeight(height)                                            # altura exacta, no mínima
+view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # sin scroll interno
+view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+```
+
+### Reglas de layout
 
 | Tipo de gráfico | Ancho en fila | Observaciones |
 |---|---|---|
 | Gráfico regular (bar, pie) con par natural | Mitad de fila (`_chart_row()`) | Hasta 2 por fila |
 | Gráfico regular sin par natural | Fila completa | No forzar medio ancho si no hay candidato |
 | Gráfico "top" horizontal (`make_hbar_chart`) | Fila completa | Siempre solitario, sin excepción |
+
+### Leyenda en gráficos de torta
+
+La leyenda se posiciona a la **izquierda** (`AlignLeft`), dejando más espacio para el área de la torta.
+
+```python
+chart.legend().setAlignment(Qt.AlignmentFlag.AlignLeft)
+```
 
 ### Cómo emparejar
 

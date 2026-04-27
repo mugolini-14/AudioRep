@@ -77,6 +77,8 @@ domain → core → services ← infrastructure
 
 **NowPlaying typography standard (v0.60+)**: All NowPlaying labels share the same font family. Track title (`trackTitle`): 14px, bold, italic. All other fields (artist, album, label, year, rating): 13px, normal weight, italic. Colors remain per-field (`#e2e2f0` title, `#a0a0c0` artist, `#7070a0` album/label/year, `#7c5cbf` rating). Never use different font sizes or weights between fields other than title vs. rest.
 
+**StatsPanel chart height standard (v0.73+)**: All chart views use `setFixedHeight` (never `setMinimumHeight`) to ensure uniform row heights and eliminate internal `QGraphicsView` scrollbars. Two height constants in `stats_panel.py`: `_H_HALF = 280` for half-width charts (`make_bar_chart`, `make_pie_chart`) and `_H_FULL = 340` for full-width horizontal bar charts (`make_hbar_chart`). Always pass `setHorizontalScrollBarPolicy(ScrollBarAlwaysOff)` and `setVerticalScrollBarPolicy(ScrollBarAlwaysOff)` on every `QChartView`. Pie chart legends use `AlignLeft` (not `AlignBottom`) to maximize pie area. Full layout and pairing rules in `.claude/skills/ui-builder/SKILL.md`.
+
 ## Building installers
 
 > **Read `.claude/skills/compiler-instructions/SKILL.md` before building.** It contains the required procedure, system paths, preferred shell, and the recovery process if a version was missed.

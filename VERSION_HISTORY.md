@@ -2,6 +2,18 @@
 
 ---
 
+# 0.73 — Estandarización visual de gráficos estadísticos
+
+**Fecha:** 26 de abril de 2026
+
+### Modificado
+
+- **Alturas uniformes en todos los gráficos** — todos los gráficos del panel de estadísticas tienen ahora altura fija (280 px para gráficos de media fila, 340 px para barras horizontales de fila completa). Antes cada gráfico podía variar de altura, causando asimetría visual entre filas.
+- **Eliminado el scroll interno de los gráficos** — los marcos de gráficos ya no muestran barras de desplazamiento propias. El scroll del panel completo sigue funcionando normalmente.
+- **Leyenda de gráficos de torta a la izquierda** — en los gráficos de distribución (formatos de pistas, géneros), la leyenda se mueve al lateral izquierdo, dejando más espacio para la torta en sí.
+
+---
+
 # 0.72 — Exportaciones separadas por sección
 
 **Fecha:** 26 de abril de 2026

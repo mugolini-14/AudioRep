@@ -43,6 +43,7 @@ Estado de implementación:
     ✅ Paso 36 — XLSX/PDF tema profesional legible; tarjeta nacionalidades; total_countries en stats, v0.70
     ✅ Paso 37 — Gráfico de formatos convertido a torta; layout 2-por-fila en tabs Pistas y Álbumes, v0.71
     ✅ Paso 38 — Exportaciones separadas: "Exportar Biblioteca" y "Exportar Estadísticas" independientes, v0.72
+    ✅ Paso 39 — Alturas fijas en gráficos (_H_HALF/FULL), sin scroll interno, leyenda torta a la izquierda, v0.73
 """
 import os
 import sys
@@ -107,7 +108,7 @@ def _maybe_auto_enrich(settings: "AppSettings", enrichment_service: object) -> N
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.72.0")
+    app.setApplicationVersion("0.73.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
