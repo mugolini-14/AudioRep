@@ -4,13 +4,18 @@ ExportService — Exportación de la biblioteca de pistas.
 Formatos soportados:
     XLSX — dos hojas: "Biblioteca" + "Estadísticas" (requiere openpyxl).
     PDF  — dos secciones con el mismo contenido (requiere fpdf2).
-    CSV  — solo la biblioteca; sin estadísticas (stdlib csv).
+    CSV  — biblioteca o estadísticas por separado (stdlib csv).
 
-Uso:
-    svc = ExportService()
-    svc.export_xlsx(tracks, stats, "/ruta/biblioteca.xlsx")
-    svc.export_pdf(tracks, stats, "/ruta/biblioteca.pdf")
-    svc.export_csv(tracks, "/ruta/biblioteca.csv")
+Métodos principales:
+    export_xlsx(tracks, stats, filepath)          — biblioteca + estadísticas combinadas
+    export_pdf(tracks, stats, filepath)           — ídem en PDF
+    export_csv(tracks, filepath)                  — solo biblioteca
+
+    export_library_xlsx(tracks, filepath)         — solo hoja Biblioteca
+    export_stats_xlsx(stats, filepath)            — solo hoja Estadísticas
+    export_library_pdf(tracks, filepath)          — solo sección pistas
+    export_stats_pdf(stats, filepath)             — solo sección estadísticas
+    export_stats_csv(stats, filepath)             — estadísticas en CSV (Sección,Indicador,Valor)
 """
 from __future__ import annotations
 
@@ -56,26 +61,14 @@ class ExportService:
     """Exporta pistas y estadísticas a diferentes formatos de archivo."""
 
     # ------------------------------------------------------------------
-    # XLSX
+    # Helpers privados XLSX
     # ------------------------------------------------------------------
 
-    def export_xlsx(
-        self,
-        tracks: list[Track],
-        stats:  LibraryStats,
-        filepath: str,
-    ) -> None:
-        """Exporta a Excel con dos hojas: Biblioteca y Estadísticas."""
-        import openpyxl
+    @staticmethod
+    def _write_library_sheet(ws: object, tracks: list[Track]) -> None:
+        """Rellena una hoja de openpyxl con la tabla de pistas."""
         from openpyxl.styles import Alignment, Font, PatternFill
 
-        wb = openpyxl.Workbook()
-
-        # ── Hoja 1: Biblioteca ─────────────────────────────────────── #
-        ws1 = wb.active
-        ws1.title = "Biblioteca"
-
-        # Tema profesional legible: cabecera gris oscuro, filas claras
         hdr_font  = Font(bold=True, color="FFFFFF", size=9)
         hdr_fill  = PatternFill("solid", fgColor="2D2D2D")
         alt_fill  = PatternFill("solid", fgColor="F2F2F2")
@@ -87,12 +80,12 @@ class ExportService:
         col_widths = [5,    40,       25,         30,      6,     20,       10,          8]
 
         for col, (h, w) in enumerate(zip(headers, col_widths), 1):
-            cell = ws1.cell(row=1, column=col, value=h)
+            cell = ws.cell(row=1, column=col, value=h)  # type: ignore[union-attr]
             cell.font      = hdr_font
             cell.fill      = hdr_fill
             cell.alignment = center
-            ws1.column_dimensions[cell.column_letter].width = w
-        ws1.row_dimensions[1].height = 16
+            ws.column_dimensions[cell.column_letter].width = w  # type: ignore[union-attr]
+        ws.row_dimensions[1].height = 16  # type: ignore[union-attr]
 
         for row_idx, t in enumerate(tracks, 2):
             is_alt = row_idx % 2 == 0
@@ -107,91 +100,88 @@ class ExportService:
                 t.format.value if t.format else "",
             ]
             for col, val in enumerate(vals, 1):
-                cell = ws1.cell(row=row_idx, column=col, value=val)
+                cell = ws.cell(row=row_idx, column=col, value=val)  # type: ignore[union-attr]
                 cell.font      = data_font
                 cell.alignment = center if col in (1, 5, 7, 8) else left
                 if is_alt:
                     cell.fill = alt_fill
 
-        ws1.freeze_panes = "A2"
+        ws.freeze_panes = "A2"  # type: ignore[union-attr]
 
-        # ── Hoja 2: Estadísticas ───────────────────────────────────── #
-        ws2 = wb.create_sheet("Estadísticas")
-        ws2.column_dimensions["A"].width = 32
-        ws2.column_dimensions["B"].width = 20
-        ws2.column_dimensions["C"].width = 20
+    @staticmethod
+    def _write_stats_sheet(ws: object, stats: LibraryStats) -> None:
+        """Rellena una hoja de openpyxl con las estadísticas."""
+        from openpyxl.styles import Font, PatternFill
+
+        ws.column_dimensions["A"].width = 32  # type: ignore[union-attr]
+        ws.column_dimensions["B"].width = 20  # type: ignore[union-attr]
+        ws.column_dimensions["C"].width = 20  # type: ignore[union-attr]
 
         section_font = Font(bold=True, size=12, color="1A1A1A")
         label_font   = Font(bold=True, color="FFFFFF", size=9)
         value_font   = Font(color="1A1A1A", size=9)
-        hdr2_fill    = PatternFill("solid", fgColor="2D2D2D")
-        alt2_fill    = PatternFill("solid", fgColor="F2F2F2")
+        hdr_fill     = PatternFill("solid", fgColor="2D2D2D")
+        alt_fill     = PatternFill("solid", fgColor="F2F2F2")
 
         row = 1
 
         def section(title: str) -> None:
             nonlocal row
-            ws2.cell(row=row, column=1, value=title).font = section_font
+            ws.cell(row=row, column=1, value=title).font = section_font  # type: ignore[union-attr]
             row += 1
 
         def table_header(*cols: str) -> None:
             nonlocal row
             for col_idx, col in enumerate(cols, 1):
-                cell = ws2.cell(row=row, column=col_idx, value=col)
+                cell = ws.cell(row=row, column=col_idx, value=col)  # type: ignore[union-attr]
                 cell.font = label_font
-                cell.fill = hdr2_fill
+                cell.fill = hdr_fill
             row += 1
 
         def table_row(*vals: object) -> None:
             nonlocal row
             is_alt = row % 2 == 0
             for col_idx, val in enumerate(vals, 1):
-                cell = ws2.cell(row=row, column=col_idx, value=val)
+                cell = ws.cell(row=row, column=col_idx, value=val)  # type: ignore[union-attr]
                 cell.font = value_font
                 if is_alt:
-                    cell.fill = alt2_fill
+                    cell.fill = alt_fill
             row += 1
 
-        # Resumen
-        section("Resumen general")
         hours = stats.total_duration_ms / 3_600_000
+        section("Resumen general")
         table_header("Indicador", "Valor")
-        table_row("Total pistas", stats.total_tracks)
-        table_row("Total artistas", stats.total_artists)
-        table_row("Total álbumes", stats.total_albums)
-        table_row("Horas de música", f"{hours:.1f} h")
+        table_row("Total pistas",               stats.total_tracks)
+        table_row("Total artistas",             stats.total_artists)
+        table_row("Total álbumes",              stats.total_albums)
+        table_row("Horas de música",            f"{hours:.1f} h")
         table_row("Nacionalidades de artistas", stats.total_countries)
         row += 1
 
-        # Géneros
         section("Géneros")
         table_header("Género", "Pistas")
         for g, c in sorted(stats.genre_counts.items(), key=lambda x: x[1], reverse=True):
             table_row(g, c)
         row += 1
 
-        # Décadas
         section("Décadas")
         table_header("Década", "Pistas")
         for d, c in sorted(stats.decade_counts.items()):
             table_row(d, c)
         row += 1
 
-        # Formatos
         section("Formatos")
         table_header("Formato", "Pistas")
         for f, c in sorted(stats.format_counts.items(), key=lambda x: x[1], reverse=True):
             table_row(f, c)
         row += 1
 
-        # Top artistas
         section("Top 10 artistas por cantidad de pistas")
         table_header("Artista", "Pistas")
         for artist, count in stats.top_artists:
             table_row(artist, count)
         row += 1
 
-        # Tipo de álbum
         if stats.album_type_counts:
             section("Tipo de álbum")
             table_header("Tipo", "Álbumes")
@@ -199,7 +189,6 @@ class ExportService:
                 table_row(t, c)
             row += 1
 
-        # País de origen de artistas
         if stats.artist_country_counts:
             section("País de origen de artistas")
             table_header("País", "Artistas")
@@ -207,46 +196,40 @@ class ExportService:
                 table_row(country, count)
             row += 1
 
-        # País de origen de sellos
         if stats.label_country_counts:
             section("País de origen de sellos")
             table_header("País", "Sellos")
             for country, count in sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True):
                 table_row(country, count)
 
-        wb.save(filepath)
-
     # ------------------------------------------------------------------
-    # PDF
+    # Helpers privados PDF
     # ------------------------------------------------------------------
 
-    def export_pdf(
-        self,
-        tracks: list[Track],
-        stats:  LibraryStats,
-        filepath: str,
-    ) -> None:
-        """Exporta a PDF con dos secciones: Biblioteca y Estadísticas."""
-        from fpdf import FPDF
+    @staticmethod
+    def _write_library_pdf(pdf: object, tracks: list[Track], stats: LibraryStats) -> None:
+        """Añade la sección de biblioteca al objeto FPDF."""
+        import fpdf as fpdf_mod
+        assert isinstance(pdf, fpdf_mod.FPDF)
 
-        pdf = FPDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.set_margins(10, 10, 10)
-
-        # ── Sección 1: Biblioteca ──────────────────────────────────── #
         pdf.add_page()
         pdf.set_font("Helvetica", "B", 14)
         pdf.set_text_color(0, 0, 0)
-        pdf.cell(0, 10, "AudioRep - Biblioteca de pistas", ln=True)
+        pdf.cell(0, 10, "AudioRep - Biblioteca de pistas", new_x="LMARGIN", new_y="NEXT")
         pdf.set_font("Helvetica", size=7)
         pdf.set_text_color(80, 80, 80)
-        pdf.cell(0, 5, f"{stats.total_tracks} pistas  |  {stats.total_artists} artistas  |  {stats.total_albums} albums  |  {stats.total_duration_ms / 3_600_000:.1f} horas", ln=True)
+        hours = stats.total_duration_ms / 3_600_000
+        pdf.cell(
+            0, 5,
+            f"{stats.total_tracks} pistas  |  {stats.total_artists} artistas  |  "
+            f"{stats.total_albums} albums  |  {hours:.1f} horas",
+            new_x="LMARGIN", new_y="NEXT",
+        )
         pdf.ln(3)
 
-        col_w = [8, 52, 32, 36, 10, 20, 14, 12]
+        col_w   = [8, 52, 32, 36, 10, 20, 14, 12]
         headers = ["#", "Titulo", "Artista", "Album", "Ano", "Genero", "Dur.", "Fmt"]
 
-        # Cabecera: gris claro con texto negro
         pdf.set_fill_color(210, 210, 210)
         pdf.set_text_color(0, 0, 0)
         pdf.set_font("Helvetica", "B", 7)
@@ -256,13 +239,9 @@ class ExportService:
 
         for i, t in enumerate(tracks, 1):
             is_alt = i % 2 == 0
-            if is_alt:
-                pdf.set_fill_color(242, 242, 242)
-            else:
-                pdf.set_fill_color(255, 255, 255)
+            pdf.set_fill_color(242, 242, 242) if is_alt else pdf.set_fill_color(255, 255, 255)
             pdf.set_text_color(30, 30, 30)
             pdf.set_font("Helvetica", size=7)
-
             row_vals = [
                 str(i),
                 (t.title or "")[:38],
@@ -277,17 +256,22 @@ class ExportService:
                 pdf.cell(w, 4, val, border="B", fill=True)
             pdf.ln()
 
-        # ── Sección 2: Estadísticas ────────────────────────────────── #
+    @staticmethod
+    def _write_stats_pdf(pdf: object, stats: LibraryStats) -> None:
+        """Añade la sección de estadísticas al objeto FPDF."""
+        import fpdf as fpdf_mod
+        assert isinstance(pdf, fpdf_mod.FPDF)
+
         pdf.add_page()
         pdf.set_font("Helvetica", "B", 14)
         pdf.set_text_color(0, 0, 0)
-        pdf.cell(0, 10, "AudioRep - Estadisticas de la biblioteca", ln=True)
+        pdf.cell(0, 10, "AudioRep - Estadisticas de la biblioteca", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
 
         def _pdf_section(title: str) -> None:
             pdf.set_font("Helvetica", "B", 10)
             pdf.set_text_color(40, 40, 40)
-            pdf.cell(0, 7, title, ln=True)
+            pdf.cell(0, 7, title, new_x="LMARGIN", new_y="NEXT")
 
         def _pdf_table(headers_row: list[str], rows: list[tuple], col_widths: list[int]) -> None:
             pdf.set_fill_color(210, 210, 210)
@@ -296,13 +280,9 @@ class ExportService:
             for h, w in zip(headers_row, col_widths):
                 pdf.cell(w, 5, h, border=1, fill=True)
             pdf.ln()
-
             for i, row_data in enumerate(rows):
                 is_alt = i % 2 == 0
-                if is_alt:
-                    pdf.set_fill_color(242, 242, 242)
-                else:
-                    pdf.set_fill_color(255, 255, 255)
+                pdf.set_fill_color(242, 242, 242) if is_alt else pdf.set_fill_color(255, 255, 255)
                 pdf.set_text_color(30, 30, 30)
                 pdf.set_font("Helvetica", size=8)
                 for val, w in zip(row_data, col_widths):
@@ -310,62 +290,121 @@ class ExportService:
                 pdf.ln()
             pdf.ln(3)
 
-        # Resumen
-        _pdf_section("Resumen general")
         hours = stats.total_duration_ms / 3_600_000
+        _pdf_section("Resumen general")
         _pdf_table(
             ["Indicador", "Valor"],
             [
-                ("Total pistas",                stats.total_tracks),
-                ("Total artistas",              stats.total_artists),
-                ("Total albums",                stats.total_albums),
-                ("Horas de musica",             f"{hours:.1f} h"),
-                ("Nacionalidades de artistas",  stats.total_countries),
+                ("Total pistas",               stats.total_tracks),
+                ("Total artistas",             stats.total_artists),
+                ("Total albums",               stats.total_albums),
+                ("Horas de musica",            f"{hours:.1f} h"),
+                ("Nacionalidades de artistas", stats.total_countries),
             ],
             [80, 50],
         )
 
-        # Géneros
         _pdf_section("Generos")
-        genre_rows = sorted(stats.genre_counts.items(), key=lambda x: x[1], reverse=True)
-        _pdf_table(["Genero", "Pistas"], [(g, c) for g, c in genre_rows], [80, 30])
+        _pdf_table(["Genero", "Pistas"],
+                   sorted(stats.genre_counts.items(), key=lambda x: x[1], reverse=True),
+                   [80, 30])
 
-        # Décadas
         _pdf_section("Decadas")
-        decade_rows = sorted(stats.decade_counts.items())
-        _pdf_table(["Decada", "Pistas"], [(d, c) for d, c in decade_rows], [40, 30])
+        _pdf_table(["Decada", "Pistas"], sorted(stats.decade_counts.items()), [40, 30])
 
-        # Formatos
         _pdf_section("Formatos")
-        fmt_rows = sorted(stats.format_counts.items(), key=lambda x: x[1], reverse=True)
-        _pdf_table(["Formato", "Pistas"], [(f, c) for f, c in fmt_rows], [40, 30])
+        _pdf_table(["Formato", "Pistas"],
+                   sorted(stats.format_counts.items(), key=lambda x: x[1], reverse=True),
+                   [40, 30])
 
-        # Top artistas
         _pdf_section("Top 10 artistas por pistas")
         _pdf_table(["Artista", "Pistas"], stats.top_artists, [90, 30])
 
-        # Tipo de album
         if stats.album_type_counts:
             _pdf_section("Tipo de album")
-            rows_type = sorted(stats.album_type_counts.items(), key=lambda x: x[1], reverse=True)
-            _pdf_table(["Tipo", "Albumes"], rows_type, [60, 30])
+            _pdf_table(["Tipo", "Albumes"],
+                       sorted(stats.album_type_counts.items(), key=lambda x: x[1], reverse=True),
+                       [60, 30])
 
-        # Pais de origen de artistas
         if stats.artist_country_counts:
             _pdf_section("Pais de origen de artistas")
-            rows_ac = sorted(stats.artist_country_counts.items(), key=lambda x: x[1], reverse=True)
-            _pdf_table(["Pais", "Artistas"], rows_ac, [80, 30])
+            _pdf_table(["Pais", "Artistas"],
+                       sorted(stats.artist_country_counts.items(), key=lambda x: x[1], reverse=True),
+                       [80, 30])
 
-        # Pais de origen de sellos
         if stats.label_country_counts:
             _pdf_section("Pais de origen de sellos")
-            rows_lc = sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True)
-            _pdf_table(["Pais", "Sellos"], rows_lc, [80, 30])
+            _pdf_table(["Pais", "Sellos"],
+                       sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True),
+                       [80, 30])
 
+    # ------------------------------------------------------------------
+    # XLSX — combinado y por sección
+    # ------------------------------------------------------------------
+
+    def export_xlsx(self, tracks: list[Track], stats: LibraryStats, filepath: str) -> None:
+        """Exporta a Excel con dos hojas: Biblioteca y Estadísticas."""
+        import openpyxl
+        wb = openpyxl.Workbook()
+        ws1 = wb.active
+        ws1.title = "Biblioteca"
+        self._write_library_sheet(ws1, tracks)
+        ws2 = wb.create_sheet("Estadísticas")
+        self._write_stats_sheet(ws2, stats)
+        wb.save(filepath)
+
+    def export_library_xlsx(self, tracks: list[Track], filepath: str) -> None:
+        """Exporta solo la biblioteca a Excel (una hoja)."""
+        import openpyxl
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Biblioteca"
+        self._write_library_sheet(ws, tracks)
+        wb.save(filepath)
+
+    def export_stats_xlsx(self, stats: LibraryStats, filepath: str) -> None:
+        """Exporta solo las estadísticas a Excel (una hoja)."""
+        import openpyxl
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Estadísticas"
+        self._write_stats_sheet(ws, stats)
+        wb.save(filepath)
+
+    # ------------------------------------------------------------------
+    # PDF — combinado y por sección
+    # ------------------------------------------------------------------
+
+    def export_pdf(self, tracks: list[Track], stats: LibraryStats, filepath: str) -> None:
+        """Exporta a PDF con dos secciones: Biblioteca y Estadísticas."""
+        from fpdf import FPDF
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_margins(10, 10, 10)
+        self._write_library_pdf(pdf, tracks, stats)
+        self._write_stats_pdf(pdf, stats)
+        pdf.output(filepath)
+
+    def export_library_pdf(self, tracks: list[Track], stats: LibraryStats, filepath: str) -> None:
+        """Exporta solo la biblioteca a PDF."""
+        from fpdf import FPDF
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_margins(10, 10, 10)
+        self._write_library_pdf(pdf, tracks, stats)
+        pdf.output(filepath)
+
+    def export_stats_pdf(self, stats: LibraryStats, filepath: str) -> None:
+        """Exporta solo las estadísticas a PDF."""
+        from fpdf import FPDF
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_margins(10, 10, 10)
+        self._write_stats_pdf(pdf, stats)
         pdf.output(filepath)
 
     # ------------------------------------------------------------------
-    # CSV
+    # CSV — biblioteca y estadísticas
     # ------------------------------------------------------------------
 
     def export_csv(self, tracks: list[Track], filepath: str) -> None:
@@ -385,3 +424,33 @@ class ExportService:
                     "Duración":  _ms_to_str(t.duration_ms),
                     "Formato":   t.format.value if t.format else "",
                 })
+
+    def export_stats_csv(self, stats: LibraryStats, filepath: str) -> None:
+        """Exporta las estadísticas a CSV en formato Sección,Indicador,Valor."""
+        hours = stats.total_duration_ms / 3_600_000
+        rows: list[tuple[str, str, str]] = [
+            ("Resumen", "Total pistas",               str(stats.total_tracks)),
+            ("Resumen", "Total artistas",             str(stats.total_artists)),
+            ("Resumen", "Total álbumes",              str(stats.total_albums)),
+            ("Resumen", "Horas de música",            f"{hours:.1f}"),
+            ("Resumen", "Nacionalidades de artistas", str(stats.total_countries)),
+        ]
+        for g, c in sorted(stats.genre_counts.items(), key=lambda x: x[1], reverse=True):
+            rows.append(("Géneros", g, str(c)))
+        for d, c in sorted(stats.decade_counts.items()):
+            rows.append(("Décadas", d, str(c)))
+        for f, c in sorted(stats.format_counts.items(), key=lambda x: x[1], reverse=True):
+            rows.append(("Formatos", f, str(c)))
+        for artist, count in stats.top_artists:
+            rows.append(("Top artistas", artist, str(count)))
+        for t, c in sorted(stats.album_type_counts.items(), key=lambda x: x[1], reverse=True):
+            rows.append(("Tipo de álbum", t, str(c)))
+        for country, count in sorted(stats.artist_country_counts.items(), key=lambda x: x[1], reverse=True):
+            rows.append(("País de artistas", country, str(count)))
+        for country, count in sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True):
+            rows.append(("País de sellos", country, str(count)))
+
+        with open(filepath, "w", newline="", encoding="utf-8-sig") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Sección", "Indicador", "Valor"])
+            writer.writerows(rows)

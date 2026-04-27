@@ -6,19 +6,20 @@ En modo estadísticas, la vista se reemplaza por StatsPanel.
 
 objectNames alineados con dark.qss:
     libraryPanel, libraryToolbar, importButton, searchBox,
-    libraryStatsBtn, libraryExportBtn,
+    libraryStatsBtn, libraryExportLibBtn, libraryExportStatsBtn,
     treeContainer, libraryTree,
     trackTableContainer, libraryContext, trackTable,
     importProgress
 
 Signals:
-    import_requested:           El usuario quiere importar un directorio.
-    play_requested(list, int):  El usuario quiere reproducir (cola, índice).
-    search_changed(str):        El texto de búsqueda cambió.
+    import_requested:              El usuario quiere importar un directorio.
+    play_requested(list, int):     El usuario quiere reproducir (cola, índice).
+    search_changed(str):           El texto de búsqueda cambió.
     edit_tags_requested(Track):
     identify_requested(Track):
-    stats_requested:            El usuario quiere ver/calcular estadísticas.
-    export_requested:           El usuario quiere exportar la biblioteca.
+    stats_requested:               El usuario quiere ver/calcular estadísticas.
+    export_library_requested:      El usuario quiere exportar solo la lista de pistas.
+    export_stats_requested:        El usuario quiere exportar solo las estadísticas.
 """
 from __future__ import annotations
 
@@ -54,8 +55,9 @@ class LibraryPanel(QWidget):
     search_changed       = pyqtSignal(str)
     edit_tags_requested  = pyqtSignal(object)   # Track
     identify_requested   = pyqtSignal(object)   # Track
-    stats_requested      = pyqtSignal()
-    export_requested     = pyqtSignal()
+    stats_requested          = pyqtSignal()
+    export_library_requested = pyqtSignal()
+    export_stats_requested   = pyqtSignal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -97,10 +99,15 @@ class LibraryPanel(QWidget):
         import_btn.clicked.connect(self.import_requested)
         toolbar_layout.addWidget(import_btn)
 
-        export_btn = QPushButton("⬇  Exportar")
-        export_btn.setObjectName("libraryExportBtn")
-        export_btn.clicked.connect(self.export_requested)
-        toolbar_layout.addWidget(export_btn)
+        export_lib_btn = QPushButton("⬇  Exportar Biblioteca")
+        export_lib_btn.setObjectName("libraryExportLibBtn")
+        export_lib_btn.clicked.connect(self.export_library_requested)
+        toolbar_layout.addWidget(export_lib_btn)
+
+        export_stats_btn = QPushButton("📈  Exportar Estadísticas")
+        export_stats_btn.setObjectName("libraryExportStatsBtn")
+        export_stats_btn.clicked.connect(self.export_stats_requested)
+        toolbar_layout.addWidget(export_stats_btn)
 
         layout.addWidget(toolbar)
 

@@ -2,6 +2,18 @@
 
 ---
 
+# 0.72 — Exportaciones separadas por sección
+
+**Fecha:** 26 de abril de 2026
+
+### Modificado
+
+- **Botón "Exportar" dividido en dos** — la barra de herramientas de la biblioteca ahora tiene "Exportar Biblioteca" y "Exportar Estadísticas" como botones independientes.
+- **Exportar Biblioteca** — genera un archivo con solo la lista de pistas (XLSX con una hoja, PDF con solo la tabla de canciones, CSV). Sin estadísticas adjuntas.
+- **Exportar Estadísticas** — genera un archivo con solo el resumen estadístico (XLSX con una hoja, PDF con solo la sección de estadísticas, CSV en formato Sección/Indicador/Valor). No requiere haber abierto el panel de estadísticas previamente; si no hay datos calculados, los calcula automáticamente antes de exportar.
+
+---
+
 # 0.71 — Rediseño de layout de gráficos estadísticos
 
 **Fecha:** 26 de abril de 2026

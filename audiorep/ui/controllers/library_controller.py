@@ -70,7 +70,8 @@ class LibraryController:
         panel.play_requested.connect(self._on_play_requested)
         panel.search_changed.connect(self._on_search_changed)
         panel.stats_requested.connect(self._on_stats_requested)
-        panel.export_requested.connect(self._on_export_requested)
+        panel.export_library_requested.connect(self._on_export_library_requested)
+        panel.export_stats_requested.connect(self._on_export_stats_requested)
 
         self._stats_service.stats_ready.connect(self._on_stats_ready)
 
@@ -130,8 +131,8 @@ class LibraryController:
         self._panel.set_stats(stats)
         app_events.status_message.emit("Estadísticas listas.")
 
-    def _on_export_requested(self) -> None:
-        filepath, selected_filter = QFileDialog.getSaveFileName(
+    def _on_export_library_requested(self) -> None:
+        filepath, _ = QFileDialog.getSaveFileName(
             self._panel,
             "Exportar biblioteca",
             "biblioteca",
@@ -139,34 +140,52 @@ class LibraryController:
         )
         if not filepath:
             return
-
         tracks = self._library.get_all_tracks()
-
         try:
             if filepath.lower().endswith(".xlsx"):
-                stats = self._get_or_compute_stats(tracks)
-                self._export_service.export_xlsx(tracks, stats, filepath)
+                self._export_service.export_library_xlsx(tracks, filepath)
             elif filepath.lower().endswith(".pdf"):
                 stats = self._get_or_compute_stats(tracks)
-                self._export_service.export_pdf(tracks, stats, filepath)
+                self._export_service.export_library_pdf(tracks, stats, filepath)
             else:
-                # CSV — agrega extensión si no la tiene
                 if not filepath.lower().endswith(".csv"):
                     filepath += ".csv"
                 self._export_service.export_csv(tracks, filepath)
-                self._show_csv_note()
-
             app_events.status_message.emit(f"Exportación completada: {filepath}")
             logger.info("Biblioteca exportada a: %s", filepath)
-
         except Exception as exc:
-            logger.exception("Error al exportar: %s", exc)
+            logger.exception("Error al exportar biblioteca: %s", exc)
             app_events.status_message.emit(f"Error al exportar: {exc}")
-            QMessageBox.critical(
-                self._panel,
-                "Error de exportación",
-                f"No se pudo exportar la biblioteca:\n{exc}",
-            )
+            QMessageBox.critical(self._panel, "Error de exportación",
+                                 f"No se pudo exportar la biblioteca:\n{exc}")
+
+    def _on_export_stats_requested(self) -> None:
+        filepath, _ = QFileDialog.getSaveFileName(
+            self._panel,
+            "Exportar estadísticas",
+            "estadisticas",
+            "Excel (*.xlsx);;PDF (*.pdf);;CSV (*.csv)",
+        )
+        if not filepath:
+            return
+        tracks = self._library.get_all_tracks()
+        stats  = self._get_or_compute_stats(tracks)
+        try:
+            if filepath.lower().endswith(".xlsx"):
+                self._export_service.export_stats_xlsx(stats, filepath)
+            elif filepath.lower().endswith(".pdf"):
+                self._export_service.export_stats_pdf(stats, filepath)
+            else:
+                if not filepath.lower().endswith(".csv"):
+                    filepath += ".csv"
+                self._export_service.export_stats_csv(stats, filepath)
+            app_events.status_message.emit(f"Exportación completada: {filepath}")
+            logger.info("Estadísticas exportadas a: %s", filepath)
+        except Exception as exc:
+            logger.exception("Error al exportar estadísticas: %s", exc)
+            app_events.status_message.emit(f"Error al exportar: {exc}")
+            QMessageBox.critical(self._panel, "Error de exportación",
+                                 f"No se pudo exportar las estadísticas:\n{exc}")
 
     def _on_scan_finished(self, n: int) -> None:
         app_events.status_message.emit(f"Importación completada: {n} pistas.")
@@ -218,17 +237,6 @@ class LibraryController:
         stats = compute_stats(tracks, albums, artists, label_country_map)
         self._last_stats = stats
         return stats
-
-    def _show_csv_note(self) -> None:
-        msg = QMessageBox(self._panel)
-        msg.setWindowTitle("Exportación CSV")
-        msg.setText(
-            "El archivo CSV contiene solo los datos de la biblioteca.\n"
-            "Para incluir estadísticas, exportá en formato Excel (.xlsx) o PDF."
-        )
-        msg.setIcon(QMessageBox.Icon.Information)
-        msg.addButton("OK", QMessageBox.ButtonRole.AcceptRole)
-        msg.exec()
 
     def _refresh(self) -> None:
         tracks = self._library.get_all_tracks()

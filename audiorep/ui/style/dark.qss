@@ -406,7 +406,8 @@ QWidget#libraryToolbar {
 QPushButton#importButton,
 QPushButton#libraryEditBtn,
 QPushButton#libraryIdentifyBtn,
-QPushButton#libraryExportBtn {
+QPushButton#libraryExportLibBtn,
+QPushButton#libraryExportStatsBtn {
     background-color: #4a3480;
     color: #ffffff;
     border: none;
@@ -419,7 +420,8 @@ QPushButton#libraryExportBtn {
 QPushButton#importButton:hover,
 QPushButton#libraryEditBtn:hover,
 QPushButton#libraryIdentifyBtn:hover,
-QPushButton#libraryExportBtn:hover {
+QPushButton#libraryExportLibBtn:hover,
+QPushButton#libraryExportStatsBtn:hover {
     background-color: #5a409a;
 }
 
