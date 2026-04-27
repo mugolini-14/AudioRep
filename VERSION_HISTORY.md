@@ -2,6 +2,18 @@
 
 ---
 
+# 0.75 — Exportaciones mejoradas: fuente legible y biblioteca PDF en horizontal
+
+**Fecha:** 27 de abril de 2026
+
+### Modificado
+
+- **Excel (XLSX) — fuente más grande** — la fuente en ambas hojas (Biblioteca y Estadísticas) pasó de tamaño 9 a 11. Las columnas de la hoja Biblioteca se ampliaron proporcionalmente.
+- **PDF de estadísticas — fuente más grande** — las tablas de estadísticas usan fuente 9 para datos y 10 para cabeceras (antes 8 y 8). Los títulos de sección usan 11.
+- **PDF de biblioteca — orientación horizontal** — la hoja de la biblioteca cambia de vertical a horizontal (A4 landscape), aprovechando el ancho extra (~277mm útiles vs ~190mm en portrait) para mostrar columnas más anchas y más texto en título, artista y álbum sin truncar.
+
+---
+
 # 0.74 — Exportaciones mejoradas: fuente legible y gráficos integrados
 
 **Fecha:** 27 de abril de 2026
