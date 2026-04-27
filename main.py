@@ -29,8 +29,19 @@ Estado de implementación:
     ✅ Paso 22 — Estandarización de todos los botones de acción, fix alineación botón play, v0.49
     ✅ Paso 23 — Estandarización de dropdowns, refactor performance reproductor (poll 200ms, VU stop, DB async), v0.50
     ✅ Paso 24 — Hilo RMS dedicado (_RMSAnalyzer), backpressure con log de underruns en _SDAudioBridge, v0.51
-    ✅ Paso 33 — Estadísticas de biblioteca (StatsService + StatsPanel + PyQt6-Charts), exportación XLSX/PDF/CSV, v0.65
-    ✅ Paso 34 — Gráfico de formatos convertido a torta; layout 2-por-fila en tabs Pistas y Álbumes, v0.71
+    ✅ Paso 25 — Columnas ordenables en Biblioteca (TrackTableModel.sort() + setSortingEnabled), v0.52
+    ✅ Paso 26 — Columnas ordenables en Playlists; fix doble-clic siempre reproducía desde pista 1, v0.53
+    ✅ Paso 27 — Columnas ordenables en Radio (3 tabs); _BitrateItem para orden numérico correcto, v0.54
+    ✅ Paso 28 — trackLabel 16px en PlayerBar; botones de transporte sin highlight de foco (NoFocus), v0.57
+    ✅ Paso 29 — NowPlaying: campo año, campos opcionales con setVisible, portada limpia al cambiar pista, v0.57
+    ✅ Paso 30 — Estándar de diálogos modales: QLineEdit global, QDialogButtonBox, confirmaciones en español, v0.58
+    ✅ Paso 31 — Título de ventana estático; Play tras Stop reproduce última pista (replay_current()), v0.59
+    ✅ Paso 32 — Sello discográfico en NowPlaying y CDMetadataPanel; orden estándar NowPlaying, v0.60
+    ✅ Paso 33 — StatsService + StatsPanel (6 tabs, PyQt6-Charts) + ExportService (XLSX/PDF/CSV), v0.65
+    ✅ Paso 34 — Label entity + LabelRepository; Artist.country + Album.release_type; gráficos país/tipo, v0.67
+    ✅ Paso 35 — EnrichmentService + LastFmClient; auto-enriquecimiento al importar y al arrancar, v0.69
+    ✅ Paso 36 — XLSX/PDF tema profesional legible; tarjeta nacionalidades; total_countries en stats, v0.70
+    ✅ Paso 37 — Gráfico de formatos convertido a torta; layout 2-por-fila en tabs Pistas y Álbumes, v0.71
 """
 import os
 import sys
