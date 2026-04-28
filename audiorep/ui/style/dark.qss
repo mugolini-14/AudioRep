@@ -177,7 +177,11 @@ QLabel#coverLabel {
     background-color: #2a2a3e;
 }
 
+/* Todos los labels del NowPlaying comparten familia tipográfica.
+   trackTitle: 14px bold italic. El resto: 13px normal italic. */
+
 QLabel#trackTitle {
+    font-family: "Segoe UI", "Inter", sans-serif;
     font-size: 14px;
     font-weight: 700;
     font-style: italic;
@@ -185,31 +189,41 @@ QLabel#trackTitle {
 }
 
 QLabel#trackArtist {
+    font-family: "Segoe UI", "Inter", sans-serif;
     font-size: 13px;
+    font-weight: 400;
     font-style: italic;
     color: #a0a0c0;
 }
 
 QLabel#trackAlbum {
+    font-family: "Segoe UI", "Inter", sans-serif;
     font-size: 13px;
+    font-weight: 400;
     font-style: italic;
     color: #7070a0;
 }
 
 QLabel#trackYear {
+    font-family: "Segoe UI", "Inter", sans-serif;
     font-size: 13px;
+    font-weight: 400;
     font-style: italic;
     color: #7070a0;
 }
 
 QLabel#trackLabel {
+    font-family: "Segoe UI", "Inter", sans-serif;
     font-size: 13px;
+    font-weight: 400;
     font-style: italic;
     color: #7070a0;
 }
 
 QLabel#trackRating {
+    font-family: "Segoe UI", "Inter", sans-serif;
     font-size: 13px;
+    font-weight: 400;
     font-style: italic;
     color: #7c5cbf;
     letter-spacing: 2px;
@@ -231,7 +245,7 @@ QLabel#timeLabel {
 }
 
 /* Etiqueta de pista en reproducción */
-QLabel#trackLabel {
+QLabel#playerTrackLabel {
     font-size: 16px;
     color: #e2e2f0;
 }

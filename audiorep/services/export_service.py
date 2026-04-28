@@ -259,6 +259,11 @@ class ExportService:
         import fpdf as fpdf_mod
         assert isinstance(pdf, fpdf_mod.FPDF)
 
+        # A4 portrait con márgenes 10mm: ancho útil = 210 - 10 - 10 = 190mm
+        _W = 190
+        # Columna de valor fija; la de nombre/indicador ocupa el resto
+        _VAL = 35
+
         pdf.add_page()
         pdf.set_font("Helvetica", "B", 14)
         pdf.set_text_color(0, 0, 0)
@@ -285,7 +290,7 @@ class ExportService:
                 pdf.set_text_color(30, 30, 30)
                 pdf.set_font("Helvetica", size=9)
                 for val, w in zip(row_data, col_widths):
-                    pdf.cell(w, 5, str(val)[:30], border="B", fill=True)
+                    pdf.cell(w, 5, str(val)[:50], border="B", fill=True)
                 pdf.ln()
             pdf.ln(3)
 
@@ -300,42 +305,43 @@ class ExportService:
                 ("Horas de musica",            f"{hours:.1f} h"),
                 ("Nacionalidades de artistas", stats.total_countries),
             ],
-            [80, 50],
+            [_W - _VAL, _VAL],
         )
 
         _pdf_section("Generos")
         _pdf_table(["Genero", "Pistas"],
                    sorted(stats.genre_counts.items(), key=lambda x: x[1], reverse=True),
-                   [80, 30])
+                   [_W - _VAL, _VAL])
 
         _pdf_section("Decadas")
-        _pdf_table(["Decada", "Pistas"], sorted(stats.decade_counts.items()), [40, 30])
+        _pdf_table(["Decada", "Pistas"], sorted(stats.decade_counts.items()),
+                   [_W - _VAL, _VAL])
 
         _pdf_section("Formatos")
         _pdf_table(["Formato", "Pistas"],
                    sorted(stats.format_counts.items(), key=lambda x: x[1], reverse=True),
-                   [40, 30])
+                   [_W - _VAL, _VAL])
 
         _pdf_section("Top 10 artistas por pistas")
-        _pdf_table(["Artista", "Pistas"], stats.top_artists, [90, 30])
+        _pdf_table(["Artista", "Pistas"], stats.top_artists, [_W - _VAL, _VAL])
 
         if stats.album_type_counts:
             _pdf_section("Tipo de album")
             _pdf_table(["Tipo", "Albumes"],
                        sorted(stats.album_type_counts.items(), key=lambda x: x[1], reverse=True),
-                       [60, 30])
+                       [_W - _VAL, _VAL])
 
         if stats.artist_country_counts:
             _pdf_section("Pais de origen de artistas")
             _pdf_table(["Pais", "Artistas"],
                        sorted(stats.artist_country_counts.items(), key=lambda x: x[1], reverse=True),
-                       [80, 30])
+                       [_W - _VAL, _VAL])
 
         if stats.label_country_counts:
             _pdf_section("Pais de origen de sellos")
             _pdf_table(["Pais", "Sellos"],
                        sorted(stats.label_country_counts.items(), key=lambda x: x[1], reverse=True),
-                       [80, 30])
+                       [_W - _VAL, _VAL])
 
     # ------------------------------------------------------------------
     # XLSX — combinado y por sección

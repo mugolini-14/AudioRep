@@ -2,6 +2,22 @@
 
 ---
 
+# 0.76 — Correcciones de estadísticas, exportación PDF y tipografía NowPlaying
+
+**Fecha:** 28 de abril de 2026
+
+### Corregido
+
+- **Estadísticas no se actualizaban tras enriquecimiento de metadatos** — el panel de estadísticas ahora se recalcula automáticamente cuando termina cualquier actualización de metadatos (manual o periódica) que haya modificado pistas, incluyendo las disparadas desde Configuración con "Actualizar ahora". Antes el panel mostraba los datos anteriores hasta que el usuario lo abría manualmente.
+- **Tablas del PDF de estadísticas con dimensiones irregulares** — todas las tablas del PDF de estadísticas ahora ocupan el ancho completo de la hoja (190 mm en A4 portrait). Antes cada tabla usaba anchos hardcodeados distintos que dejaban espacio en blanco a la derecha.
+- **Tipografía inconsistente en el NowPlaying al mostrar un CD** — el campo de sello discográfico en el panel NowPlaying aparecía con el estilo del PlayerBar (16px, blanco, sin cursiva) en lugar del estilo estándar del panel (13px, italic, color tenue). La causa era un conflicto de nombres en el archivo de estilos QSS donde dos reglas distintas compartían el nombre `trackLabel`. Se resolvió renombrando la regla del PlayerBar a `playerTrackLabel`.
+
+### Modificado
+
+- **Estandarización tipográfica del NowPlaying** — todas las reglas de estilo del panel NowPlaying (`trackTitle`, `trackArtist`, `trackAlbum`, `trackYear`, `trackLabel`, `trackRating`) ahora declaran explícitamente `font-family`, `font-size`, `font-weight` y `font-style`, sin depender de herencia. Esto garantiza consistencia visual en cualquier contexto.
+
+---
+
 # 0.75 — Exportaciones mejoradas: fuente legible y biblioteca PDF en horizontal
 
 **Fecha:** 27 de abril de 2026

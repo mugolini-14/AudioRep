@@ -243,5 +243,8 @@ class LibraryController:
         self._panel.set_tracks(tracks)
 
     def _on_library_updated(self) -> None:
+        had_stats = self._last_stats is not None
         self._last_stats = None   # invalidar caché de stats
         self._refresh()
+        if had_stats:
+            self._on_stats_requested()

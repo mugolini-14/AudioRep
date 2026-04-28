@@ -180,8 +180,8 @@ Todos los campos opcionales usan `setVisible(bool(valor))`. El orden del layout 
 | `modeButton` | `QPushButton` | 46×46 | Shuffle (⇄) y Repeat (↺). Checkable. Inactivo: blanco `#ffffff`. Activo: `#b090ff` |
 | `transportButton` | `QPushButton` | 46×46 | Prev (⏮), Stop (⏹) y Next (⏭). Fondo transparente, color blanco, font-size 22px |
 | `playButton` | `QPushButton` | 46×46 | Play/Pause. Fondo transparente, color blanco, font-size 28px |
-| `trackLabel` | `QLabel` | stretch=1 | Título y artista de la pista en reproducción (`"Título — Artista"`). 16px, `text-main`. Centrado en la fila 1 entre los dos `timeLabel` |
-| `timeLabel` | `QLabel` | fixed 52px | Tiempo transcurrido y total, flanqueando el `trackLabel`. `#7070a0`, 16px tabular-nums |
+| `playerTrackLabel` | `QLabel` | stretch=1 | Título y artista de la pista en reproducción (`"Título — Artista"`). 16px, `text-main`. Centrado en la fila 1 entre los dos `timeLabel` |
+| `timeLabel` | `QLabel` | fixed 52px | Tiempo transcurrido y total, flanqueando el `playerTrackLabel`. `#7070a0`, 16px tabular-nums |
 | `progressSlider` | `QSlider` | stretch (fila 2) | Barra de progreso a ancho completo. Handle blanco `#e2e2f0` |
 | `volumeIcon` | `QPushButton` | 46×46 | Ícono 🔊/🔇. Actúa como botón de mute toggle. Color `text-ghost`. Al hacer clic silencia/restaura el volumen anterior |
 | `volumeSlider` | `QSlider` | min 180px / max 280px | Volumen. Groove 3px, handle `#a090c0` |
