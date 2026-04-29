@@ -61,6 +61,10 @@ class _EnrichmentWorker(QThread):
     def cancel(self) -> None:
         self._cancel = True
 
+    @property
+    def is_cancelled(self) -> bool:
+        return self._cancel
+
     @staticmethod
     def _metadata_priority(track) -> int:
         """Orden de procesamiento: pistas con más metadatos primero.
@@ -99,24 +103,103 @@ class _EnrichmentWorker(QThread):
             db.close()
 
     def _process(self, track_repo, album_repo, artist_repo, label_repo) -> None:
+        """
+        Fase 1 — Enriquecimiento por álbum (1 llamada API por álbum único):
+            year, label, label_country, release_type, artist_country.
+
+        Fase 2 — Enriquecimiento por pista (solo pistas sin género):
+            genre via recordings endpoint + Last.fm como fallback.
+        """
         all_tracks = track_repo.get_all()
-        eligible = sorted(
-            [t for t in all_tracks if t.file_path and t.source == TrackSource.LOCAL],
-            key=self._metadata_priority,
-        )
-        total       = len(eligible)
+        eligible = [t for t in all_tracks if t.file_path and t.source == TrackSource.LOCAL]
+
+        # ── Fase 1: álbumes únicos ──────────────────────────────────── #
+        # Mapear album_id → (Album, artist_id) evitando repetidos
+        album_map: dict[int, tuple] = {}
+        for t in eligible:
+            if t.album_id and t.album_id not in album_map:
+                album = album_repo.get_by_id(t.album_id)
+                if album:
+                    album_map[t.album_id] = (album, t.artist_id)
+
+        total_albums = len(album_map)
+        tracks_no_genre = [t for t in eligible if not t.genre]
+        total = total_albums + len(tracks_no_genre)
+
         updated     = 0
         any_changed = False
 
-        logger.info("EnrichmentWorker: %d pistas elegibles.", total)
+        logger.info(
+            "EnrichmentWorker: %d álbumes, %d pistas sin género.",
+            total_albums, len(tracks_no_genre),
+        )
 
-        for i, track in enumerate(eligible):
+        for i, (album_id, (album, artist_id)) in enumerate(album_map.items()):
             if self._cancel:
-                logger.info("EnrichmentWorker: cancelado en pista %d/%d.", i, total)
+                logger.info("EnrichmentWorker: cancelado en álbum %d/%d.", i, total_albums)
                 self.cancelled.emit()
                 return
 
             self.progress.emit(i + 1, total)
+
+            try:
+                enriched = self._mb.enrich_album(  # type: ignore[attr-defined]
+                    artist=album.artist_name or "",
+                    title=album.title or "",
+                )
+
+                time.sleep(_MB_RATE_LIMIT_S)
+
+                if enriched is None:
+                    continue
+
+                # Actualizar álbum
+                album_changed = False
+                if not album.label and enriched.get("label"):
+                    album.label = enriched["label"]
+                    album_changed = True
+                if not album.release_type and enriched.get("release_type"):
+                    album.release_type = enriched["release_type"]
+                    album_changed = True
+                if not album.year and enriched.get("year"):
+                    try:
+                        album.year = int(enriched["year"])
+                        album_changed = True
+                    except (ValueError, TypeError):
+                        pass
+                if album_changed:
+                    album_repo.save(album)
+                    any_changed = True
+
+                # Actualizar artista
+                if artist_id and enriched.get("artist_country"):
+                    if self._enrich_artist(
+                        artist_repo, artist_id, enriched["artist_country"]
+                    ):
+                        any_changed = True
+
+                # Actualizar sello
+                if enriched.get("label") and enriched.get("label_country"):
+                    try:
+                        label_repo.upsert_country(
+                            enriched["label"], enriched["label_country"]
+                        )
+                        any_changed = True
+                    except Exception as exc:
+                        logger.debug("EnrichmentWorker.label: %s", exc)
+
+            except Exception as exc:
+                logger.warning(
+                    "EnrichmentWorker: error álbum '%s' — %s", album.title, exc
+                )
+
+        # ── Fase 2: pistas sin género ───────────────────────────────── #
+        for j, track in enumerate(tracks_no_genre):
+            if self._cancel:
+                self.cancelled.emit()
+                return
+
+            self.progress.emit(total_albums + j + 1, total)
 
             try:
                 enriched = self._mb.enrich_track(  # type: ignore[attr-defined]
@@ -131,7 +214,6 @@ class _EnrichmentWorker(QThread):
                 if enriched is None:
                     continue
 
-                # Complementar género con Last.fm si MB no tiene
                 genre = enriched.get("genre", "")
                 if not genre and self._lastfm and track.artist_name and track.title:
                     try:
@@ -142,7 +224,6 @@ class _EnrichmentWorker(QThread):
                     except Exception:
                         pass
 
-                # ── Pista ────────────────────────────────────────────── #
                 track_changed = False
                 if not track.genre and genre:
                     track.genre = genre
@@ -150,46 +231,14 @@ class _EnrichmentWorker(QThread):
                 if not track.musicbrainz_id and enriched.get("mbid"):
                     track.musicbrainz_id = enriched["mbid"]
                     track_changed = True
-                if not track.year and enriched.get("year"):
-                    try:
-                        track.year = int(enriched["year"])
-                        track_changed = True
-                    except (ValueError, TypeError):
-                        pass
                 if track_changed:
                     track_repo.update_tags(track)
                     self._write_file_tags(track)
                     updated += 1
                     any_changed = True
 
-                # ── Álbum ─────────────────────────────────────────────── #
-                if track.album_id:
-                    if self._enrich_album(
-                        album_repo, track.album_id,
-                        enriched.get("label", ""),
-                        enriched.get("release_type", ""),
-                    ):
-                        any_changed = True
-
-                # ── Artista ───────────────────────────────────────────── #
-                if track.artist_id and enriched.get("artist_country"):
-                    if self._enrich_artist(
-                        artist_repo, track.artist_id, enriched["artist_country"]
-                    ):
-                        any_changed = True
-
-                # ── Sello ─────────────────────────────────────────────── #
-                if enriched.get("label") and enriched.get("label_country"):
-                    try:
-                        label_repo.upsert_country(
-                            enriched["label"], enriched["label_country"]
-                        )
-                        any_changed = True
-                    except Exception as exc:
-                        logger.debug("EnrichmentWorker.label: %s", exc)
-
             except Exception as exc:
-                logger.warning("EnrichmentWorker: error en '%s' — %s", track.title, exc)
+                logger.warning("EnrichmentWorker: error pista '%s' — %s", track.title, exc)
 
         logger.info(
             "EnrichmentWorker: terminado. %d pistas actualizadas, any_changed=%s.",
@@ -289,10 +338,18 @@ class EnrichmentService(QObject):
     # ------------------------------------------------------------------
 
     def start(self) -> None:
-        """Inicia el enriquecimiento. Si ya hay uno en curso, lo ignora."""
+        """Inicia el enriquecimiento.
+
+        Si hay un worker en curso que fue cancelado, espera a que termine
+        (máx. 3 s) antes de arrancar el nuevo. Si hay uno activo sin cancelar,
+        lo ignora.
+        """
         if self._worker and self._worker.isRunning():
-            logger.info("EnrichmentService: ya hay un enriquecimiento en curso.")
-            return
+            if self._worker.is_cancelled:
+                self._worker.wait(3000)  # deja que el sleep de 1.1 s termine
+            else:
+                logger.info("EnrichmentService: ya hay un enriquecimiento en curso.")
+                return
 
         self._worker = _EnrichmentWorker(
             db_path=self._db_path,

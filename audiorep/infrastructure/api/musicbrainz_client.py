@@ -241,11 +241,11 @@ class MusicBrainzClient:
         try:
             recording: dict = {}
 
+            # "artists" es necesario para que artist-credit incluya area/country
+            _REC_INCLUDES = ["tags", "artists", "artist-credits", "releases", "release-groups"]
+
             if mbid:
-                result = musicbrainzngs.get_recording_by_id(
-                    mbid,
-                    includes=["tags", "artist-credits", "releases", "release-groups"],
-                )
+                result = musicbrainzngs.get_recording_by_id(mbid, includes=_REC_INCLUDES)
                 recording = result.get("recording", {})
             else:
                 if not artist and not title:
@@ -263,8 +263,7 @@ class MusicBrainzClient:
                 if not best_mbid:
                     return None
                 full_result = musicbrainzngs.get_recording_by_id(
-                    best_mbid,
-                    includes=["tags", "artist-credits", "releases", "release-groups"],
+                    best_mbid, includes=_REC_INCLUDES
                 )
                 recording = full_result.get("recording", {})
 
@@ -338,6 +337,89 @@ class MusicBrainzClient:
 
     # ------------------------------------------------------------------
     # ICDLookupProvider
+    # ------------------------------------------------------------------
+    # Enriquecimiento de álbumes de biblioteca
+    # ------------------------------------------------------------------
+
+    def enrich_album(self, artist: str, title: str) -> dict | None:
+        """
+        Busca metadatos completos de un álbum en MusicBrainz.
+
+        Usa el endpoint de releases (no recordings) para obtener en una sola
+        llamada: year, artist_country, label, label_country, release_type.
+
+        Retorna dict con esas claves, o None si no se encontró nada.
+        """
+        try:
+            if not artist and not title:
+                return None
+
+            result = musicbrainzngs.search_releases(
+                artist=artist, release=title, limit=5
+            )
+            releases = result.get("release-list", [])
+            if not releases:
+                return None
+
+            release_mbid = releases[0].get("id", "")
+            if not release_mbid:
+                return None
+
+            full = musicbrainzngs.get_release_by_id(
+                release_mbid,
+                includes=["artists", "labels", "artist-credits", "release-groups"],
+            )
+            release = full.get("release", {})
+            if not release:
+                return None
+
+            # País del artista
+            artist_country = ""
+            credits = release.get("artist-credit", [])
+            if credits and isinstance(credits[0], dict):
+                artist_obj = credits[0].get("artist", {})
+                artist_country = _resolve_country(
+                    artist_obj.get("area", {}).get("name", "")
+                    or artist_obj.get("country", "")
+                )
+
+            # Año
+            date = release.get("date", "") or ""
+            year = date[:4] if date else ""
+
+            # Sello
+            label = ""
+            label_country = ""
+            for info in release.get("label-info-list", []):
+                lbl = info.get("label") or {}
+                if lbl.get("name"):
+                    label = lbl["name"]
+                    label_country = _resolve_country(
+                        lbl.get("area", {}).get("name", "")
+                        or lbl.get("country", "")
+                    )
+                    break
+
+            # Tipo de lanzamiento
+            rg = release.get("release-group") or {}
+            release_type = rg.get("primary-type", "")
+
+            logger.debug(
+                "enrich_album '%s - %s': country=%s label=%s type=%s",
+                artist, title, artist_country, label, release_type,
+            )
+            return {
+                "year":           year,
+                "artist_country": artist_country,
+                "label":          label,
+                "label_country":  label_country,
+                "release_type":   release_type,
+            }
+
+        except Exception as exc:
+            logger.warning("MusicBrainzClient.enrich_album '%s - %s': %s", artist, title, exc)
+            return None
+
     # ------------------------------------------------------------------
 
     def search_disc(self, disc: CDDisc) -> list[dict]:

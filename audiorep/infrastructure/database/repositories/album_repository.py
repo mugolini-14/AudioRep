@@ -77,6 +77,10 @@ class AlbumRepository(BaseRepository):
         self._commit()
         return album
 
+    def delete_all(self) -> None:
+        self._execute("DELETE FROM albums")
+        self._commit()
+
     def update_release_type(self, title: str, artist_name: str, release_type: str) -> None:
         """Actualiza release_type del primer álbum que coincida por título y artista."""
         self._execute(

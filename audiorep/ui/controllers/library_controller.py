@@ -67,6 +67,7 @@ class LibraryController:
     def _connect_panel(self) -> None:
         panel = self._panel
         panel.import_requested.connect(self._on_import_requested)
+        panel.reimport_requested.connect(self._on_reimport_requested)
         panel.play_requested.connect(self._on_play_requested)
         panel.search_changed.connect(self._on_search_changed)
         panel.stats_requested.connect(self._on_stats_requested)
@@ -106,7 +107,32 @@ class LibraryController:
             "Seleccioná la carpeta de música",
         )
         if folder:
+            if self._enrichment_service and self._enrichment_service.is_running:
+                self._enrichment_service.cancel()
             self._library.import_directory(folder)
+
+    def _on_reimport_requested(self) -> None:
+        msg = QMessageBox(self._panel)
+        msg.setWindowTitle("Limpiar biblioteca")
+        msg.setText(
+            "Esto eliminará toda la biblioteca actual (pistas, álbumes, artistas)\n"
+            "y la reconstruirá desde la carpeta que elijas.\n\n"
+            "¿Continuar?"
+        )
+        msg.setIcon(QMessageBox.Icon.Warning)
+        yes_btn = msg.addButton("Sí, limpiar y reimportar", QMessageBox.ButtonRole.YesRole)
+        msg.addButton("Cancelar", QMessageBox.ButtonRole.NoRole)
+        msg.exec()
+        if msg.clickedButton() != yes_btn:
+            return
+        folder = QFileDialog.getExistingDirectory(
+            self._panel,
+            "Seleccioná la carpeta de música",
+        )
+        if folder:
+            if self._enrichment_service and self._enrichment_service.is_running:
+                self._enrichment_service.cancel()
+            self._library.reimport_directory(folder)
 
     def _on_play_requested(self, tracks: list[Track], start_index: int) -> None:
         self._player.set_queue(tracks, start_index=start_index)

@@ -48,6 +48,14 @@ class TrackRepository(BaseRepository):
              track.acoustid, track.id))
         self._commit()
 
+    def get_by_path(self, file_path: str) -> "Track | None":
+        row = self._fetchone("SELECT * FROM tracks WHERE file_path = ?", (file_path,))
+        return self._row_to_track(row) if row else None
+
+    def delete_all(self) -> None:
+        self._execute("DELETE FROM tracks")
+        self._commit()
+
     def get_most_played(self, limit: int = 25) -> list[Track]:
         rows = self._fetchall(
             "SELECT * FROM tracks WHERE play_count > 0 ORDER BY play_count DESC LIMIT ?", (limit,))

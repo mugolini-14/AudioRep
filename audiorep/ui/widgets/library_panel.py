@@ -30,6 +30,7 @@ from PyQt6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QMenu,
     QProgressBar,
     QPushButton,
     QSplitter,
@@ -51,6 +52,7 @@ class LibraryPanel(QWidget):
     """Panel de la biblioteca musical con árbol artista/álbum."""
 
     import_requested     = pyqtSignal()
+    reimport_requested   = pyqtSignal()
     play_requested       = pyqtSignal(list, int)
     search_changed       = pyqtSignal(str)
     edit_tags_requested  = pyqtSignal(object)   # Track
@@ -96,7 +98,13 @@ class LibraryPanel(QWidget):
 
         import_btn = QPushButton("Importar carpeta")
         import_btn.setObjectName("importButton")
-        import_btn.clicked.connect(self.import_requested)
+        import_menu = QMenu(import_btn)
+        import_menu.addAction("Agregar carpeta",
+                              lambda: self.import_requested.emit())
+        import_menu.addSeparator()
+        import_menu.addAction("Limpiar biblioteca y reimportar…",
+                              lambda: self.reimport_requested.emit())
+        import_btn.setMenu(import_menu)
         toolbar_layout.addWidget(import_btn)
 
         export_lib_btn = QPushButton("⬇  Exportar Biblioteca")

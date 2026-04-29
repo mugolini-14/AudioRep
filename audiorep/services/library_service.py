@@ -88,6 +88,9 @@ class _ScanWorker(QThread):
 
     def _import_file(self, file_path: str) -> None:
         try:
+            if self._track_repo.get_by_path(file_path):  # type: ignore[attr-defined]
+                return  # ya existe — no duplicar
+
             tags = self._tagger.read_tags(file_path)
             artist_name = tags.get("artist", "") or ""
             album_title = tags.get("album", "") or ""
@@ -162,6 +165,18 @@ class LibraryService(QObject):
     # ------------------------------------------------------------------
     # Escaneo
     # ------------------------------------------------------------------
+
+    def clear_library(self) -> None:
+        """Elimina todas las pistas, álbumes y artistas de la biblioteca."""
+        self._track_repo.delete_all()   # type: ignore[attr-defined]
+        self._album_repo.delete_all()   # type: ignore[attr-defined]
+        self._artist_repo.delete_all()  # type: ignore[attr-defined]
+        logger.info("Biblioteca limpiada.")
+
+    def reimport_directory(self, directory: str) -> None:
+        """Limpia la biblioteca completa y luego importa el directorio dado."""
+        self.clear_library()
+        self.import_directory(directory)
 
     def import_directory(self, directory: str) -> None:
         """Inicia el escaneo asíncrono de un directorio."""

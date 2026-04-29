@@ -65,6 +65,10 @@ class ArtistRepository(BaseRepository):
         self._commit()
         return artist
 
+    def delete_all(self) -> None:
+        self._execute("DELETE FROM artists")
+        self._commit()
+
     def update_country(self, name: str, country: str) -> None:
         """Actualiza el país del artista si aún no tiene uno asignado."""
         self._execute(
