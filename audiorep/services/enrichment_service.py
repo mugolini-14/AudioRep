@@ -9,6 +9,11 @@ Responsabilidades:
     - Operar en background con rate-limiting (1 req/s de MusicBrainz).
     - Emitir progreso vía app_events.
     - Ser cancelable en cualquier momento.
+
+Diseño de threading:
+    El worker abre su propia DatabaseConnection al mismo archivo .db.
+    Esto evita conflictos con la conexión del hilo principal: sqlite3.Connection
+    no es thread-safe aunque se use check_same_thread=False.
 """
 from __future__ import annotations
 
@@ -18,13 +23,7 @@ import time
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
 from audiorep.core.events import app_events
-from audiorep.core.interfaces import (
-    IAlbumRepository,
-    IArtistRepository,
-    IFileTagger,
-    ILabelRepository,
-    ITrackRepository,
-)
+from audiorep.core.interfaces import IFileTagger
 from audiorep.domain.track import TrackSource
 
 logger = logging.getLogger(__name__)
@@ -34,47 +33,82 @@ _MB_RATE_LIMIT_S = 1.1
 
 
 class _EnrichmentWorker(QThread):
-    """Worker que procesa la biblioteca pista por pista."""
+    """Worker que procesa la biblioteca pista por pista.
 
-    progress  = pyqtSignal(int, int)   # (procesada, total)
-    finished  = pyqtSignal(int)        # tracks_actualizadas
+    Abre su propia DatabaseConnection para garantizar aislamiento de
+    transacciones respecto al hilo principal.
+    """
+
+    progress  = pyqtSignal(int, int)    # (procesada, total)
+    finished  = pyqtSignal(int, bool)   # (tracks_actualizadas, any_changed)
     cancelled = pyqtSignal()
 
     def __init__(
         self,
-        track_repo:   ITrackRepository,
-        album_repo:   IAlbumRepository,
-        artist_repo:  IArtistRepository,
-        label_repo:   ILabelRepository,
-        tagger:       IFileTagger,
-        mb_client:    object,
-        lastfm_client: object | None,
+        db_path:       str,
+        tagger:        IFileTagger,
+        mb_client:     object,
+        lastfm_client: object | None = None,
         parent: QObject | None = None,
     ) -> None:
         super().__init__(parent)
-        self._track_repo   = track_repo
-        self._album_repo   = album_repo
-        self._artist_repo  = artist_repo
-        self._label_repo   = label_repo
-        self._tagger       = tagger
-        self._mb           = mb_client
-        self._lastfm       = lastfm_client
-        self._cancel       = False
+        self._db_path  = db_path
+        self._tagger   = tagger
+        self._mb       = mb_client
+        self._lastfm   = lastfm_client
+        self._cancel   = False
 
     def cancel(self) -> None:
         self._cancel = True
 
-    def run(self) -> None:
-        all_tracks = self._track_repo.get_all()
-        # Solo pistas locales con ruta de archivo
-        eligible = [
-            t for t in all_tracks
-            if t.file_path and t.source == TrackSource.LOCAL
-        ]
-        total   = len(eligible)
-        updated = 0
+    @staticmethod
+    def _metadata_priority(track) -> int:
+        """Orden de procesamiento: pistas con más metadatos primero.
 
-        logger.info("EnrichmentWorker: %d pistas elegibles para enriquecimiento.", total)
+        0 = MBID disponible (lookup directo, máxima confianza)
+        1 = artista + álbum conocidos (búsqueda de texto confiable)
+        2 = solo artista conocido
+        3 = metadata mínima
+        """
+        if track.musicbrainz_id:
+            return 0
+        if (track.artist_name or "").strip() and (track.album_title or "").strip():
+            return 1
+        if (track.artist_name or "").strip():
+            return 2
+        return 3
+
+    def run(self) -> None:
+        # Abrir conexión propia — aislada del hilo principal
+        from audiorep.infrastructure.database.connection import DatabaseConnection
+        from audiorep.infrastructure.database.repositories.album_repository import AlbumRepository
+        from audiorep.infrastructure.database.repositories.artist_repository import ArtistRepository
+        from audiorep.infrastructure.database.repositories.label_repository import LabelRepository
+        from audiorep.infrastructure.database.repositories.track_repository import TrackRepository
+
+        db = DatabaseConnection(self._db_path)
+        db.connect()
+        track_repo  = TrackRepository(db)
+        album_repo  = AlbumRepository(db)
+        artist_repo = ArtistRepository(db)
+        label_repo  = LabelRepository(db)
+
+        try:
+            self._process(track_repo, album_repo, artist_repo, label_repo)
+        finally:
+            db.close()
+
+    def _process(self, track_repo, album_repo, artist_repo, label_repo) -> None:
+        all_tracks = track_repo.get_all()
+        eligible = sorted(
+            [t for t in all_tracks if t.file_path and t.source == TrackSource.LOCAL],
+            key=self._metadata_priority,
+        )
+        total       = len(eligible)
+        updated     = 0
+        any_changed = False
+
+        logger.info("EnrichmentWorker: %d pistas elegibles.", total)
 
         for i, track in enumerate(eligible):
             if self._cancel:
@@ -92,7 +126,6 @@ class _EnrichmentWorker(QThread):
                     mbid=track.musicbrainz_id,
                 )
 
-                # Rate limiting: respetar política de MB (1 req/s)
                 time.sleep(_MB_RATE_LIMIT_S)
 
                 if enriched is None:
@@ -109,64 +142,66 @@ class _EnrichmentWorker(QThread):
                     except Exception:
                         pass
 
-                # ── Actualizar pista ────────────────────────────────── #
+                # ── Pista ────────────────────────────────────────────── #
                 track_changed = False
-
                 if not track.genre and genre:
                     track.genre = genre
                     track_changed = True
-
                 if not track.musicbrainz_id and enriched.get("mbid"):
                     track.musicbrainz_id = enriched["mbid"]
                     track_changed = True
-
                 if not track.year and enriched.get("year"):
                     try:
                         track.year = int(enriched["year"])
                         track_changed = True
                     except (ValueError, TypeError):
                         pass
-
                 if track_changed:
-                    self._track_repo.update_tags(track)
+                    track_repo.update_tags(track)
                     self._write_file_tags(track)
                     updated += 1
+                    any_changed = True
 
-                # ── Actualizar álbum ────────────────────────────────── #
+                # ── Álbum ─────────────────────────────────────────────── #
                 if track.album_id:
-                    self._enrich_album(
-                        track.album_id,
+                    if self._enrich_album(
+                        album_repo, track.album_id,
                         enriched.get("label", ""),
                         enriched.get("release_type", ""),
-                    )
+                    ):
+                        any_changed = True
 
-                # ── Actualizar artista ──────────────────────────────── #
+                # ── Artista ───────────────────────────────────────────── #
                 if track.artist_id and enriched.get("artist_country"):
-                    self._enrich_artist(track.artist_id, enriched["artist_country"])
+                    if self._enrich_artist(
+                        artist_repo, track.artist_id, enriched["artist_country"]
+                    ):
+                        any_changed = True
 
-                # ── Actualizar sello ────────────────────────────────── #
+                # ── Sello ─────────────────────────────────────────────── #
                 if enriched.get("label") and enriched.get("label_country"):
                     try:
-                        self._label_repo.upsert_country(
+                        label_repo.upsert_country(
                             enriched["label"], enriched["label_country"]
                         )
-                    except Exception:
-                        pass
+                        any_changed = True
+                    except Exception as exc:
+                        logger.debug("EnrichmentWorker.label: %s", exc)
 
             except Exception as exc:
-                logger.warning(
-                    "EnrichmentWorker: error procesando '%s' — %s", track.title, exc
-                )
+                logger.warning("EnrichmentWorker: error en '%s' — %s", track.title, exc)
 
-        logger.info("EnrichmentWorker: terminado. %d pistas actualizadas.", updated)
-        self.finished.emit(updated)
+        logger.info(
+            "EnrichmentWorker: terminado. %d pistas actualizadas, any_changed=%s.",
+            updated, any_changed,
+        )
+        self.finished.emit(updated, any_changed)
 
     # ------------------------------------------------------------------
     # Helpers privados
     # ------------------------------------------------------------------
 
     def _write_file_tags(self, track) -> None:
-        """Escribe los tags actualizados al archivo de audio (no crítico)."""
         if not track.file_path:
             return
         try:
@@ -183,13 +218,14 @@ class _EnrichmentWorker(QThread):
             logger.debug("EnrichmentWorker: no se pudo escribir tag en %s: %s",
                          track.file_path, exc)
 
-    def _enrich_album(self, album_id: int, label: str, release_type: str) -> None:
+    @staticmethod
+    def _enrich_album(album_repo, album_id: int, label: str, release_type: str) -> bool:
         if not label and not release_type:
-            return
+            return False
         try:
-            album = self._album_repo.get_by_id(album_id)
+            album = album_repo.get_by_id(album_id)
             if not album:
-                return
+                return False
             changed = False
             if not album.label and label:
                 album.label = label
@@ -198,20 +234,29 @@ class _EnrichmentWorker(QThread):
                 album.release_type = release_type
                 changed = True
             if changed:
-                self._album_repo.save(album)
+                album_repo.save(album)
+            return changed
         except Exception as exc:
             logger.debug("EnrichmentWorker._enrich_album: %s", exc)
+            return False
 
-    def _enrich_artist(self, artist_id: int, country: str) -> None:
+    @staticmethod
+    def _enrich_artist(artist_repo, artist_id: int, country: str) -> bool:
         if not country:
-            return
+            return False
         try:
-            artist = self._artist_repo.get_by_id(artist_id)
+            artist = artist_repo.get_by_id(artist_id)
             if artist and not artist.country:
                 artist.country = country
-                self._artist_repo.save(artist)
+                artist_repo.save(artist)
+                logger.debug(
+                    "EnrichmentWorker: artista %d → país '%s' guardado.", artist_id, country
+                )
+                return True
+            return False
         except Exception as exc:
             logger.debug("EnrichmentWorker._enrich_artist: %s", exc)
+            return False
 
 
 class EnrichmentService(QObject):
@@ -226,23 +271,17 @@ class EnrichmentService(QObject):
 
     def __init__(
         self,
-        track_repo:    ITrackRepository,
-        album_repo:    IAlbumRepository,
-        artist_repo:   IArtistRepository,
-        label_repo:    ILabelRepository,
+        db_path:       str,
         tagger:        IFileTagger,
         mb_client:     object,
         lastfm_client: object | None = None,
         parent: QObject | None = None,
     ) -> None:
         super().__init__(parent)
-        self._track_repo   = track_repo
-        self._album_repo   = album_repo
-        self._artist_repo  = artist_repo
-        self._label_repo   = label_repo
-        self._tagger       = tagger
-        self._mb           = mb_client
-        self._lastfm       = lastfm_client
+        self._db_path  = db_path
+        self._tagger   = tagger
+        self._mb       = mb_client
+        self._lastfm   = lastfm_client
         self._worker: _EnrichmentWorker | None = None
 
     # ------------------------------------------------------------------
@@ -256,10 +295,7 @@ class EnrichmentService(QObject):
             return
 
         self._worker = _EnrichmentWorker(
-            track_repo=self._track_repo,
-            album_repo=self._album_repo,
-            artist_repo=self._artist_repo,
-            label_repo=self._label_repo,
+            db_path=self._db_path,
             tagger=self._tagger,
             mb_client=self._mb,
             lastfm_client=self._lastfm,
@@ -269,7 +305,7 @@ class EnrichmentService(QObject):
             lambda cur, tot: app_events.enrichment_progress.emit(cur, tot)
         )
         self._worker.finished.connect(self._on_finished)
-        self._worker.cancelled.connect(app_events.enrichment_cancelled.emit)
+        self._worker.cancelled.connect(lambda: app_events.enrichment_cancelled.emit())
         self._worker.start()
         app_events.enrichment_started.emit()
         logger.info("EnrichmentService: enriquecimiento iniciado.")
@@ -287,8 +323,10 @@ class EnrichmentService(QObject):
     # Internos
     # ------------------------------------------------------------------
 
-    def _on_finished(self, updated: int) -> None:
+    def _on_finished(self, updated: int, any_changed: bool) -> None:
         app_events.enrichment_finished.emit(updated)
-        if updated > 0:
+        if any_changed:
             app_events.library_updated.emit()
-        logger.info("EnrichmentService: %d pistas actualizadas.", updated)
+        logger.info(
+            "EnrichmentService: %d pistas actualizadas, any_changed=%s.", updated, any_changed
+        )

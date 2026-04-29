@@ -25,6 +25,50 @@ from audiorep.domain.cd_disc import CDDisc
 
 logger = logging.getLogger(__name__)
 
+# Códigos ISO-2 más frecuentes en MusicBrainz → nombre completo.
+# Se usa como fallback cuando area.name no está disponible.
+_ISO_FALLBACK: dict[str, str] = {
+    "AD": "Andorra",         "AE": "United Arab Emirates", "AR": "Argentina",
+    "AT": "Austria",         "AU": "Australia",             "BE": "Belgium",
+    "BR": "Brazil",          "CA": "Canada",                "CH": "Switzerland",
+    "CL": "Chile",           "CN": "China",                 "CO": "Colombia",
+    "CU": "Cuba",            "CZ": "Czech Republic",        "DE": "Germany",
+    "DK": "Denmark",         "EG": "Egypt",                 "ES": "Spain",
+    "FI": "Finland",         "FR": "France",                "GB": "United Kingdom",
+    "GR": "Greece",          "HR": "Croatia",               "HU": "Hungary",
+    "ID": "Indonesia",       "IE": "Ireland",               "IL": "Israel",
+    "IN": "India",           "IS": "Iceland",               "IT": "Italy",
+    "JP": "Japan",           "KR": "South Korea",           "LT": "Lithuania",
+    "LU": "Luxembourg",      "MX": "Mexico",                "MY": "Malaysia",
+    "NG": "Nigeria",         "NL": "Netherlands",           "NO": "Norway",
+    "NZ": "New Zealand",     "PE": "Peru",                  "PH": "Philippines",
+    "PL": "Poland",          "PT": "Portugal",              "RO": "Romania",
+    "RS": "Serbia",          "RU": "Russia",                "SE": "Sweden",
+    "SG": "Singapore",       "SI": "Slovenia",              "SK": "Slovakia",
+    "TH": "Thailand",        "TR": "Turkey",                "TW": "Taiwan",
+    "UA": "Ukraine",         "US": "United States",         "UY": "Uruguay",
+    "VE": "Venezuela",       "ZA": "South Africa",          "ZW": "Zimbabwe",
+}
+
+
+def _resolve_country(raw: str) -> str:
+    """Convierte un código ISO-2 en nombre completo.
+
+    Intenta primero con pycountry (si está instalado). Si no,
+    consulta el fallback interno. Si no coincide, devuelve raw tal cual.
+    """
+    if not raw or len(raw) != 2:
+        return raw
+    code = raw.upper()
+    try:
+        import pycountry  # type: ignore[import]
+        country = pycountry.countries.get(alpha_2=code)
+        if country:
+            return country.name
+    except Exception:
+        pass
+    return _ISO_FALLBACK.get(code, raw)
+
 
 def _normalize_release(release: dict) -> dict:
     """Convierte un release raw de MusicBrainzngs al formato normalizado."""
@@ -40,8 +84,7 @@ def _normalize_release(release: dict) -> dict:
         if isinstance(first, dict):
             artist = first.get("name") or first.get("artist", {}).get("name", "")
             artist_obj = first.get("artist", {})
-            # Intentar obtener país/área del artista
-            artist_country = (
+            artist_country = _resolve_country(
                 artist_obj.get("area", {}).get("name", "")
                 or artist_obj.get("country", "")
             )
@@ -66,8 +109,7 @@ def _normalize_release(release: dict) -> dict:
         name = lbl.get("name", "")
         if name:
             label = name
-            # Intentar obtener país del sello
-            label_country = (
+            label_country = _resolve_country(
                 lbl.get("area", {}).get("name", "")
                 or lbl.get("country", "")
             )
@@ -248,7 +290,7 @@ class MusicBrainzClient:
             credits = recording.get("artist-credit", [])
             if credits and isinstance(credits[0], dict):
                 artist_obj = credits[0].get("artist", {})
-                artist_country = (
+                artist_country = _resolve_country(
                     artist_obj.get("area", {}).get("name", "")
                     or artist_obj.get("country", "")
                 )
@@ -268,7 +310,7 @@ class MusicBrainzClient:
                     lbl = info.get("label") or {}
                     if lbl.get("name"):
                         label = lbl["name"]
-                        label_country = (
+                        label_country = _resolve_country(
                             lbl.get("area", {}).get("name", "")
                             or lbl.get("country", "")
                         )

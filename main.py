@@ -109,7 +109,7 @@ def _maybe_auto_enrich(settings: "AppSettings", enrichment_service: object) -> N
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.76.0")
+    app.setApplicationVersion("0.77.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
@@ -246,10 +246,7 @@ def main() -> None:
     lastfm_client = LastFmClient(api_key=settings.lastfm_api_key) if settings.lastfm_api_key else None
 
     enrichment_service = EnrichmentService(
-        track_repo=track_repo,
-        album_repo=album_repo,
-        artist_repo=artist_repo,
-        label_repo=label_repo,
+        db_path=db.path,
         tagger=tagger,
         mb_client=mb_client,
         lastfm_client=lastfm_client,

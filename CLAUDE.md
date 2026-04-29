@@ -66,7 +66,7 @@ domain → core → services ← infrastructure
 - **Container margins**: `setContentsMargins(8, 8, 8, 8)` and `setSpacing(8)` for the `QHBoxLayout` that holds the buttons. The outer panel layout must provide at least 8px bottom margin so buttons don't appear flush against the window edge.
 
 **QComboBox standard**: All dropdowns share a single global `QComboBox { ... }` rule in `dark.qss`. Do not add per-objectName QComboBox rules for general visual styling.
-- Arrow icon: `audiorep/ui/style/arrow_down.svg` — referenced as `url(./arrow_down.svg)` in QSS.
+- Arrow icon: `audiorep/ui/style/arrow_down.svg` — referenced as `url(./arrow_down.svg)` in QSS. Stroke color must be `#e2e2f0` (`text-main`) and stroke-width `2.0` to remain visible against the `#2a2a3e` dropdown background. Do not use dimmer colors (`text-mid` or lower) — they become nearly invisible at the 10×6px render size.
 - The `url(./...)` placeholder is expanded to an absolute path in `main_window._load_stylesheet()` so it works both from source and from a frozen PyInstaller bundle.
 
 **Modal dialog standard**: All modal dialogs (`QDialog`, `QInputDialog`, `QMessageBox`) use global QSS rules defined in `dark.qss` under the "Diálogos modales" section. Key rules: `QLineEdit` (general, dark bg), `QDialogButtonBox QPushButton` (action style), `QPushButton#SettingsDirBtn` (secondary style). Never use `QMessageBox.question()` with `StandardButton.Yes/No` — build the `QMessageBox` manually with Spanish button text ("Sí"/"No") via `addButton()`. See `ui-builder/SKILL.md` → "Estándar de diálogos modales" for full details and code example.

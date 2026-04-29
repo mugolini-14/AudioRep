@@ -402,7 +402,7 @@ QComboBox::down-arrow { image: url(./arrow_down.svg); width: 10px; height: 6px; 
 QComboBox QAbstractItemView { background-color: #2a2a3e; ... }
 ```
 
-- El archivo `audiorep/ui/style/arrow_down.svg` contiene el ícono de la flecha chevron en color `#c0c0e0`.
+- El archivo `audiorep/ui/style/arrow_down.svg` contiene el ícono de la flecha chevron. El stroke debe ser `#e2e2f0` (`text-main`) con `stroke-width="2.0"`. No usar colores más tenues (`text-mid` o inferior) — a 10×6px de renderizado quedan casi invisibles contra el fondo `#2a2a3e`.
 - La URL `url(./arrow_down.svg)` se resuelve a ruta absoluta en `main_window._load_stylesheet()` para compatibilidad con PyInstaller.
 - **No crear reglas `QComboBox#objectName`** para estilos visuales generales. Solo usar objectName-specific si el combo necesita un tamaño o comportamiento realmente diferente.
 

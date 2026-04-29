@@ -2,6 +2,22 @@
 
 ---
 
+# 0.77 — Enriquecimiento de metadatos corregido, países completos y flecha de dropdowns
+
+**Fecha:** 28 de abril de 2026
+
+### Corregido
+
+- **Estadísticas no se actualizaban tras enriquecimiento** — el problema raíz era que la señal de actualización de biblioteca solo se emitía cuando había cambios a nivel de pista (género, año, MBID), ignorando los cambios en álbumes (sello, tipo de lanzamiento), artistas (país) y sellos discográficos (país de origen). Ahora cualquier cambio persistido en la base de datos, sin importar en qué tabla, dispara el recálculo de estadísticas.
+- **Países de artistas y sellos mostrados como códigos ISO** — MusicBrainz puede devolver el país como código de dos letras ("US", "GB", "DE") cuando el campo de área completo no está disponible. Estos códigos se convierten ahora a nombres completos antes de persistirse ("United States", "United Kingdom", "Germany"). Se usa la librería `pycountry` si está instalada, con un fallback interno de los códigos más frecuentes en contextos musicales.
+
+### Modificado
+
+- **Orden de procesamiento del enriquecimiento** — las pistas se procesan ahora de mayor a menor completitud de metadatos: primero las que ya tienen MBID (lookup directo, sin ambigüedad), luego las que tienen artista y álbum conocidos, luego las que solo tienen artista, y por último el resto. Esto mejora la tasa de coincidencias y reduce las consultas fallidas a la API.
+- **Flecha de los dropdowns más visible** — el ícono chevron de los QComboBox pasó de `#c0c0e0` con grosor 1.8px a `#e2e2f0` con grosor 2.0px. A 10×6px de renderizado el color anterior resultaba casi invisible contra el fondo oscuro del dropdown.
+
+---
+
 # 0.76 — Correcciones de estadísticas, exportación PDF y tipografía NowPlaying
 
 **Fecha:** 28 de abril de 2026

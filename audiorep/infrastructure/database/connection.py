@@ -32,6 +32,11 @@ class DatabaseConnection:
         self._path = db_path
         self._conn: sqlite3.Connection | None = None
 
+    @property
+    def path(self) -> str:
+        """Ruta al archivo de la base de datos."""
+        return self._path
+
     # ------------------------------------------------------------------
     # Ciclo de vida
     # ------------------------------------------------------------------
