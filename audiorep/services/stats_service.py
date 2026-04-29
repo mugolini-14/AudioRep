@@ -169,6 +169,13 @@ def compute_stats(
     album_dur_acc:   dict[tuple[str, str], int] = defaultdict(int)
     album_track_acc: dict[tuple[str, str], int] = defaultdict(int)
 
+    # album_id → artista canónico del álbum (evita fragmentación por "feat.")
+    album_id_to_artist: dict[int, str] = {
+        a.id: (a.artist_name or "").strip()
+        for a in albums
+        if a.id is not None
+    }
+
     total_dur = 0
 
     for t in tracks:
@@ -183,7 +190,12 @@ def compute_stats(
         rating = t.rating if t.rating is not None else 0
         ratings[rating] += 1
 
-        artist = (t.artist_name or "").strip() or "Artista desconocido"
+        # Usar el artista del álbum como canónico para evitar fragmentación por featuring
+        artist = (
+            album_id_to_artist.get(t.album_id)
+            if t.album_id is not None and t.album_id in album_id_to_artist
+            else (t.artist_name or "").strip()
+        ) or "Artista desconocido"
         artist_counts[artist] += 1
         artist_set.add(artist)
 

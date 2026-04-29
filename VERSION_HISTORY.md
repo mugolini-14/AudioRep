@@ -2,6 +2,16 @@
 
 ---
 
+# 0.78 — Corrección de estadísticas de artistas
+
+**Fecha:** 29 de abril de 2026
+
+### Corregido
+
+- **Fragmentación de artistas en estadísticas** — el gráfico "Top 10 artistas por cantidad de pistas" mostraba al mismo artista dividido en múltiples entradas cuando alguna de sus pistas tenía tags con variantes de featuring (por ejemplo, "The Black Keys feat. X" o "The Black Keys Featuring Y"). Ahora las estadísticas usan el artista canónico del álbum como referencia para agrupar las pistas, en lugar del campo artista del archivo individual. Esto también corrige el conteo total de artistas únicos y la resolución del sello discográfico por álbum.
+
+---
+
 # 0.77 — Enriquecimiento de metadatos corregido, países completos y flecha de dropdowns
 
 **Fecha:** 28 de abril de 2026
