@@ -64,8 +64,14 @@ domain → core → services ← infrastructure
 ## PASO 3 — Actualizar la documentación interna del código
 
 Al terminar la implementación:
-- Actualizar el docstring de estado en `main.py` marcando los nuevos pasos como `✅`.
+- **Actualizar el docstring de estado en `main.py`** — agregar el nuevo paso numerado al bloque "Estado de implementación" siguiendo el formato:
+  ```
+  ✅ Paso N — Descripción breve del cambio, vX.YZ
+  ```
+  El número de paso debe ser consecutivo al último existente. Si la versión abarca múltiples pasos, agregar uno por cada etapa conceptualmente distinta.
 - Verificar que los docstrings de clases y métodos nuevos estén completos.
+
+> **Regla:** el docstring de `main.py` es el registro canónico del historial de implementación del proyecto. Nunca omitir este paso, incluso para correcciones menores.
 
 ---
 
@@ -121,7 +127,11 @@ Agregar una entrada **al principio del archivo** (las versiones más recientes v
 
 ## PASO 7 — Compilar los instaladores
 
-**Responsabilidad del asistente.** Compilar ambos instaladores después de cada versión. Ver instrucciones completas en `CLAUDE.md`.
+**Responsabilidad del asistente.** Compilar ambos instaladores después de cada versión. Ver instrucciones completas en `./.claude/skills/compiler-instructions/SKILL.md` y `CLAUDE.md`.
+
+**No avanzar al Paso 8 hasta que ambos instaladores estén compilados y listos.**
+
+**NOTA IMPORTANTE: LOS INSTALADORES SE DEBEN HACER SIEMPRE QUE SE HAGA UNA MODIFICACIÓN, INCLUSO SI ES UNA MEJORA PEQUEÑA O UN CAMBIO INTERNO. NO HAY EXCEPCIONES.**
 
 ### Windows (.exe)
 ```bash

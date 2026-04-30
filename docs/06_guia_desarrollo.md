@@ -181,6 +181,10 @@ class MiController:
 | 38 | Exportaciones separadas: "Exportar Biblioteca" y "Exportar Estadísticas" como botones independientes; `export_stats_csv` en formato Sección/Indicador/Valor | ✅ Completo — v0.72 |
 | 39 | Alturas fijas en gráficos (`_H_HALF`=280px / `_H_FULL`=340px), sin scroll interno (`ScrollBarAlwaysOff`), leyenda de torta a la izquierda | ✅ Completo — v0.73 |
 | 40 | XLSX fuente 11; PDF estadísticas fuente 9/10/11; PDF biblioteca en orientación landscape (A4, columnas ampliadas ~269mm) | ✅ Completo — v0.74–v0.75 |
+| 41 | Fix stats: recálculo automático tras enriquecimiento; fix PDF stats ancho completo; fix tipografía NowPlaying (`trackLabel` → `playerTrackLabel` en QSS para eliminar conflicto de selectores) | ✅ Completo — v0.76 |
+| 42 | Enriquecimiento rediseñado por álbum (1 llamada API/álbum en lugar de 1/pista); códigos ISO de país convertidos a nombres completos (`pycountry` + fallback interno); deduplicación en importación; flecha de QComboBox más visible (`#e2e2f0`, stroke 2.0px) | ✅ Completo — v0.77 |
+| 43 | Fix stats `top_artists`: mapa `album_id → album.artist_name` como artista canónico para evitar fragmentación por featuring al calcular ranking | ✅ Completo — v0.78 |
+| 44 | Fix stats: `_strip_featuring()` normaliza nombres con "feat./ft./featuring"; `_normalize_label()` normaliza sellos para match robusto; dedup de artistas por nombre normalizado en países; `_fetch_label_country()` en `MusicBrainzClient` hace lookup separado por MBID del sello (con caché); layout tab Álbumes: Décadas + Tipo de álbum emparejados en media fila | ✅ Completo — v0.79 |
 
 ---
 

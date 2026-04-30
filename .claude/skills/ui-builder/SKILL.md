@@ -522,13 +522,14 @@ elif vista_b:
     layout.addWidget(vista_b)
 ```
 
-### Pares establecidos (v0.71+)
+### Pares establecidos (v0.79+)
 
 | Tab | Fila | Gráfico izquierdo | Gráfico derecho |
 |---|---|---|---|
 | Pistas | 1 | Duración de pistas (bar) | — |
 | Pistas | 2 | Formatos de pistas (pie) | BitRate de pistas (bar) |
 | Álbumes | 1 | Pistas por álbum (bar) | Duración de álbumes (bar) |
+| Álbumes | 2 | Décadas (bar) | Tipo de álbum (bar) |
 
 Los "top" (Top 10 pistas, Top 10 artistas, Top 10 géneros, etc.) siempre ocupan fila completa.
 

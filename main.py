@@ -45,6 +45,10 @@ Estado de implementación:
     ✅ Paso 38 — Exportaciones separadas: "Exportar Biblioteca" y "Exportar Estadísticas" independientes, v0.72
     ✅ Paso 39 — Alturas fijas en gráficos (_H_HALF/FULL), sin scroll interno, leyenda torta a la izquierda, v0.73
     ✅ Paso 40 — Exportaciones: fuente 11 en XLSX, fuente 9 PDF, biblioteca PDF en horizontal (landscape), v0.74–v0.75
+    ✅ Paso 41 — Fix stats: recálculo tras enriquecimiento; PDF stats ancho completo; fix NowPlaying trackLabel → playerTrackLabel, v0.76
+    ✅ Paso 42 — Enriquecimiento por álbum (1 API call/álbum); códigos ISO → nombres completos; dedup importación; flecha dropdown visible, v0.77
+    ✅ Paso 43 — Fix stats top_artists: album_id → album.artist_name canónico para evitar fragmentación por featuring, v0.78
+    ✅ Paso 44 — Fix stats: _strip_featuring, _normalize_label, dedup países artistas, label country via get_label_by_id + caché; layout Álbumes: Décadas + Tipo de álbum emparejados, v0.79
 """
 import os
 import sys
