@@ -178,15 +178,16 @@ class _EnrichmentWorker(QThread):
                     ):
                         any_changed = True
 
-                # Actualizar sello
-                if enriched.get("label") and enriched.get("label_country"):
-                    try:
-                        label_repo.upsert_country(
-                            enriched["label"], enriched["label_country"]
-                        )
-                        any_changed = True
-                    except Exception as exc:
-                        logger.debug("EnrichmentWorker.label: %s", exc)
+                # Actualizar sello — usar el nombre ya en el álbum como clave
+                # para que label_country_map coincida con album.label en stats.
+                if enriched.get("label_country"):
+                    label_name = album.label or enriched.get("label", "")
+                    if label_name:
+                        try:
+                            label_repo.upsert_country(label_name, enriched["label_country"])
+                            any_changed = True
+                        except Exception as exc:
+                            logger.debug("EnrichmentWorker.label: %s", exc)
 
             except Exception as exc:
                 logger.warning(

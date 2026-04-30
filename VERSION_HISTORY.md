@@ -2,6 +2,19 @@
 
 ---
 
+# 0.79 — Correcciones de estadísticas: artistas, países y sellos
+
+**Fecha:** 29 de abril de 2026
+
+### Corregido
+
+- **Top artistas con variantes de featuring unificadas** — los artistas con colaboraciones en sus tags (por ejemplo, "The Black Keys feat. X" o "The Black Keys Featuring Y") ahora se agrupan bajo el nombre canónico del artista ("The Black Keys"). La normalización aplica tanto al nombre del artista del álbum como al de la pista.
+- **País de origen de artistas sin duplicados** — el gráfico de países contaba una entrada por entidad Artist en la base de datos, lo que duplicaba el conteo cuando un mismo artista estaba almacenado con múltiples variantes de nombre por featuring. Ahora se deduplica por nombre normalizado antes de contar países.
+- **País de sellos ahora visible** — el gráfico "País de origen de sellos" no mostraba datos por dos causas combinadas. Primera: el endpoint de MusicBrainz `get_release_by_id` con `includes=["labels"]` devuelve el nombre del sello pero no su campo `country` ni `area`; se necesita una llamada separada a `get_label_by_id` por MBID del sello para obtener el país. Los resultados se cachean por MBID para no repetir la llamada. Segunda: la comparación entre el nombre del sello en la base de datos y el nombre del álbum fallaba cuando diferían en sufijos corporativos ("Nonesuch Records" vs "Nonesuch"). Ahora ambos se normalizan eliminando sufijos comunes antes de comparar.
+- **Layout del tab Álbumes estandarizado** — los gráficos "Décadas" y "Tipo de álbum" ahora se muestran en la misma fila a media anchura cada uno, en lugar de ocupar filas completas independientes.
+
+---
+
 # 0.78 — Corrección de estadísticas de artistas
 
 **Fecha:** 29 de abril de 2026

@@ -8,6 +8,7 @@ Expone:
 """
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 
@@ -19,8 +20,34 @@ from audiorep.domain.track import Track
 
 
 # ---------------------------------------------------------------------------
-# Helpers de bucketing
+# Helpers de bucketing y normalización
 # ---------------------------------------------------------------------------
+
+_FEATURING_RE = re.compile(
+    r"\s+(feat\.?|ft\.?|featuring|with)\s+.*$", re.IGNORECASE
+)
+
+
+def _strip_featuring(name: str) -> str:
+    """Elimina sufijos de colaboración ('feat. X', 'ft. X', 'featuring X', 'with X')."""
+    return _FEATURING_RE.sub("", name).strip()
+
+
+_LABEL_SUFFIXES = (
+    " records", " music", " entertainment", " recordings",
+    " record label", " label", " group",
+)
+
+
+def _normalize_label(name: str) -> str:
+    """Normaliza nombre de sello: lowercase y elimina sufijos corporativos comunes."""
+    n = name.lower().strip()
+    for suffix in _LABEL_SUFFIXES:
+        if n.endswith(suffix):
+            n = n[: -len(suffix)].strip()
+            break
+    return n
+
 
 def _duration_bucket(ms: int) -> str:
     if ms < 120_000:
@@ -190,12 +217,13 @@ def compute_stats(
         rating = t.rating if t.rating is not None else 0
         ratings[rating] += 1
 
-        # Usar el artista del álbum como canónico para evitar fragmentación por featuring
-        artist = (
+        # Artista canónico: album_id → album.artist_name, luego normalizar featuring
+        _raw = (
             album_id_to_artist.get(t.album_id)
             if t.album_id is not None and t.album_id in album_id_to_artist
             else (t.artist_name or "").strip()
-        ) or "Artista desconocido"
+        ) or ""
+        artist = _strip_featuring(_raw) or "Artista desconocido"
         artist_counts[artist] += 1
         artist_set.add(artist)
 
@@ -272,8 +300,15 @@ def compute_stats(
     top_labels = sorted(label_track_count.items(), key=lambda x: x[1], reverse=True)[:10]
 
     # ── Países de artistas ───────────────────────────────────────────────── #
+    # Deduplicar por nombre normalizado: evita contar "The Black Keys feat. X"
+    # como un artista distinto de "The Black Keys".
     artist_country_raw: dict[str, int] = defaultdict(int)
+    seen_artist_names: set[str] = set()
     for ar in artists:
+        normalized = _strip_featuring((ar.name or "").strip())
+        if not normalized or normalized in seen_artist_names:
+            continue
+        seen_artist_names.add(normalized)
         c = (ar.country or "").strip()
         if c:
             artist_country_raw[c] += 1
@@ -283,10 +318,20 @@ def compute_stats(
     )
 
     # ── Países de sellos ─────────────────────────────────────────────────── #
+    # Normalizar nombres antes de comparar: "Nonesuch Records" (DB) coincide
+    # con "Nonesuch" (album.label) porque ambos normalizan a "nonesuch".
+    label_set_norm: dict[str, str] = {
+        _normalize_label(lbl): lbl for lbl in label_set if lbl
+    }
     label_country_raw: dict[str, int] = defaultdict(int)
+    seen_label_norms: set[str] = set()
     for lbl_name, lbl_country in label_country_map.items():
-        if lbl_country and lbl_name in {lbl for lbl in label_set if lbl}:
+        if not lbl_country:
+            continue
+        norm = _normalize_label(lbl_name)
+        if norm in label_set_norm and norm not in seen_label_norms:
             label_country_raw[lbl_country] += 1
+            seen_label_norms.add(norm)
     label_country_counts = dict(
         sorted(label_country_raw.items(), key=lambda x: x[1], reverse=True)[:15]
     )

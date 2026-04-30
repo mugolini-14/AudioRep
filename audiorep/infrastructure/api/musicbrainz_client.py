@@ -169,6 +169,8 @@ class MusicBrainzClient:
         musicbrainzngs.set_useragent(
             app_name, app_version, "https://github.com/mugolini-14/AudioRep"
         )
+        # Caché MBID → país del sello para evitar llamadas redundantes a la API.
+        self._label_country_cache: dict[str, str] = {}
 
     # ------------------------------------------------------------------
     # IMetadataProvider
@@ -387,18 +389,24 @@ class MusicBrainzClient:
             date = release.get("date", "") or ""
             year = date[:4] if date else ""
 
-            # Sello
+            # Sello — el endpoint de releases no devuelve area/country del sello;
+            # se requiere un lookup separado por MBID del sello.
             label = ""
             label_country = ""
+            label_mbid = ""
             for info in release.get("label-info-list", []):
                 lbl = info.get("label") or {}
                 if lbl.get("name"):
                     label = lbl["name"]
+                    label_mbid = lbl.get("id", "")
                     label_country = _resolve_country(
                         lbl.get("area", {}).get("name", "")
                         or lbl.get("country", "")
                     )
                     break
+
+            if not label_country and label_mbid:
+                label_country = self._fetch_label_country(label_mbid)
 
             # Tipo de lanzamiento
             rg = release.get("release-group") or {}
@@ -419,6 +427,33 @@ class MusicBrainzClient:
         except Exception as exc:
             logger.warning("MusicBrainzClient.enrich_album '%s - %s': %s", artist, title, exc)
             return None
+
+    def _fetch_label_country(self, label_mbid: str) -> str:
+        """Lookup directo por MBID del sello para obtener su país de origen.
+
+        get_release_by_id con includes=['labels'] no devuelve area/country del
+        sello; se necesita una llamada separada a get_label_by_id.
+        Resultados cacheados por MBID para evitar llamadas redundantes.
+        """
+        if label_mbid in self._label_country_cache:
+            return self._label_country_cache[label_mbid]
+        try:
+            import time
+            time.sleep(1.1)  # respetar rate limit de MusicBrainz
+            result = musicbrainzngs.get_label_by_id(label_mbid, includes=[])
+            lbl = result.get("label", {})
+            raw = (
+                lbl.get("area", {}).get("name", "")
+                or lbl.get("country", "")
+            )
+            country = _resolve_country(raw)
+            self._label_country_cache[label_mbid] = country
+            logger.debug("_fetch_label_country %s → '%s'", label_mbid, country)
+            return country
+        except Exception as exc:
+            logger.debug("_fetch_label_country %s: %s", label_mbid, exc)
+            self._label_country_cache[label_mbid] = ""
+            return ""
 
     # ------------------------------------------------------------------
 

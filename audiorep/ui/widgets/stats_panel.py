@@ -398,21 +398,27 @@ def _build_tab_albums(stats: LibraryStats, charts: bool) -> QWidget:
     elif dur_album_view:
         layout.addWidget(dur_album_view)
 
-    # Décadas de álbumes
+    # Décadas + Tipo de álbum — misma fila, mitad de ancho cada uno
+    decades_view = None
+    type_view    = None
+
     if stats.album_decade_counts:
         decades_clean = {k: v for k, v in stats.album_decade_counts.items() if k != "Sin año"}
         if decades_clean:
             keys = sorted(decades_clean.keys())
-            layout.addWidget(
-                make_bar_chart("Décadas", keys, [decades_clean[k] for k in keys])
-            )
+            decades_view = make_bar_chart("Décadas", keys, [decades_clean[k] for k in keys])
 
-    # Tipo de álbum (release_type) — solo si hay datos
     if stats.album_type_counts:
         types = list(stats.album_type_counts.keys())
         vals  = list(stats.album_type_counts.values())
-        layout.addWidget(_section_label("Tipo de álbum"))
-        layout.addWidget(make_bar_chart("Tipo de álbum", types, vals))
+        type_view = make_bar_chart("Tipo de álbum", types, vals)
+
+    if decades_view and type_view:
+        layout.addLayout(_chart_row(decades_view, type_view))
+    elif decades_view:
+        layout.addWidget(decades_view)
+    elif type_view:
+        layout.addWidget(type_view)
     else:
         layout.addWidget(_no_data_note(
             "Tipo de álbum: sin datos.\n"
