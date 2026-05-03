@@ -1,10 +1,11 @@
 """
-ExportService — Exportación de la biblioteca de pistas.
+ExportService — Exportación de la biblioteca de pistas y emisoras de radio.
 
 Formatos soportados:
     XLSX — dos hojas: "Biblioteca" + "Estadísticas" (requiere openpyxl).
     PDF  — dos secciones con el mismo contenido (requiere fpdf2).
     CSV  — biblioteca o estadísticas por separado (stdlib csv).
+    M3U  — lista de emisoras de radio guardadas (texto plano, sin dependencias).
 
 Métodos principales:
     export_xlsx(tracks, stats, filepath)          — biblioteca + estadísticas combinadas
@@ -16,6 +17,7 @@ Métodos principales:
     export_library_pdf(tracks, filepath)          — solo sección pistas
     export_stats_pdf(stats, filepath)             — solo sección estadísticas
     export_stats_csv(stats, filepath)             — estadísticas en CSV (Sección,Indicador,Valor)
+    export_radio_m3u(stations, filepath)          — emisoras guardadas en M3U8
 """
 from __future__ import annotations
 
@@ -23,6 +25,7 @@ import csv
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from audiorep.domain.radio_station import RadioStation
     from audiorep.domain.track import Track
     from audiorep.services.stats_service import LibraryStats
 
@@ -459,3 +462,29 @@ class ExportService:
             writer = csv.writer(f)
             writer.writerow(["Sección", "Indicador", "Valor"])
             writer.writerows(rows)
+
+    # ------------------------------------------------------------------
+    # M3U — emisoras de radio
+    # ------------------------------------------------------------------
+
+    def export_radio_m3u(self, stations: list[RadioStation], filepath: str) -> None:
+        """Exporta emisoras guardadas a formato M3U8 (texto plano, UTF-8)."""
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write("#EXTM3U\n")
+            for station in stations:
+                # Construir el display name: nombre (bitrate kbps) — género / país
+                suffix_parts: list[str] = []
+                if station.bitrate_kbps:
+                    suffix_parts.append(f"{station.bitrate_kbps} kbps")
+                meta_parts: list[str] = []
+                if station.genre:
+                    meta_parts.append(station.genre)
+                if station.country:
+                    meta_parts.append(station.country)
+                display = station.name
+                if suffix_parts:
+                    display += f" ({', '.join(suffix_parts)})"
+                if meta_parts:
+                    display += f" — {' / '.join(meta_parts)}"
+                f.write(f"#EXTINF:-1,{display}\n")
+                f.write(f"{station.stream_url}\n")

@@ -49,6 +49,7 @@ Estado de implementación:
     ✅ Paso 42 — Enriquecimiento por álbum (1 API call/álbum); códigos ISO → nombres completos; dedup importación; flecha dropdown visible, v0.77
     ✅ Paso 43 — Fix stats top_artists: album_id → album.artist_name canónico para evitar fragmentación por featuring, v0.78
     ✅ Paso 44 — Fix stats: _strip_featuring, _normalize_label, dedup países artistas, label country via get_label_by_id + caché; layout Álbumes: Décadas + Tipo de álbum emparejados, v0.79
+    ✅ Paso 45 — Exportación de emisoras guardadas a M3U8 (ExportService.export_radio_m3u, RadioPanel botón Exportar, RadioController), v0.80
 """
 import os
 import sys
@@ -113,7 +114,7 @@ def _maybe_auto_enrich(settings: "AppSettings", enrichment_service: object) -> N
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.79.0")
+    app.setApplicationVersion("0.80.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #

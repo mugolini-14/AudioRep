@@ -137,7 +137,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.setWindowTitle("AudioRep 0.79")
+        self.setWindowTitle("AudioRep 0.80")
         self.setMinimumSize(860, 520)
         self.resize(1200, 700)
 
@@ -325,6 +325,8 @@ class MainWindow(QMainWindow):
             self._radio_controller = RadioController(
                 radio_service=self._radio_service,
                 radio_panel=self._radio_panel,
+                export_service=self._export_service,
+                parent_widget=self,
             )
 
     # ------------------------------------------------------------------

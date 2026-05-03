@@ -2,6 +2,16 @@
 
 ---
 
+# 0.80 — Exportación de emisoras de radio a M3U
+
+**Fecha:** 3 de mayo de 2026
+
+### Agregado
+
+- **Exportación de emisoras guardadas a M3U** — la pestaña Guardadas del panel de Radio incluye ahora el botón "Exportar M3U". Al hacer clic se abre un diálogo para elegir la ruta de destino y genera un archivo `.m3u8` estándar compatible con VLC, foobar2000, Winamp y cualquier reproductor que soporte el formato. Cada emisora se exporta con su nombre, bitrate, género y país en la línea de metadatos `#EXTINF`, seguida de la URL del stream.
+
+---
+
 # 0.79 — Correcciones de estadísticas: artistas, países y sellos
 
 **Fecha:** 29 de abril de 2026

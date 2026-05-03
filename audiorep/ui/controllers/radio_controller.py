@@ -7,13 +7,17 @@ Responsabilidades:
       radio_playback_started, radio_playback_stopped).
     - Actualizar RadioPanel cuando cambia el estado de reproducción o la
       lista de emisoras guardadas.
+    - Exportar emisoras guardadas a M3U via ExportService.
 """
 from __future__ import annotations
 
 import logging
 
+from PyQt6.QtWidgets import QFileDialog, QWidget
+
 from audiorep.core.events import app_events
 from audiorep.domain.radio_station import RadioStation
+from audiorep.services.export_service import ExportService
 from audiorep.services.radio_service import RadioService
 from audiorep.ui.widgets.radio_panel import RadioPanel
 
@@ -31,11 +35,15 @@ class RadioController:
 
     def __init__(
         self,
-        radio_service: RadioService,
-        radio_panel:   RadioPanel,
+        radio_service:  RadioService,
+        radio_panel:    RadioPanel,
+        export_service: ExportService,
+        parent_widget:  QWidget | None = None,
     ) -> None:
-        self._service = radio_service
-        self._panel   = radio_panel
+        self._service        = radio_service
+        self._panel          = radio_panel
+        self._export_service = export_service
+        self._parent_widget  = parent_widget
 
         self._connect_panel()
         self._connect_service()
@@ -58,6 +66,7 @@ class RadioController:
         panel.save_requested.connect(self._on_save_requested)
         panel.delete_requested.connect(self._on_delete_requested)
         panel.favorite_toggled.connect(self._on_favorite_toggled)
+        panel.export_saved_requested.connect(self._on_export_saved_requested)
 
     # ------------------------------------------------------------------
     # Conexiones: RadioService → RadioPanel
@@ -133,3 +142,26 @@ class RadioController:
         """Recarga las listas de guardadas y favoritas en el panel."""
         self._panel.set_saved_stations(self._service.get_all_stations())
         self._panel.set_favorite_stations(self._service.get_favorite_stations())
+
+    def _on_export_saved_requested(self) -> None:
+        stations = self._service.get_all_stations()
+        if not stations:
+            app_events.status_message.emit("No hay emisoras guardadas para exportar.")
+            return
+        filepath, _ = QFileDialog.getSaveFileName(
+            self._parent_widget,
+            "Exportar emisoras guardadas",
+            "radios_guardadas.m3u8",
+            "Playlist M3U (*.m3u8 *.m3u)",
+        )
+        if not filepath:
+            return
+        try:
+            self._export_service.export_radio_m3u(stations, filepath)
+            app_events.status_message.emit(
+                f"Exportadas {len(stations)} emisoras a {filepath}"
+            )
+            logger.info("RadioController: exportadas %d emisoras → %s", len(stations), filepath)
+        except Exception as exc:
+            logger.error("RadioController: error al exportar M3U: %s", exc)
+            app_events.error_occurred.emit("Error al exportar", str(exc))

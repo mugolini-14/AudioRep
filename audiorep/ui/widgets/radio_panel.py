@@ -53,14 +53,17 @@ class RadioPanel(QWidget):
             El usuario quiere eliminar la emisora guardada (station_id).
         favorite_toggled(int):
             El usuario quiere alternar favorita de la emisora guardada (station_id).
+        export_saved_requested():
+            El usuario quiere exportar todas las emisoras guardadas a M3U.
     """
 
-    search_requested  = pyqtSignal(str, str, str)   # (query, country, genre)
-    play_requested    = pyqtSignal(object)           # RadioStation
-    stop_requested    = pyqtSignal()
-    save_requested    = pyqtSignal(object)           # RadioStation
-    delete_requested  = pyqtSignal(int)              # station_id
-    favorite_toggled  = pyqtSignal(int)              # station_id
+    search_requested        = pyqtSignal(str, str, str)   # (query, country, genre)
+    play_requested          = pyqtSignal(object)           # RadioStation
+    stop_requested          = pyqtSignal()
+    save_requested          = pyqtSignal(object)           # RadioStation
+    delete_requested        = pyqtSignal(int)              # station_id
+    favorite_toggled        = pyqtSignal(int)              # station_id
+    export_saved_requested  = pyqtSignal()                 # exportar emisoras guardadas
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -232,6 +235,14 @@ class RadioPanel(QWidget):
         self._saved_table.setSortingEnabled(True)
         layout.addWidget(self._saved_table)
 
+        export_row = QHBoxLayout()
+        export_row.setContentsMargins(0, 4, 0, 0)
+        export_row.setSpacing(8)
+        self._btn_export_saved = QPushButton("⬇  Exportar M3U")
+        self._btn_export_saved.setObjectName("RadioBtnExport")
+        export_row.addWidget(self._btn_export_saved, stretch=1)
+        layout.addLayout(export_row)
+
         return tab
 
     def _build_favs_tab(self) -> QWidget:
@@ -305,6 +316,7 @@ class RadioPanel(QWidget):
         self._btn_save.clicked.connect(self._on_save_clicked)
         self._btn_delete.clicked.connect(self._on_delete_clicked)
         self._btn_fav.clicked.connect(self._on_fav_clicked)
+        self._btn_export_saved.clicked.connect(self.export_saved_requested)
 
         # Filtros locales — Guardadas
         self._btn_saved_filter.clicked.connect(self._apply_saved_filter)
