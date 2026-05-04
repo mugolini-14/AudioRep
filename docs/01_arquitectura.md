@@ -107,9 +107,11 @@ window = MainWindow(player_service, library_service, cd_service)
 │  PlaylistPanel / RadioPanel          ├────────────────────┤
 │                                      │  VU Meter (bottom) │
 ├──────────────────────────────────────────────────────────  ┤
-│  Barra de estado                                           │
+│  EqualizerWidget#eqPanel  (oculto por defecto, ~160px)     │
 ├────────────────────────────────────────────────────────────┤
-│  PlayerBar (transportFrame + progreso + volumen)           │
+│  PlayerBar (transportFrame + EQ btn + progreso + volumen)  │
+├────────────────────────────────────────────────────────────┤
+│  Barra de estado                                           │
 └────────────────────────────────────────────────────────────┘
 ```
 

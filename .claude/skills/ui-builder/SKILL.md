@@ -84,6 +84,8 @@ Antes de escribir cualquier widget nuevo o reconstruir uno existente, **leer dar
 ├──────────────────────────────────────────────────────┴──────────────────┤
 │ QFrame#separator (1px, #33334a)                                         │
 ├─────────────────────────────────────────────────────────────────────────┤
+│ QWidget#eqPanel  (oculto por defecto, ~160px cuando visible)            │
+├─────────────────────────────────────────────────────────────────────────┤
 │ PlayerBar  (min-height: 90px)                                           │
 ├─────────────────────────────────────────────────────────────────────────┤
 │ QStatusBar                                                              │
@@ -91,6 +93,8 @@ Antes de escribir cualquier widget nuevo o reconstruir uno existente, **leer dar
 ```
 
 El splitter horizontal principal (`mainSplitter`) separa el `QTabWidget` (Expanding, stretch=1) del `rightPanel` (Fixed, stretch=0). NowPlaying y VUMeterWidget están dentro de `rightPanel` con layout vertical.
+
+El `eqPanel` (EqualizerWidget) se inserta entre el separador y la PlayerBar. Está oculto por defecto (`setVisible(False)`) y se muestra/oculta cuando el usuario presiona el botón `eqButton` de la PlayerBar. **No es un QDialog flotante — es un QWidget embebido en el layout principal.**
 
 ### Layout del tab CD
 
@@ -113,7 +117,8 @@ El tab CD contiene un `QSplitter#cdTabSplitter` horizontal con dos columnas:
 |---|---|---|
 | `mainSplitter` | `QSplitter` | Splitter horizontal principal (tabs izq. / rightPanel der.) |
 | `mainTabs` | `QTabWidget` | Tabs: Biblioteca, CD, Playlists, Radio |
-| `separator` | `QFrame` | Línea de 1px entre área principal y PlayerBar |
+| `separator` | `QFrame` | Línea de 1px entre área principal y eqPanel/PlayerBar |
+| `eqPanel` | `QWidget` | Panel del ecualizador, entre separator y PlayerBar. Oculto por defecto |
 | `playerBar` | `QWidget` | Barra de controles inferior |
 | `rightPanel` | `QWidget` | Panel derecho fijo (210–320px): NowPlaying + VUMeter |
 | `vuMeter` | `QWidget` | VU metro estéreo real, altura fija 110px, fondo `#12121e` |
@@ -183,6 +188,7 @@ Todos los campos opcionales usan `setVisible(bool(valor))`. El orden del layout 
 | `playerTrackLabel` | `QLabel` | stretch=1 | Título y artista de la pista en reproducción (`"Título — Artista"`). 16px, `text-main`. Centrado en la fila 1 entre los dos `timeLabel` |
 | `timeLabel` | `QLabel` | fixed 52px | Tiempo transcurrido y total, flanqueando el `playerTrackLabel`. `#7070a0`, 16px tabular-nums |
 | `progressSlider` | `QSlider` | stretch (fila 2) | Barra de progreso a ancho completo. Handle blanco `#e2e2f0` |
+| `eqButton` | `QPushButton` | 46×46 | Botón EQ. Checkable. Inactivo: `#55557a`. Activo (checked): `#7c5cbf` con fondo semitransparente. Hover: `#a0a0c0`. Abre/cierra el `eqPanel` embebido |
 | `volumeIcon` | `QPushButton` | 46×46 | Ícono 🔊/🔇. Actúa como botón de mute toggle. Color `text-ghost`. Al hacer clic silencia/restaura el volumen anterior |
 | `volumeSlider` | `QSlider` | min 180px / max 280px | Volumen. Groove 3px, handle `#a090c0` |
 
@@ -190,12 +196,12 @@ Todos los campos opcionales usan `setVisible(bool(valor))`. El orden del layout 
 ```
 Fila 1: [transportFrame: modeBtn | prevBtn | stopBtn | playBtn | nextBtn | modeBtn]
         [timeLabel] [track info label (stretch)] [timeLabel]
-        [volumeIcon] [volumeSlider]
+        [eqButton] [volumeIcon] [volumeSlider]
 
 Fila 2: [════════════════ progressSlider (ancho completo) ════════════════]
 ```
 
-**Todos los botones de transporte tienen fondo transparente y color blanco** — sin fondos de colores. El único elemento con color de acento es el `modeButton:checked` (`#b090ff`) y el `transportFrame` que los contiene.
+**Todos los botones de transporte tienen fondo transparente y color blanco** — sin fondos de colores. El único elemento con color de acento es el `modeButton:checked` (`#b090ff`) y el `transportFrame` que los contiene. El `eqButton:checked` usa `#7c5cbf` con fondo semitransparente.
 
 ### CDMetadataPanel (`audiorep/ui/widgets/cd_metadata_panel.py`)
 
@@ -296,6 +302,34 @@ El botón "Actualizar ahora" emite la señal — nunca llama directamente al ser
 | `RadioBtnSave` | `QPushButton` | Guardar emisora. Estilo secundario |
 | `RadioBtnDelete` | `QPushButton` | Eliminar emisora. Estilo secundario |
 | `RadioBtnFav` | `QPushButton` | Toggle favorito. Hover: color rojizo `#e06080` |
+| `RadioBtnExport` | `QPushButton` | "Exportar Radio" — genera M3U8. En la fila del buscador de la pestaña Guardadas, a la derecha de "Buscar" |
+| `RadioBtnExportList` | `QPushButton` | "Exportar Lista de Radios" — genera XLSX/PDF/CSV. En la misma fila que RadioBtnExport |
+
+> **Nota v0.81:** Los botones `RadioBtnExport` y `RadioBtnExportList` están en la `filter_row` de la pestaña Guardadas (junto al campo de búsqueda y el botón "Buscar"), **no** en una fila separada debajo de la tabla. Todos los botones de radio comparten padding reducido (`6px 8px`) para que quepan en la fila.
+
+### EqualizerWidget (`audiorep/ui/widgets/equalizer_widget.py`)
+
+Panel embebido del ecualizador gráfico de 10 bandas. **Es un `QWidget`, no un `QDialog`.**  
+Se instancia en `MainWindow._build_ui()` y se inserta en el layout principal entre el separador y la PlayerBar.
+
+| objectName | Widget | Descripción |
+|---|---|---|
+| `eqPanel` | `QWidget` (raíz) | Panel del ecualizador. Fondo `#18182a`, border-top `#2a2a3e`. Oculto por defecto |
+| `eqEnableCheck` | `QCheckBox` | "Activar EQ". Indicator cuadrado 16×16px. Checked: fondo `#7c5cbf` |
+| `eqLabel` | `QLabel` | Label "Preset:". Color `#8888aa`, 11px |
+| `eqPresetCombo` | `QComboBox` | Selector de preset. Hereda el estilo global `QComboBox`. min-width 150px |
+| `eqSaveBtn` | `QPushButton` | "Guardar preset". Estilo unificado de acción (`#4a3480`) |
+| `eqDeleteBtn` | `QPushButton` | "Eliminar preset". Mismo estilo. Habilitado solo para presets de usuario |
+| `eqResetBtn` | `QPushButton` | "Resetear a 0". Mismo estilo. Siempre habilitado |
+| `eqFreqLabel` | `QLabel` | Etiqueta de frecuencia bajo cada slider ("Preamp", "60Hz", …). Color `#8888aa`, 11px |
+| `eqSlider` | `QSlider` | Slider vertical por banda. Rango -200 a +200 (= -20.0 a +20.0 dB × 10). Handle `#7c5cbf` |
+| `eqValueLabel` | `QLabel` | Valor en dB bajo cada slider (ej. "+3.0", "0.0"). Color `#c0c0e0`, 11px |
+
+**Presets disponibles:**
+- 18 presets built-in de VLC (Flat, Classical, Club, Dance, Fullbass, Full Treble, Headphones, Large Hall, Live, Party, Pop, Reggae, Rock, Ska, Soft, Softrock, Techno). No se almacenan en DB.
+- Presets de usuario en SQLite (tabla `eq_presets`). Aparecen en el combobox separados por un separador deshabilitado.
+
+**Convención crítica (v0.82):** El `VLCPlayer` mantiene una referencia `self._current_eq` al objeto equalizer activo. **Nunca llamar `libvlc_audio_equalizer_release()` manualmente** — libera el puntero mientras VLC lo usa, causando crash. La referencia en Python evita que el GC lo destruya. Usar `vlc.libvlc_media_player_set_equalizer(player, eq)` — **no** `player.audio_set_equalizer(eq)` que no existe en esta versión de python-vlc.
 
 ---
 

@@ -79,6 +79,13 @@ domain → core → services ← infrastructure
 
 **ExportService PDF standard (v0.75+)**: Library PDF uses landscape orientation (`pdf.add_page(orientation="L")`, A4 = 297×210mm, ~277mm usable width). Column widths: `[11, 78, 48, 54, 13, 28, 20, 17]` (~269mm total). Stats PDF uses portrait. Font sizes: library table headers 9pt bold, data rows 9pt; stats section titles 11pt bold, table headers 10pt bold, data rows 9pt. XLSX font size is 11 for all cells (headers and data) in both sheets.
 
+**EqualizerWidget standard (v0.82+)**: The equalizer is an embedded `QWidget` (not a `QDialog`) inserted in the main layout between the separator and the PlayerBar. It starts hidden (`setVisible(False)`) and is shown/hidden by toggling the checkable `eqButton` (46×46) in the PlayerBar. Key rules:
+- `eqButton` is placed between the duration timeLabel and the volumeIcon in PlayerBar row 1.
+- `VLCPlayer` must keep `self._current_eq = eq` after calling `vlc.libvlc_media_player_set_equalizer(player, eq)`. Never call `libvlc_audio_equalizer_release()` — it frees the pointer while VLC still holds it, causing a crash.
+- Use `vlc.libvlc_media_player_set_equalizer(player, eq)` — **not** `player.audio_set_equalizer(eq)` (method does not exist in this python-vlc version).
+- 18 VLC built-in presets loaded via `libvlc_audio_equalizer_new_from_preset(index)`. User presets stored in SQLite table `eq_presets` (DB migration v4). State persisted in `AppSettings.eq_enabled` / `AppSettings.eq_preset_name`.
+- Slider values: integer range -200 to +200, representing -20.0 to +20.0 dB (divide by 10 to get dB).
+
 **StatsPanel chart height standard (v0.73+)**: All chart views use `setFixedHeight` (never `setMinimumHeight`) to ensure uniform row heights and eliminate internal `QGraphicsView` scrollbars. Two height constants in `stats_panel.py`: `_H_HALF = 280` for half-width charts (`make_bar_chart`, `make_pie_chart`) and `_H_FULL = 340` for full-width horizontal bar charts (`make_hbar_chart`). Always pass `setHorizontalScrollBarPolicy(ScrollBarAlwaysOff)` and `setVerticalScrollBarPolicy(ScrollBarAlwaysOff)` on every `QChartView`. Pie chart legends use `AlignLeft` (not `AlignBottom`) to maximize pie area. Full layout and pairing rules in `.claude/skills/ui-builder/SKILL.md`.
 
 ## Building installers

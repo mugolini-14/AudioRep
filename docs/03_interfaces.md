@@ -173,6 +173,21 @@ class IRadioSearchProvider(Protocol):
 
 ---
 
+### `IEqPresetRepository` — Repositorio de Presets del Ecualizador
+
+Implementado por: `infrastructure/database/repositories/eq_preset_repository.py`
+
+```python
+class IEqPresetRepository(Protocol):
+    def get_all(self) -> list[EqPreset]
+    def save(self, preset: EqPreset) -> None   # INSERT OR UPDATE por name
+    def delete(self, name: str) -> None
+```
+
+Solo almacena presets de usuario. Los 18 presets built-in de VLC se acceden directamente desde `VLCPlayer` mediante `libvlc_audio_equalizer_new_from_preset(index)`.
+
+---
+
 ## Inyección de Dependencias
 
 AudioRep usa **inyección de dependencias manual** (sin frameworks).

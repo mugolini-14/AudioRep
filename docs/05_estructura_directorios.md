@@ -28,7 +28,8 @@ audiorep/                                ← raíz del proyecto
 │   │   ├── artist.py                    ← Artist
 │   │   ├── playlist.py                  ← Playlist, PlaylistEntry
 │   │   ├── cd_disc.py                   ← CDDisc, CDTrack, RipStatus
-│   │   └── radio_station.py             ← RadioStation
+│   │   ├── radio_station.py             ← RadioStation
+│   │   └── eq_preset.py                 ← EqPreset (preset del ecualizador)
 │   │
 │   ├── core/                            ← [CAPA 2] Contratos y utilidades compartidas
 │   │   ├── __init__.py
@@ -53,7 +54,8 @@ audiorep/                                ← raíz del proyecto
 │   │   │       ├── artist_repository.py ← Implementa IArtistRepository
 │   │   │       ├── playlist_repository.py         ← Implementa IPlaylistRepository
 │   │   │       ├── radio_station_repository.py    ← Implementa IRadioStationRepository
-│   │       └── label_repository.py            ← ILabelRepository: upsert_country, get_country_map
+│   │       ├── label_repository.py            ← ILabelRepository: upsert_country, get_country_map
+│   │       └── eq_preset_repository.py        ← Implementa IEqPresetRepository (presets de usuario)
 │   │   │
 │   │   ├── audio/                       ← Reproducción y hardware de audio
 │   │   │   ├── __init__.py
@@ -87,8 +89,9 @@ audiorep/                                ← raíz del proyecto
 │   │   ├── playlist_service.py          ← CRUD de playlists, smart playlists
 │   │   ├── radio_service.py             ← Reproducción y gestión de emisoras de radio
 │   │   ├── stats_service.py             ← Calcula LibraryStats (worker QThread); usado por StatsPanel
-│   │   ├── export_service.py            ← Exporta biblioteca a XLSX/PDF/CSV
-│   │   └── enrichment_service.py        ← Enriquecimiento automático con MusicBrainz + Last.fm (QThread worker)
+│   │   ├── export_service.py            ← Exporta biblioteca y radios (XLSX/PDF/CSV/M3U)
+│   │   ├── enrichment_service.py        ← Enriquecimiento automático con MusicBrainz + Last.fm (QThread worker)
+│   │   └── equalizer_service.py         ← Gestión del ecualizador gráfico (presets VLC + usuario, apply/disable)
 │   │
 │   └── ui/                              ← [CAPA 5] Interfaz gráfica PyQt6
 │       ├── __init__.py
@@ -101,7 +104,8 @@ audiorep/                                ← raíz del proyecto
 │       │   ├── cd_controller.py         ← CDPanel ↔ CDService + RipperService
 │       │   ├── playlist_controller.py   ← PlaylistPanel ↔ PlaylistService
 │       │   ├── radio_controller.py      ← RadioPanel ↔ RadioService
-│       │   └── tagger_controller.py     ← TagEditorDialog ↔ TaggerService
+│       │   ├── tagger_controller.py     ← TagEditorDialog ↔ TaggerService
+│       │   └── equalizer_controller.py  ← PlayerBar (eqButton) ↔ EqualizerWidget ↔ EqualizerService
 │       │
 │       ├── widgets/                     ← Componentes visuales reutilizables
 │       │   ├── __init__.py
@@ -111,9 +115,10 @@ audiorep/                                ← raíz del proyecto
 │       │   ├── cd_panel.py              ← Estado del CD, selector de lectora, pistas, ripeo
 │       │   ├── cd_metadata_panel.py     ← Panel lateral de metadatos manuales del CD
 │       │   ├── playlist_panel.py        ← Gestión de playlists + grilla estándar
-│       │   ├── radio_panel.py           ← Pestañas Buscar / Guardadas / Favoritas
+│       │   ├── radio_panel.py           ← Pestañas Buscar / Guardadas / Favoritas (exportación M3U/XLSX/PDF/CSV)
 │       │   ├── stats_panel.py           ← Panel de estadísticas con 6 tabs y gráficos PyQt6-Charts
-│       │   └── vu_meter.py              ← Vúmetro animado con barras de colores (panel derecho)
+│       │   ├── vu_meter.py              ← Vúmetro animado con barras de colores (panel derecho)
+│       │   └── equalizer_widget.py      ← Panel EQ embebido (10 bandas, presets, entre separator y PlayerBar)
 │       │
 │       ├── dialogs/                     ← Ventanas modales
 │       │   ├── __init__.py

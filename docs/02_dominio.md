@@ -160,6 +160,21 @@ radio-browser.info o ser creada manualmente por el usuario.
 
 ---
 
+### `EqPreset` — Preset del Ecualizador
+
+Representa la configuración de un preset del ecualizador gráfico de 10 bandas.
+
+| Atributo | Tipo | Descripción |
+|---|---|---|
+| `name` | `str` | Nombre del preset (ej. "Rock", "Mi preset") |
+| `preamp` | `float` | Amplificación general en dB (-20.0 a +20.0) |
+| `bands` | `list[float]` | Lista de 10 valores en dB, una por banda (60Hz a 16kHz) |
+| `is_builtin` | `bool` | True si proviene de los presets predefinidos de VLC |
+
+Los presets con `is_builtin=True` se cargan desde la API nativa de libVLC (`libvlc_audio_equalizer_new_from_preset`) y **no se persisten en la base de datos**. Los presets de usuario (`is_builtin=False`) se almacenan en la tabla `eq_presets` de SQLite.
+
+---
+
 ## Relaciones entre Entidades
 
 ```

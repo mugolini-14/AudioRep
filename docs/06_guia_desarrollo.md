@@ -185,6 +185,9 @@ class MiController:
 | 42 | Enriquecimiento rediseñado por álbum (1 llamada API/álbum en lugar de 1/pista); códigos ISO de país convertidos a nombres completos (`pycountry` + fallback interno); deduplicación en importación; flecha de QComboBox más visible (`#e2e2f0`, stroke 2.0px) | ✅ Completo — v0.77 |
 | 43 | Fix stats `top_artists`: mapa `album_id → album.artist_name` como artista canónico para evitar fragmentación por featuring al calcular ranking | ✅ Completo — v0.78 |
 | 44 | Fix stats: `_strip_featuring()` normaliza nombres con "feat./ft./featuring"; `_normalize_label()` normaliza sellos para match robusto; dedup de artistas por nombre normalizado en países; `_fetch_label_country()` en `MusicBrainzClient` hace lookup separado por MBID del sello (con caché); layout tab Álbumes: Décadas + Tipo de álbum emparejados en media fila | ✅ Completo — v0.79 |
+| 45 | `ExportService.export_radio_m3u()` — exportación de emisoras guardadas a M3U8; botón `RadioBtnExport` en pestaña Guardadas de RadioPanel | ✅ Completo — v0.80 |
+| 46 | `ExportService.export_radio_xlsx/pdf/csv()` — exportación de lista de radios con URL del stream; botón `RadioBtnExportList`; ambos botones en `filter_row` de la pestaña Guardadas junto al buscador | ✅ Completo — v0.81 |
+| 47 | Ecualizador gráfico: `EqPreset` domain entity, `IEqPresetRepository`, `EqPresetRepository` (DB migration v4), `AppSettings.eq_enabled/eq_preset_name`, `VLCPlayer.apply_equalizer/disable_equalizer` (via `libvlc_media_player_set_equalizer`), `EqualizerService` (18 presets VLC + presets usuario), `EqualizerWidget` (QWidget embebido, 10 bandas -20/+20 dB), `eqButton` en PlayerBar, `EqualizerController` | ✅ Completo — v0.82 |
 
 ---
 
