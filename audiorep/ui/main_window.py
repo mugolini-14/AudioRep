@@ -53,9 +53,11 @@ from audiorep.services.radio_service import RadioService
 from audiorep.services.ripper_service import RipperService
 from audiorep.services.search_service import SearchService
 from audiorep.services.enrichment_service import EnrichmentService
+from audiorep.services.equalizer_service import EqualizerService
 from audiorep.services.stats_service import StatsService
 from audiorep.services.tagger_service import TaggerService
 from audiorep.ui.controllers.cd_controller import CDController
+from audiorep.ui.controllers.equalizer_controller import EqualizerController
 from audiorep.ui.controllers.library_controller import LibraryController
 from audiorep.ui.controllers.player_controller import PlayerController
 from audiorep.ui.controllers.playlist_controller import PlaylistController
@@ -63,6 +65,7 @@ from audiorep.ui.controllers.radio_controller import RadioController
 from audiorep.ui.controllers.tagger_controller import TaggerController
 from audiorep.ui.widgets.cd_metadata_panel import CDMetadataPanel
 from audiorep.ui.widgets.cd_panel import CDPanel
+from audiorep.ui.widgets.equalizer_widget import EqualizerWidget
 from audiorep.ui.widgets.library_panel import LibraryPanel
 from audiorep.ui.widgets.now_playing import NowPlaying
 from audiorep.ui.widgets.player_bar import PlayerBar
@@ -106,6 +109,7 @@ class MainWindow(QMainWindow):
         settings:            AppSettings | None = None,
         cd_lookup_providers: list | None = None,
         enrichment_service:  EnrichmentService | None = None,
+        equalizer_service:   EqualizerService | None = None,
         parent:              QWidget | None = None,
     ) -> None:
         super().__init__(parent)
@@ -122,6 +126,7 @@ class MainWindow(QMainWindow):
         self._settings            = settings
         self._cd_lookup_providers = cd_lookup_providers or []
         self._enrichment_service  = enrichment_service
+        self._equalizer_service   = equalizer_service
 
         self._setup_window()
         self._build_ui()
@@ -137,7 +142,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.setWindowTitle("AudioRep 0.81")
+        self.setWindowTitle("AudioRep 0.82")
         self.setMinimumSize(860, 520)
         self.resize(1200, 700)
 
@@ -154,6 +159,11 @@ class MainWindow(QMainWindow):
 
         root_layout.addWidget(self._build_main_area(), stretch=1)
         root_layout.addWidget(self._make_separator())
+
+        # Panel del ecualizador (oculto por defecto, se muestra con el botón EQ)
+        self._eq_panel = EqualizerWidget()
+        self._eq_panel.setVisible(False)
+        root_layout.addWidget(self._eq_panel)
 
         self._player_bar = PlayerBar()
         self._player_bar.setObjectName("playerBar")
@@ -327,6 +337,13 @@ class MainWindow(QMainWindow):
                 radio_panel=self._radio_panel,
                 export_service=self._export_service,
                 parent_widget=self,
+            )
+
+        if self._equalizer_service is not None:
+            self._eq_controller = EqualizerController(
+                player_bar=self._player_bar,
+                eq_service=self._equalizer_service,
+                eq_widget=self._eq_panel,
             )
 
     # ------------------------------------------------------------------

@@ -18,6 +18,8 @@ AudioRep es un reproductor de música de escritorio para Windows, hecho en Pytho
 
 - **Visualización en vivo** — panel derecho con información de la pista actual (portada, título, artista, álbum, año y sello discográfico cuando está disponible) y un vúmetro estéreo que analiza el audio en tiempo real (canales L/R con barras de colores y peak hold).
 
+- **Ecualizador gráfico** — accesible mediante el botón **EQ** en la barra de controles inferior (siempre visible). Incluye 10 bandas de frecuencia ajustables de -20 a +20 dB más preamp, 18 presets predefinidos (Flat, Rock, Pop, Dance, Classical, Jazz y más) y la posibilidad de guardar presets personalizados. El estado del ecualizador se conserva entre sesiones.
+
 - **Configuración** — accesible desde el menú *Archivo → Configuración*. Permite ingresar la API key de AcoustID y definir el formato y directorio de ripeo.
 
 ---
@@ -82,8 +84,8 @@ Toda la inyección de dependencias ocurre en `main.py`, que actúa como raíz de
 
 | Plataforma | Versión | Fecha | Archivo | Tamaño |
 |---|---|---|---|---|
-| Windows 10/11 | 0.81 | Mayo 2026 | `AudioRep-0.81.0-windows.zip` | ~120 MB |
-| Linux Debian/Ubuntu | 0.81 | Mayo 2026 | `audiorep_0.81.0_amd64.deb` | ~84 MB |
+| Windows 10/11 | 0.82 | Mayo 2026 | `AudioRep-0.82.0-windows.zip` | ~120 MB |
+| Linux Debian/Ubuntu | 0.82 | Mayo 2026 | `audiorep_0.82.0_amd64.deb` | ~84 MB |
 
 Los instaladores están disponibles en la sección [Releases](https://github.com/mugolini-14/AudioRep/releases) del repositorio.
 

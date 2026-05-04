@@ -2,6 +2,22 @@
 
 ---
 
+# 0.82 — Ecualizador gráfico de 10 bandas
+
+**Fecha:** 3 de mayo de 2026
+
+### Agregado
+
+- **Ecualizador gráfico de 10 bandas** — el botón **EQ** en la barra de controles inferior (siempre visible, independientemente del tab activo) abre el diálogo del ecualizador. Incluye:
+  - Preamp y 10 bandas de frecuencia (60Hz a 16kHz) ajustables de -20 a +20 dB mediante sliders verticales.
+  - 18 presets predefinidos de VLC: Flat, Classical, Club, Dance, Fullbass, Full Treble, Headphones, Large Hall, Live, Party, Pop, Reggae, Rock, Ska, Soft, Softrock, Techno y más.
+  - Posibilidad de guardar presets personalizados con nombre propio y eliminarlos individualmente.
+  - Botón "Resetear a 0" para volver todos los sliders a plano.
+  - El estado del ecualizador (activo/inactivo y preset seleccionado) se conserva entre sesiones.
+  - El EQ se aplica en tiempo real sin interrumpir la reproducción.
+
+---
+
 # 0.81 — Exportación de lista de radios a Excel, PDF y CSV
 
 **Fecha:** 3 de mayo de 2026

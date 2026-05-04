@@ -355,6 +355,122 @@ QPushButton#volumeIcon:pressed {
     background-color: rgba(255, 255, 255, 0.18);
 }
 
+/* ── Botón EQ en PlayerBar ────────────────────────────────────────── */
+
+QPushButton#eqButton {
+    background-color: transparent;
+    color: #55557a;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+QPushButton#eqButton:hover {
+    background-color: rgba(255, 255, 255, 0.10);
+    color: #a0a0c0;
+}
+
+QPushButton#eqButton:checked {
+    background-color: rgba(124, 92, 191, 0.20);
+    color: #7c5cbf;
+}
+
+QPushButton#eqButton:checked:hover {
+    background-color: rgba(124, 92, 191, 0.30);
+    color: #8d6dd0;
+}
+
+/* ── Panel embebido del ecualizador ──────────────────────────────── */
+
+QWidget#eqPanel {
+    background-color: #18182a;
+    border-top: 1px solid #2a2a3e;
+}
+
+QCheckBox#eqEnableCheck {
+    color: #e2e2f0;
+    font-size: 12px;
+    font-weight: bold;
+    spacing: 6px;
+}
+
+QCheckBox#eqEnableCheck::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #33334a;
+    border-radius: 3px;
+    background-color: #2a2a3e;
+}
+
+QCheckBox#eqEnableCheck::indicator:checked {
+    background-color: #7c5cbf;
+    border-color: #7c5cbf;
+}
+
+QLabel#eqLabel, QLabel#eqFreqLabel {
+    color: #8888aa;
+    font-size: 11px;
+}
+
+QLabel#eqValueLabel {
+    color: #c0c0e0;
+    font-size: 11px;
+}
+
+QWidget#eqSlidersPanel {
+    background-color: #18182a;
+    border: 1px solid #2a2a3e;
+    border-radius: 6px;
+}
+
+QSlider#eqSlider::groove:vertical {
+    background-color: #2a2a3e;
+    width: 4px;
+    border-radius: 2px;
+}
+
+QSlider#eqSlider::handle:vertical {
+    background-color: #7c5cbf;
+    height: 14px;
+    width: 14px;
+    margin: 0 -5px;
+    border-radius: 7px;
+}
+
+QSlider#eqSlider::handle:vertical:hover {
+    background-color: #8d6dd0;
+}
+
+QSlider#eqSlider::sub-page:vertical {
+    background-color: #5a3d9a;
+    border-radius: 2px;
+}
+
+QSlider#eqSlider::add-page:vertical {
+    background-color: #2a2a3e;
+    border-radius: 2px;
+}
+
+QPushButton#eqSaveBtn, QPushButton#eqDeleteBtn, QPushButton#eqResetBtn {
+    background-color: #4a3480;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+QPushButton#eqSaveBtn:hover, QPushButton#eqDeleteBtn:hover, QPushButton#eqResetBtn:hover {
+    background-color: #5a409a;
+}
+
+QPushButton#eqSaveBtn:disabled, QPushButton#eqDeleteBtn:disabled {
+    background-color: #252538;
+    color: #55557a;
+}
+
 /* ── Barra de estado ──────────────────────────────────────────────── */
 
 QStatusBar {

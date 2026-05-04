@@ -17,6 +17,7 @@ from audiorep.domain.artist import Artist
 from audiorep.domain.cd_disc import CDDisc
 from audiorep.domain.label import Label
 from audiorep.domain.playlist import Playlist
+from audiorep.domain.eq_preset import EqPreset
 from audiorep.domain.radio_station import RadioStation
 from audiorep.domain.track import Track
 
@@ -241,3 +242,18 @@ class ICDRipper(Protocol):
         output_dir: str,
         format: str = "flac",
     ) -> None: ...
+
+
+# ==================================================================
+# Ecualizador
+# ==================================================================
+
+class IEqPresetRepository(Protocol):
+    """
+    Repositorio de presets de usuario del ecualizador.
+    Implementado por EqPresetRepository (SQLite).
+    """
+
+    def get_all(self) -> list[EqPreset]: ...
+    def save(self, preset: EqPreset) -> None: ...
+    def delete(self, name: str) -> None: ...

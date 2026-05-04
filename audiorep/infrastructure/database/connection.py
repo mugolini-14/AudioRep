@@ -136,6 +136,12 @@ class DatabaseConnection:
             self._conn.commit()
             logger.info("Migración v3 aplicada (labels, release_type, artist.country).")
 
+        if version < 4:
+            self._migrate_v4()
+            self._conn.execute("PRAGMA user_version = 4")
+            self._conn.commit()
+            logger.info("Migración v4 aplicada (eq_presets).")
+
         # Reparación de esquema: agrega columnas que pueden faltar en bases de
         # datos creadas antes de que se agregaran al esquema original.
         self._repair_schema()
@@ -274,4 +280,25 @@ class DatabaseConnection:
             );
 
             CREATE INDEX IF NOT EXISTS idx_labels_name ON labels(name);
+        """)
+
+    def _migrate_v4(self) -> None:
+        """Migración 4: tabla eq_presets para presets de usuario del ecualizador."""
+        assert self._conn is not None
+        self._conn.executescript("""
+            CREATE TABLE IF NOT EXISTS eq_presets (
+                id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                name    TEXT    NOT NULL UNIQUE,
+                preamp  REAL    NOT NULL DEFAULT 0.0,
+                band_0  REAL    NOT NULL DEFAULT 0.0,
+                band_1  REAL    NOT NULL DEFAULT 0.0,
+                band_2  REAL    NOT NULL DEFAULT 0.0,
+                band_3  REAL    NOT NULL DEFAULT 0.0,
+                band_4  REAL    NOT NULL DEFAULT 0.0,
+                band_5  REAL    NOT NULL DEFAULT 0.0,
+                band_6  REAL    NOT NULL DEFAULT 0.0,
+                band_7  REAL    NOT NULL DEFAULT 0.0,
+                band_8  REAL    NOT NULL DEFAULT 0.0,
+                band_9  REAL    NOT NULL DEFAULT 0.0
+            );
         """)

@@ -237,6 +237,7 @@ class VLCPlayer:
         self._player: vlc.MediaPlayer = self._instance.media_player_new()
         self._bridge: _SDAudioBridge | None = None
         self._analyzer: _RMSAnalyzer | None = None
+        self._current_eq: object = None   # evita que el GC libere el puntero del EQ
 
         self._setup_audio_analysis()
         logger.debug("VLCPlayer inicializado (análisis=%s).", self._bridge is not None)
@@ -367,3 +368,42 @@ class VLCPlayer:
     @property
     def is_paused(self) -> bool:
         return self._player.get_state() == vlc.State.Paused
+
+    # ------------------------------------------------------------------
+    # Ecualizador (API nativa libVLC)
+    # ------------------------------------------------------------------
+
+    def apply_equalizer(self, preamp: float, bands: list[float]) -> None:
+        """Aplica el ecualizador en tiempo real. bands: lista de 10 valores en dB (-20 a +20)."""
+        eq = vlc.libvlc_audio_equalizer_new()
+        vlc.libvlc_audio_equalizer_set_preamp(eq, max(-20.0, min(20.0, preamp)))
+        for i, amp in enumerate(bands[:10]):
+            vlc.libvlc_audio_equalizer_set_amp_at_index(eq, max(-20.0, min(20.0, amp)), i)
+        vlc.libvlc_media_player_set_equalizer(self._player, eq)
+        # Mantener referencia para que el GC no libere el puntero mientras VLC lo usa.
+        self._current_eq = eq
+        logger.debug("VLCPlayer: EQ aplicado (preamp=%.1f)", preamp)
+
+    def disable_equalizer(self) -> None:
+        """Desactiva el ecualizador."""
+        vlc.libvlc_media_player_set_equalizer(self._player, None)
+        self._current_eq = None
+        logger.debug("VLCPlayer: EQ desactivado.")
+
+    @staticmethod
+    def get_eq_preset_count() -> int:
+        return vlc.libvlc_audio_equalizer_get_preset_count()
+
+    @staticmethod
+    def get_eq_preset_name(index: int) -> str:
+        raw = vlc.libvlc_audio_equalizer_get_preset_name(index)
+        return raw.decode() if isinstance(raw, bytes) else str(raw)
+
+    @staticmethod
+    def get_eq_preset_bands(index: int) -> tuple[float, list[float]]:
+        """Retorna (preamp, [10 bandas]) para el preset VLC con el índice dado."""
+        eq = vlc.libvlc_audio_equalizer_new_from_preset(index)
+        preamp = vlc.libvlc_audio_equalizer_get_preamp(eq)
+        bands  = [vlc.libvlc_audio_equalizer_get_amp_at_index(eq, i) for i in range(10)]
+        vlc.libvlc_audio_equalizer_release(eq)
+        return float(preamp), [float(b) for b in bands]

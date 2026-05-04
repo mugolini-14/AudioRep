@@ -45,6 +45,7 @@ class PlayerBar(QWidget):
     previous_clicked   = pyqtSignal()
     seek_requested     = pyqtSignal(int)
     volume_changed     = pyqtSignal(int)
+    eq_toggled         = pyqtSignal(bool)   # True = abrir/activar, False = cerrar
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -160,6 +161,18 @@ class PlayerBar(QWidget):
 
         row1.addSpacing(8)
 
+        # Ecualizador
+        self._eq_btn = QPushButton("EQ")
+        self._eq_btn.setObjectName("eqButton")
+        self._eq_btn.setFixedSize(46, 46)
+        self._eq_btn.setCheckable(True)
+        self._eq_btn.setToolTip("Ecualizador")
+        self._eq_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self._eq_btn.toggled.connect(self.eq_toggled)
+        row1.addWidget(self._eq_btn)
+
+        row1.addSpacing(4)
+
         # Volumen
         self._vol_icon_btn = QPushButton("🔊")
         self._vol_icon_btn.setObjectName("volumeIcon")
@@ -216,6 +229,12 @@ class PlayerBar(QWidget):
         self._seek_slider.setValue(0)
         self._pos_label.setText("0:00")
         self._dur_label.setText("0:00")
+
+    def set_eq_active(self, active: bool) -> None:
+        """Sincroniza el estado visual del botón EQ sin emitir eq_toggled."""
+        self._eq_btn.blockSignals(True)
+        self._eq_btn.setChecked(active)
+        self._eq_btn.blockSignals(False)
 
     def set_volume(self, volume: int) -> None:
         self._vol_slider.blockSignals(True)

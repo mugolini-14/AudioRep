@@ -51,6 +51,7 @@ Estado de implementación:
     ✅ Paso 44 — Fix stats: _strip_featuring, _normalize_label, dedup países artistas, label country via get_label_by_id + caché; layout Álbumes: Décadas + Tipo de álbum emparejados, v0.79
     ✅ Paso 45 — Exportación de emisoras guardadas a M3U8 (ExportService.export_radio_m3u, RadioPanel botón Exportar, RadioController), v0.80
     ✅ Paso 46 — Exportación de lista de radios a XLSX/PDF/CSV (export_radio_xlsx/pdf/csv); botón "Exportar Radio" + "Exportar Lista de Radios" en pestaña Guardadas, v0.81
+    ✅ Paso 47 — Ecualizador gráfico de 10 bandas: EqualizerService, EqualizerWidget (sliders -20/+20dB), botón EQ en PlayerBar, 18 presets VLC built-in + presets de usuario en SQLite, v0.82
 """
 import os
 import sys
@@ -115,7 +116,7 @@ def _maybe_auto_enrich(settings: "AppSettings", enrichment_service: object) -> N
 def main() -> None:
     app = QApplication(sys.argv)
     app.setApplicationName("AudioRep")
-    app.setApplicationVersion("0.81.0")
+    app.setApplicationVersion("0.82.0")
     app.setOrganizationName("AudioRep")
 
     # ── Settings ──────────────────────────────────────────────────────── #
@@ -133,6 +134,7 @@ def main() -> None:
     from audiorep.infrastructure.database.repositories.playlist_repository import PlaylistRepository
     from audiorep.infrastructure.database.repositories.radio_station_repository import RadioStationRepository
     from audiorep.infrastructure.database.repositories.label_repository import LabelRepository
+    from audiorep.infrastructure.database.repositories.eq_preset_repository import EqPresetRepository
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     db = DatabaseConnection(DB_PATH)
@@ -144,6 +146,7 @@ def main() -> None:
     playlist_repo      = PlaylistRepository(db)
     radio_station_repo = RadioStationRepository(db)
     label_repo         = LabelRepository(db)
+    eq_preset_repo     = EqPresetRepository(db)
 
     logger.info("Base de datos lista en: %s", DB_PATH)
 
@@ -187,6 +190,7 @@ def main() -> None:
     from audiorep.services.radio_service import RadioService
     from audiorep.services.stats_service import StatsService
     from audiorep.services.export_service import ExportService
+    from audiorep.services.equalizer_service import EqualizerService
 
     player_service = PlayerService(player=vlc_player, track_repo=track_repo)
     logger.info("PlayerService listo.")
@@ -244,7 +248,12 @@ def main() -> None:
 
     stats_service  = StatsService()
     export_service = ExportService()
-    logger.info("StatsService y ExportService listos.")
+    equalizer_service = EqualizerService(
+        vlc_player=vlc_player,
+        preset_repo=eq_preset_repo,
+        settings=settings,
+    )
+    logger.info("StatsService, ExportService y EqualizerService listos.")
 
     from audiorep.infrastructure.api.lastfm_client import LastFmClient
     from audiorep.services.enrichment_service import EnrichmentService
@@ -280,6 +289,7 @@ def main() -> None:
         settings=settings,
         cd_lookup_providers=cd_lookup_providers,
         enrichment_service=enrichment_service,
+        equalizer_service=equalizer_service,
     )
     window.show()
 

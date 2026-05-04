@@ -103,6 +103,24 @@ class AppSettings:
     def lastfm_api_key(self, value: str) -> None:
         self._qs.setValue("lastfm/api_key", value)
 
+    # ── Ecualizador ───────────────────────────────────────────────────
+
+    @property
+    def eq_enabled(self) -> bool:
+        return self._qs.value("eq/enabled", False, type=bool)  # type: ignore[call-overload]
+
+    @eq_enabled.setter
+    def eq_enabled(self, value: bool) -> None:
+        self._qs.setValue("eq/enabled", value)
+
+    @property
+    def eq_preset_name(self) -> str:
+        return str(self._qs.value("eq/preset_name", "Flat"))
+
+    @eq_preset_name.setter
+    def eq_preset_name(self, value: str) -> None:
+        self._qs.setValue("eq/preset_name", value)
+
     # ── Métodos de ciclo de vida ──────────────────────────────────────
 
     def sync(self) -> None:
