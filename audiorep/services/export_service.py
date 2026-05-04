@@ -18,6 +18,9 @@ Métodos principales:
     export_stats_pdf(stats, filepath)             — solo sección estadísticas
     export_stats_csv(stats, filepath)             — estadísticas en CSV (Sección,Indicador,Valor)
     export_radio_m3u(stations, filepath)          — emisoras guardadas en M3U8
+    export_radio_xlsx(stations, filepath)         — lista de radios en Excel
+    export_radio_pdf(stations, filepath)          — lista de radios en PDF
+    export_radio_csv(stations, filepath)          — lista de radios en CSV
 """
 from __future__ import annotations
 
@@ -488,3 +491,129 @@ class ExportService:
                     display += f" — {' / '.join(meta_parts)}"
                 f.write(f"#EXTINF:-1,{display}\n")
                 f.write(f"{station.stream_url}\n")
+
+    # ------------------------------------------------------------------
+    # XLSX / PDF / CSV — lista de radios guardadas
+    # ------------------------------------------------------------------
+
+    _RADIO_HEADERS    = ["#", "Nombre", "País", "Género", "Bitrate", "URL"]
+    _RADIO_COL_WIDTHS = [5,   52,        14,     20,       12,        60]
+
+    @staticmethod
+    def _radio_rows(stations: list[RadioStation]) -> list[tuple]:
+        return [
+            (
+                i,
+                s.name or "",
+                s.country or "",
+                s.genre or "",
+                f"{s.bitrate_kbps} kbps" if s.bitrate_kbps else "",
+                s.stream_url or "",
+            )
+            for i, s in enumerate(stations, 1)
+        ]
+
+    def export_radio_xlsx(self, stations: list[RadioStation], filepath: str) -> None:
+        """Exporta la lista de emisoras guardadas a Excel con hipervínculos en la URL."""
+        import openpyxl
+        from openpyxl.styles import Alignment, Font, PatternFill
+
+        wb  = openpyxl.Workbook()
+        ws  = wb.active
+        ws.title = "Radios guardadas"  # type: ignore[union-attr]
+
+        hdr_font  = Font(bold=True, color="FFFFFF", size=11)
+        hdr_fill  = PatternFill("solid", fgColor="2D2D2D")
+        alt_fill  = PatternFill("solid", fgColor="F2F2F2")
+        data_font = Font(color="1A1A1A", size=11)
+        link_font = Font(color="0563C1", underline="single", size=11)
+        center    = Alignment(horizontal="center")
+        left      = Alignment(horizontal="left")
+
+        for col, (h, w) in enumerate(zip(self._RADIO_HEADERS, self._RADIO_COL_WIDTHS), 1):
+            cell = ws.cell(row=1, column=col, value=h)  # type: ignore[union-attr]
+            cell.font      = hdr_font
+            cell.fill      = hdr_fill
+            cell.alignment = center
+            ws.column_dimensions[cell.column_letter].width = w  # type: ignore[union-attr]
+
+        url_col = len(self._RADIO_HEADERS)  # última columna = URL
+        for row_idx, row in enumerate(self._radio_rows(stations), 2):
+            is_alt = row_idx % 2 == 0
+            for col, val in enumerate(row, 1):
+                cell = ws.cell(row=row_idx, column=col, value=val)  # type: ignore[union-attr]
+                if col == url_col and val:
+                    cell.hyperlink = str(val)
+                    cell.font      = Font(color="0563C1", underline="single", size=11,
+                                         italic=is_alt)
+                else:
+                    cell.font      = data_font
+                cell.alignment = center if col in (1, 5) else left
+                if is_alt and col != url_col:
+                    cell.fill = alt_fill
+
+        ws.freeze_panes = "A2"  # type: ignore[union-attr]
+        wb.save(filepath)
+
+    def export_radio_pdf(self, stations: list[RadioStation], filepath: str) -> None:
+        """Exporta la lista de emisoras guardadas a PDF en landscape con URLs clickeables."""
+        from fpdf import FPDF
+
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_margins(10, 10, 10)
+        # Landscape A4: 297×210mm, útil ~277mm
+        pdf.add_page(orientation="L")
+
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.set_text_color(0, 0, 0)
+        pdf.cell(0, 10, "AudioRep - Radios guardadas", new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font("Helvetica", size=9)
+        pdf.set_text_color(80, 80, 80)
+        pdf.cell(0, 5, f"{len(stations)} emisoras", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(3)
+
+        # Anchos de columna en mm (~277mm útiles en landscape)
+        col_w   = [8, 65, 18, 28, 18, 140]
+        headers = ["#", "Nombre", "Pais", "Genero", "Bitrate", "URL"]
+
+        pdf.set_fill_color(210, 210, 210)
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font("Helvetica", "B", 9)
+        for w, h in zip(col_w, headers):
+            pdf.cell(w, 6, h, border=1, fill=True)
+        pdf.ln()
+
+        for i, s in enumerate(stations, 1):
+            is_alt = i % 2 == 0
+            pdf.set_fill_color(242, 242, 242) if is_alt else pdf.set_fill_color(255, 255, 255)
+            pdf.set_font("Helvetica", size=9)
+            bitrate   = f"{s.bitrate_kbps} kbps" if s.bitrate_kbps else ""
+            stream_url = s.stream_url or ""
+            data_cols = [
+                (col_w[0], str(i),                       False),
+                (col_w[1], (s.name    or "")[:38],       False),
+                (col_w[2], (s.country or "")[:10],       False),
+                (col_w[3], (s.genre   or "")[:16],       False),
+                (col_w[4], bitrate[:12],                 False),
+                (col_w[5], stream_url[:90],              True),
+            ]
+            for w, val, is_url in data_cols:
+                if is_url and stream_url:
+                    pdf.set_text_color(5, 99, 193)
+                    pdf.cell(w, 5, val, border="B", fill=True, link=stream_url)
+                    pdf.set_text_color(30, 30, 30)
+                else:
+                    pdf.set_text_color(30, 30, 30)
+                    pdf.cell(w, 5, val, border="B", fill=True)
+            pdf.ln()
+
+        pdf.output(filepath)
+
+    def export_radio_csv(self, stations: list[RadioStation], filepath: str) -> None:
+        """Exporta la lista de emisoras guardadas a CSV (UTF-8 con BOM para Excel)."""
+        with open(filepath, "w", newline="", encoding="utf-8-sig") as f:
+            writer = csv.DictWriter(f, fieldnames=self._RADIO_HEADERS)
+            writer.writeheader()
+            for row in self._radio_rows(stations):
+                writer.writerow(dict(zip(self._RADIO_HEADERS, row)))

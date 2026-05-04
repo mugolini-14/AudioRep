@@ -67,6 +67,7 @@ class RadioController:
         panel.delete_requested.connect(self._on_delete_requested)
         panel.favorite_toggled.connect(self._on_favorite_toggled)
         panel.export_saved_requested.connect(self._on_export_saved_requested)
+        panel.export_radio_list_requested.connect(self._on_export_radio_list_requested)
 
     # ------------------------------------------------------------------
     # Conexiones: RadioService → RadioPanel
@@ -164,4 +165,34 @@ class RadioController:
             logger.info("RadioController: exportadas %d emisoras → %s", len(stations), filepath)
         except Exception as exc:
             logger.error("RadioController: error al exportar M3U: %s", exc)
+            app_events.error_occurred.emit("Error al exportar", str(exc))
+
+    def _on_export_radio_list_requested(self) -> None:
+        stations = self._service.get_all_stations()
+        if not stations:
+            app_events.status_message.emit("No hay emisoras guardadas para exportar.")
+            return
+        filepath, selected_filter = QFileDialog.getSaveFileName(
+            self._parent_widget,
+            "Exportar lista de radios",
+            "radios_guardadas",
+            "Excel (*.xlsx);;PDF (*.pdf);;CSV (*.csv)",
+        )
+        if not filepath:
+            return
+        try:
+            if filepath.endswith(".xlsx") or "xlsx" in selected_filter.lower():
+                self._export_service.export_radio_xlsx(stations, filepath)
+            elif filepath.endswith(".pdf") or "pdf" in selected_filter.lower():
+                self._export_service.export_radio_pdf(stations, filepath)
+            else:
+                if not filepath.endswith(".csv"):
+                    filepath += ".csv"
+                self._export_service.export_radio_csv(stations, filepath)
+            app_events.status_message.emit(
+                f"Lista de {len(stations)} radios exportada a {filepath}"
+            )
+            logger.info("RadioController: lista de radios exportada → %s", filepath)
+        except Exception as exc:
+            logger.error("RadioController: error al exportar lista de radios: %s", exc)
             app_events.error_occurred.emit("Error al exportar", str(exc))

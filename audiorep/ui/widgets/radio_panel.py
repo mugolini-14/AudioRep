@@ -55,6 +55,8 @@ class RadioPanel(QWidget):
             El usuario quiere alternar favorita de la emisora guardada (station_id).
         export_saved_requested():
             El usuario quiere exportar todas las emisoras guardadas a M3U.
+        export_radio_list_requested():
+            El usuario quiere exportar la lista de radios a XLSX/PDF/CSV.
     """
 
     search_requested        = pyqtSignal(str, str, str)   # (query, country, genre)
@@ -63,7 +65,8 @@ class RadioPanel(QWidget):
     save_requested          = pyqtSignal(object)           # RadioStation
     delete_requested        = pyqtSignal(int)              # station_id
     favorite_toggled        = pyqtSignal(int)              # station_id
-    export_saved_requested  = pyqtSignal()                 # exportar emisoras guardadas
+    export_saved_requested       = pyqtSignal()   # exportar emisoras guardadas a M3U
+    export_radio_list_requested  = pyqtSignal()   # exportar lista de radios a XLSX/PDF/CSV
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -203,12 +206,19 @@ class RadioPanel(QWidget):
 
         self._btn_saved_filter = QPushButton("Buscar")
         self._btn_saved_filter.setObjectName("RadioBtnSearch")
-        self._btn_saved_filter.setMinimumWidth(100)
+        self._btn_saved_filter.setMinimumWidth(80)
+
+        self._btn_export_saved = QPushButton("Exportar Radio")
+        self._btn_export_saved.setObjectName("RadioBtnExport")
+        self._btn_export_list = QPushButton("Exportar Lista de Radios")
+        self._btn_export_list.setObjectName("RadioBtnExportList")
 
         filter_row.addWidget(self._saved_filter_input)
         filter_row.addWidget(self._saved_country_filter)
         filter_row.addWidget(self._saved_genre_filter)
         filter_row.addWidget(self._btn_saved_filter)
+        filter_row.addWidget(self._btn_export_saved)
+        filter_row.addWidget(self._btn_export_list)
         layout.addLayout(filter_row)
 
         self._saved_table = QTableWidget()
@@ -234,14 +244,6 @@ class RadioPanel(QWidget):
         self._saved_table.setColumnWidth(3, 75)
         self._saved_table.setSortingEnabled(True)
         layout.addWidget(self._saved_table)
-
-        export_row = QHBoxLayout()
-        export_row.setContentsMargins(0, 4, 0, 0)
-        export_row.setSpacing(8)
-        self._btn_export_saved = QPushButton("⬇  Exportar M3U")
-        self._btn_export_saved.setObjectName("RadioBtnExport")
-        export_row.addWidget(self._btn_export_saved, stretch=1)
-        layout.addLayout(export_row)
 
         return tab
 
@@ -317,6 +319,7 @@ class RadioPanel(QWidget):
         self._btn_delete.clicked.connect(self._on_delete_clicked)
         self._btn_fav.clicked.connect(self._on_fav_clicked)
         self._btn_export_saved.clicked.connect(self.export_saved_requested)
+        self._btn_export_list.clicked.connect(self.export_radio_list_requested)
 
         # Filtros locales — Guardadas
         self._btn_saved_filter.clicked.connect(self._apply_saved_filter)

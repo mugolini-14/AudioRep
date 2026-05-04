@@ -2,6 +2,20 @@
 
 ---
 
+# 0.81 — Exportación de lista de radios a Excel, PDF y CSV
+
+**Fecha:** 3 de mayo de 2026
+
+### Agregado
+
+- **Exportación de lista de radios a Excel, PDF y CSV** — el botón "Exportar Lista de Radios" en la pestaña Guardadas abre un diálogo para elegir el formato y la ruta de destino. El archivo generado incluye todas las columnas de la grilla (nombre, país, género, bitrate) más la URL del stream de cada emisora, con el mismo estilo visual profesional que las exportaciones de biblioteca.
+
+### Modificado
+
+- **Botones de exportación estandarizados** — el botón "Exportar M3U" pasó a llamarse "Exportar Radio" y ahora comparte fila con el nuevo botón "Exportar Lista de Radios". El padding horizontal de todos los botones del panel de radio se redujo para que ambos quepan cómodamente en la barra.
+
+---
+
 # 0.80 — Exportación de emisoras de radio a M3U
 
 **Fecha:** 3 de mayo de 2026

@@ -797,12 +797,13 @@ QPushButton#RadioBtnSearch,
 QPushButton#RadioBtnSave,
 QPushButton#RadioBtnDelete,
 QPushButton#RadioBtnFav,
-QPushButton#RadioBtnExport {
+QPushButton#RadioBtnExport,
+QPushButton#RadioBtnExportList {
     background-color: #4a3480;
     color: #ffffff;
     border: none;
     border-radius: 6px;
-    padding: 6px 14px;
+    padding: 6px 8px;
     font-size: 12px;
     font-weight: bold;
 }
@@ -813,7 +814,8 @@ QPushButton#RadioBtnSearch:hover,
 QPushButton#RadioBtnSave:hover,
 QPushButton#RadioBtnDelete:hover,
 QPushButton#RadioBtnFav:hover,
-QPushButton#RadioBtnExport:hover {
+QPushButton#RadioBtnExport:hover,
+QPushButton#RadioBtnExportList:hover {
     background-color: #5a409a;
 }
 
@@ -823,7 +825,8 @@ QPushButton#RadioBtnSearch:disabled,
 QPushButton#RadioBtnSave:disabled,
 QPushButton#RadioBtnDelete:disabled,
 QPushButton#RadioBtnFav:disabled,
-QPushButton#RadioBtnExport:disabled {
+QPushButton#RadioBtnExport:disabled,
+QPushButton#RadioBtnExportList:disabled {
     background-color: #252538;
     color: #55557a;
 }

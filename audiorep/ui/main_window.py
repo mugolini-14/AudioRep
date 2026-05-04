@@ -137,7 +137,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.setWindowTitle("AudioRep 0.80")
+        self.setWindowTitle("AudioRep 0.81")
         self.setMinimumSize(860, 520)
         self.resize(1200, 700)
 
